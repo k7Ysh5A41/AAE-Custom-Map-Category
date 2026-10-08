@@ -1,14 +1,14 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AAE Custom Map Catalog</title>
-<meta name="description" content="AAE 地图分类和创意工坊 UGC 数据浏览器">
+<meta name="description" content="Browse AAE custom map categories and Steam Workshop UGC IDs">
 <link rel="stylesheet" href="styles.css"><script src="app.js" defer></script>
 </head>
 <body>
-<header class="site-header"><div class="brand"><span class="brand-mark">AAE</span><div><strong>Custom Map Catalog</strong><small>地图分类目录 · 数据由 JSON 驱动</small></div></div><a href="custommap_cate.json" target="_blank" rel="noopener">查看 JSON ↗</a></header>
-<section class="intro"><p class="eyebrow">ALL-AROUND ENHANCEMENT</p><h1>地图分类目录</h1><p>浏览自定义僵尸地图分类，检索 Steam Workshop ID，查看 Lite 专属条目。</p><div class="stats"><div><strong id="groupCount">—</strong><span>分类</span></div><div><strong id="mapCount">—</strong><span>地图条目</span></div><div><strong id="liteCount">—</strong><span>Lite 专属</span></div></div></section>
-<main class="shell"><aside class="sidebar"><h2>分类</h2><nav id="categoryNav" aria-label="地图分类"></nav></aside><section class="content"><div class="toolbar"><div class="search"><label for="searchInput">搜索</label><input id="searchInput" type="search" placeholder="UGC ID / 分类名 / 本地化 Key"></div><label class="toggle"><input id="liteToggle" type="checkbox"> 仅显示 Lite 专属</label><button id="exportCsv" type="button">导出 CSV</button></div><div class="section-heading"><h2 id="viewTitle">全部地图</h2><span id="resultCount"></span></div><div id="catalog" class="catalog" aria-live="polite"><p>加载地图数据中…</p></div><p id="errorMessage" class="error" hidden></p></section></main>
-<footer><span>AAE · Custom Map Catalog</span><span>编辑 <code>custommap_cate.json</code> 即可更新目录</span></footer>
+<header class="site-header"><div class="brand"><span class="brand-mark">AAE</span><div><strong>Custom Map Catalog</strong><small>Map categories · Powered by JSON</small></div></div><a href="custommap_cate.json" target="_blank" rel="noopener">View JSON ↗</a></header>
+<section class="intro"><p class="eyebrow">ALL-AROUND ENHANCEMENT</p><h1>Custom Map Catalog</h1><p>Explore custom Zombies map categories, search Steam Workshop IDs, and filter Lite-only entries.</p><div class="stats"><div><strong id="groupCount">—</strong><span>Categories</span></div><div><strong id="mapCount">—</strong><span>Map Entries</span></div><div><strong id="liteCount">—</strong><span>Lite Only</span></div></div></section>
+<main class="shell"><aside class="sidebar"><h2>Categories</h2><nav id="categoryNav" aria-label="Map categories"></nav></aside><section class="content"><div class="toolbar"><div class="search"><label for="searchInput">Search</label><input id="searchInput" type="search" placeholder="UGC ID / Category / Localization Key"></div><label class="toggle"><input id="liteToggle" type="checkbox"> Lite-only maps</label><button id="exportCsv" type="button">Export CSV</button></div><div class="section-heading"><h2 id="viewTitle">All Maps</h2><span id="resultCount"></span></div><div id="catalog" class="catalog" aria-live="polite"><p>Loading map data…</p></div><p id="errorMessage" class="error" hidden></p></section></main>
+<footer><span>AAE · Custom Map Catalog</span><span>Edit <code>custommap_cate.json</code> to update this catalog</span></footer>
 </body></html>
