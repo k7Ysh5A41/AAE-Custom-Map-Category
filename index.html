@@ -6,9 +6,9 @@
 <meta name="theme-color" content="#050507">
 <meta name="description" content="All-Around Enhancement — a Black Ops III Zombies-style catalog of public Steam Workshop maps.">
 <title>All-Around Enhancement — Map Catalog</title>
-<link rel="stylesheet" href="styles.css?v=sync-i18n-cache-fix-20261008-2">
-<script src="translations.js?v=sync-i18n-cache-fix-20261008-2" defer></script>
-<script src="app.js?v=sync-i18n-cache-fix-20261008-2" defer></script>
+<link rel="stylesheet" href="styles.css?v=sync-copy-simplified-20261008">
+<script src="translations.js?v=sync-copy-simplified-20261008" defer></script>
+<script src="app.js?v=sync-copy-simplified-20261008" defer></script>
 </head>
 <body>
 <div class="game-shell">
@@ -112,7 +112,7 @@
         <textarea id="changeReason" name="reason" maxlength="400" minlength="5" rows="4" required data-i18n-placeholder="changeReasonPlaceholder" placeholder="Explain why this map should be recategorized"></textarea>
         <p id="changeMapError" class="submit-error" role="alert" hidden></p>
         <p class="submit-github-notice" data-i18n="changeGithubNotice">A GitHub login is required to confirm the request. The current map stays unchanged until a reviewer merges the PR.</p>
-        <p class="submission-game-sync" data-i18n="submissionGameSync">Sending a request does not update the game immediately. First create a GitHub Issue. The system prepares a PR for review, and only after the maintainer merges it will approved map updates synchronize to the game.</p>
+        <p class="submission-game-sync" data-i18n="submissionGameSync">After the PR is reviewed and merged, the map list syncs to the game automatically. No AAE update is needed.</p>
         <div class="submit-actions">
           <button id="changeMapCancel" type="button" data-i18n="cancel">CANCEL</button>
           <button id="changeMapSubmit" class="submit-confirm" type="submit" data-i18n="submitRequest">SUBMIT REQUEST</button>
@@ -138,7 +138,7 @@
         <textarea id="submitNotes" name="notes" rows="3" maxlength="400" placeholder="Optional information for the reviewer" data-i18n-placeholder="notesPlaceholder"></textarea>
         <p class="submit-error" id="submitMapError" role="alert" hidden></p>
         <p class="submit-github-notice" data-i18n="confirmAccount">A GitHub account is required to confirm your submission. After confirmation, validation and PR creation run automatically.</p>
-        <p class="submission-game-sync" data-i18n="submissionGameSync">Sending a request does not update the game immediately. First create a GitHub Issue. The system prepares a PR for review, and only after the maintainer merges it will approved map updates synchronize to the game.</p>
+        <p class="submission-game-sync" data-i18n="submissionGameSync">After the PR is reviewed and merged, the map list syncs to the game automatically. No AAE update is needed.</p>
         <div class="submit-actions">
           <button type="button" id="submitMapCancel" data-i18n="cancel">CANCEL</button>
           <button type="submit" class="submit-confirm" data-i18n="submitRequest">SUBMIT REQUEST</button>
@@ -159,12 +159,12 @@
       <ol id="githubGuideSteps" class="github-guide-steps"></ol>
       <p class="github-guide-note" data-i18n="githubGuideNote"></p>
       <section class="github-guide-game-sync" aria-labelledby="githubGuideGameSyncTitle">
-        <h3 id="githubGuideGameSyncTitle" data-i18n="githubGuideGameSyncTitle">WHEN DOES THE GAME GET UPDATED?</h3>
-        <p data-i18n="githubGuideGameSyncBody">An Issue is your request. The system checks it and creates a PR (proposed change). A maintainer must review and Merge the PR first. Once merged, the approved change is synchronized to the game and appears when it obtains the updated map catalog. Merely opening the Issue or PR does not change the game.</p>
+        <h3 id="githubGuideGameSyncTitle" data-i18n="githubGuideGameSyncTitle">WHEN WILL IT APPEAR IN THE GAME?</h3>
+        <p data-i18n="githubGuideGameSyncBody">Submit an Issue on GitHub. The system creates a PR for review. Once the maintainer merges it, the change automatically syncs to the game when it next loads the updated map list. You do not need to update AAE.</p>
       </section>
       <section class="github-guide-pr-explainer" aria-labelledby="githubGuidePRWhatTitle">
          <h3 id="githubGuidePRWhatTitle" data-i18n="githubGuidePRWhatTitle">WHAT IS A PR (PULL REQUEST)?</h3>
-         <p data-i18n="githubGuidePRWhatBody">A PR proposes a change to the map catalog. A GitHub Issue starts the request; automation prepares the PR for review.</p>
+         <p data-i18n="githubGuidePRWhatBody">A PR (Pull Request) is a proposed change for the maintainer to review. You submit an Issue; the system creates the PR automatically. Only merged PRs become official.</p>
        </section>
       <div class="submit-actions github-guide-actions">
         <button id="githubGuideBack" type="button" data-i18n="githubGuideBack">← BACK TO FORM</button>
