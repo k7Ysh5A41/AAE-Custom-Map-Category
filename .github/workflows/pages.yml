@@ -3,6 +3,8 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  pull_request_target:
+    types: [opened, reopened, synchronize, closed, edited]
   schedule:
     - cron: "17 3 * * *"
 permissions:
@@ -14,6 +16,10 @@ concurrency:
   cancel-in-progress: true
 jobs:
   deploy:
+    if: >-
+      github.event_name != 'pull_request_target' ||
+      (github.event.pull_request.head.repo.full_name == github.repository &&
+       startsWith(github.event.pull_request.head.ref, 'community-maps/issue-'))
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -41,6 +47,32 @@ jobs:
           assert parse_proposal(proposal)[0] == "1234567890"
           print("Submission workflow validation passed.")
           PY
+      - name: Validate pending PR feed parser
+        run: |
+          python3 -m py_compile scripts/fetch_pending_prs.py scripts/fetch_steam.py
+          python3 - <<'PY'
+          import sys
+          sys.path.insert(0, "scripts")
+          from fetch_pending_prs import catalog_info, parse_pending
+          categories, existing = catalog_info()
+          category = sorted(categories)[0]
+          pr = {
+              "state": "open", "draft": False, "number": 17,
+              "created_at": "2026-10-08T07:20:05Z",
+              "head": {"repo": {"full_name": "k7Ysh5A41/AAE-Custom-Map-Category"},
+                       "ref": "community-maps/issue-16"},
+              "base": {"ref": "main"},
+              "html_url": "https://github.com/k7Ysh5A41/AAE-Custom-Map-Category/pull/17",
+              "body": "<!-- aae-map-pr:v1 -->\nWorkshop ID: 999888777666\n"
+                      f"Category: {category}\n",
+          }
+          assert parse_pending(pr, categories, existing)["id"] == "999888777666"
+          assert parse_pending({**pr, "state": "closed"}, categories, existing) is None
+          assert parse_pending(pr, categories, existing | {"999888777666"}) is None
+          assert parse_pending({**pr, "head": {"repo": {"full_name": "other/repo"},
+              "ref": "community-maps/issue-16"}}, categories, existing) is None
+          print("Pending PR feed validation passed.")
+          PY
       - name: Fetch AAE category localizations
         shell: bash
         run: |
@@ -58,6 +90,12 @@ jobs:
               echo "::warning::Missing $language localization; browsers can fall back to English."
             fi
           done
+      - name: Fetch pending community pull requests
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 -m py_compile scripts/fetch_pending_prs.py
+          python3 scripts/fetch_pending_prs.py
       - name: Fetch Steam Workshop metadata
         run: python3 scripts/fetch_steam.py
       - uses: actions/configure-pages@v5

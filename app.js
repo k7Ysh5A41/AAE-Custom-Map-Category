@@ -2,6 +2,8 @@
 
 const DATA_URL = "./custommap_cate.json";
 const STEAM_URL = "./steam_workshop.json";
+const PENDING_URL = "./pending_pr_maps.json";
+const NEW_PR_WINDOW_MS = 3 * 24 * 60 * 60 * 1000;
 const RESOURCE_TIMEOUT_MS = 10000;
 async function fetchWithTimeout(url, options = {}) {
     const controller = new AbortController();
@@ -81,7 +83,7 @@ function applyUiText() {
 const state = {
     categories: [], maps: [], selected: null, liteOnly: false,
     translations: new Map(), workshop: {}, steamReady: false, steamFailed: false,
-    activeMapId: null, query: "", languageChoice: savedLanguageChoice()
+    activeMapId: null, query: "", pendingReady: false, languageChoice: savedLanguageChoice()
 };
 let localizationRequestId = 0;
 const localizationCache = new Map();
@@ -325,6 +327,44 @@ function normalize(raw) {
     });
     return { categories, maps };
 }
+async function loadPendingPRMaps() {
+    // Snapshot is built from live open PRs at deployment and contains only
+    // same-repository community submissions; public Steam verification is
+    // still mandatory before a pending map can appear.
+    const response = await fetchWithTimeout(PENDING_URL, { cache: "no-store" });
+    if (!response.ok) throw new Error("Pending PR feed HTTP " + response.status);
+    const payload = await response.json();
+    if (!Array.isArray(payload?.items)) throw new Error("Invalid pending PR feed");
+    const byCategory = new Map(state.categories.map(category => [category.button, category]));
+    const seen = new Set(state.maps.map(map => map.id));
+    for (const entry of payload.items) {
+        const id = String(entry?.id || "");
+        const number = entry?.pr_number;
+        const category = byCategory.get(entry?.category);
+        if (!/^\d{7,20}$/.test(id) || !category || !Number.isSafeInteger(number) || number < 1 ||
+            entry?.pr_url !== "https://github.com/k7Ysh5A41/AAE-Custom-Map-Category/pull/" + number ||
+            !Number.isFinite(Date.parse(entry?.created_at)) || seen.has(id)) continue;
+        seen.add(id);
+        state.maps.push({
+            id, liteOnly:false, category, position:category.ugc.length + 1,
+            pending: { number, url:entry.pr_url, createdAt:entry.created_at }
+        });
+    }
+    state.pendingReady = true;
+    render();
+}
+function isNewPR(map) {
+    if (!map.pending) return false;
+    const elapsed = Date.now() - Date.parse(map.pending.createdAt);
+    return elapsed >= 0 && elapsed < NEW_PR_WINDOW_MS;
+}
+function pendingTags(map) {
+    if (!map.pending) return "";
+    return '<span class="pr-tags">' +
+        (isNewPR(map) ? '<span class="chip new-pr">' + escapeHtml(t("newMap")) + '</span>' : '') +
+        '<span class="chip pending-pr-chip" title="PR #' + map.pending.number + '">' +
+        escapeHtml(t("pendingPR")) + '</span></span>';
+}
 function publicMaps() {
     if (!state.steamReady) return [];
     return state.maps.filter(map => Boolean(getSteamInfo(map.id)));
@@ -391,6 +431,7 @@ function mapRow(map) {
     if (!info) return "";
     const chosen = state.activeMapId === map.id;
     return '<div class="map-row' + (chosen ? ' active' : '') +
+        (map.pending ? ' pending-proposal' : '') +
         '" role="option" aria-selected="' + (chosen ? "true" : "false") +
         '" tabindex="0" data-map-id="' + escapeHtml(map.id) + '">' +
         squareCover(info.preview_url) +
@@ -398,7 +439,7 @@ function mapRow(map) {
         escapeHtml(info.title) + '</h3><div class="map-publisher">' +
         escapeHtml(publisherName(info)) + '</div></div>' +
         (map.liteOnly ? '<span class="chip lite">' + escapeHtml(t("lite")) + '</span>' : '') +
-        '</div>';
+        pendingTags(map) + '</div>';
 }
 function renderPreview() {
     const map = filtered().find(item => item.id === state.activeMapId);
@@ -418,6 +459,8 @@ function renderPreview() {
     $("previewPane").innerHTML =
         '<div class="preview-topline"></div>' + squareCover(info.preview_url, true) +
         '<div class="preview-title-band">' + escapeHtml(info.title) + '</div>' +
+        (map.pending ? '<div class="preview-pr-status">' + pendingTags(map) +
+            ' <span>#' + map.pending.number + '</span></div>' : '') +
         '<h3 class="preview-heading">' + escapeHtml(t("mapInformation")) + '</h3>' +
         '<div class="preview-details"><p>' + escapeHtml(t("createdBy")) + ' <strong>' +
         escapeHtml(publisherName(info)) + '</strong></p>' +
@@ -427,7 +470,11 @@ function renderPreview() {
             '<p class="preview-blurb">' + escapeHtml(desc) + '</p>' : '') +
         '<div class="preview-buttons"><button data-copy="' + escapeHtml(map.id) +
         '">' + escapeHtml(t("copyId")) + '</button><a href="' + url +
-        '" target="_blank" rel="noopener noreferrer">' + escapeHtml(t("openWorkshop")) + '</a></div>';
+        '" target="_blank" rel="noopener noreferrer">' + escapeHtml(t("openWorkshop")) +
+        '</a>' +
+        (map.pending ? '<a class="view-pr" target="_blank" rel="noopener noreferrer" href="' +
+           escapeHtml(map.pending.url) + '">' + escapeHtml(t("viewPR")) + ' #' +
+           map.pending.number + ' ↗</a>' : '') + '</div>';
 }
 function render() {
     applyUiText();
@@ -736,6 +783,10 @@ async function init() {
 
         // Enrich the already visible map list as each optional source finishes.
         refreshLocalization();
+        loadPendingPRMaps().catch(error => {
+            // Approved catalog remains fully usable if the optional PR feed fails.
+            console.warn("Pending PR map feed unavailable:", error);
+        });
 
         loadSteamMetadata().then(error => {
             if (!error && state.selected === null && !state.liteOnly && !state.query.trim()) {

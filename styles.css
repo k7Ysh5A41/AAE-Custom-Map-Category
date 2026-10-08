@@ -1035,3 +1035,91 @@ body::after {
   }
   .header-actions .submit-trigger::after { display:none; }
 }
+
+
+/* Open PR proposals are visible but never styled as already approved. */
+.map-row.pending-proposal {
+  border-left:3px solid #ffd18b;
+  background-image:linear-gradient(94deg,rgba(255,180,74,.22),rgba(250,96,46,.085) 49%,transparent);
+}
+.map-row.pending-proposal.active,.map-row.pending-proposal[aria-selected="true"] {
+  border-left:4px solid #fff4c7;
+}
+.pr-tags {
+  flex:0 0 auto;display:flex;flex-direction:column;
+  justify-content:center;align-items:flex-end;gap:6px;
+  max-width:115px;min-width:0;
+}
+.pr-tags .chip {
+  display:inline-flex;align-items:center;justify-content:center;
+  min-height:26px;padding:4px 8px;
+  width:fit-content;max-width:100%;
+  border:1px solid #ffca7b;
+  background:#412910;color:#ffe2ab;
+  font:700 10px/1.15 "Segoe UI",Arial,sans-serif;
+  text-align:center;white-space:normal;letter-spacing:.04em;
+  box-shadow:0 0 9px 2px rgba(255,183,87,.38);
+}
+.pr-tags .chip.new-pr {
+  color:#082113;background:#83f3a8;border-color:#c1ffe0;
+  box-shadow:0 0 10px 2px rgba(114,255,164,.61),
+    0 0 24px rgba(107,255,153,.31);
+  font-weight:850;
+}
+.map-row.active .pr-tags .chip.pending-pr-chip {
+  background:#2a1508;color:#ffdda3;
+}
+.preview-pr-status {
+  display:flex;align-items:center;gap:12px;
+  padding:10px 2px 3px;flex-wrap:wrap;
+  color:#ffddb0;font-size:13px;
+}
+.preview-pr-status .pr-tags {flex-direction:row;align-items:center;max-width:none}
+.preview-pr-status .pr-tags .chip {font-size:12px;min-height:29px}
+.preview-buttons .view-pr {
+  background:rgba(85,54,19,.79);color:#ffe0a8;
+  border:1px solid #edac63;
+}
+.preview-buttons .view-pr:hover,.preview-buttons .view-pr:focus-visible {
+  color:#fff0d6;background:rgba(177,104,32,.66);
+}
+@media(max-width:650px) {
+  .pr-tags{max-width:76px;gap:4px}
+  .pr-tags .chip{padding:3px 5px;font-size:9px}
+  .preview-pr-status .pr-tags{max-width:none}
+}
+
+
+/* Solid black canvas: glow belongs to controls, not to the page background.
+   Remove the old full-height outlined pseudo-panels responsible for the
+   unwanted rectangular frame near the bottom of the page. */
+:root { --background:#000; }
+html,body {
+  background:#000!important;
+  background-image:none!important;
+}
+body::before,body::after,.game-shell::before {
+  content:none!important;
+  background:none!important;
+  animation:none!important;
+  box-shadow:none!important;
+}
+.game-shell,.game-content,.game-header,.sidebar,.selection-panel,.preview-pane {
+  background-color:transparent!important;
+  background-image:none!important;
+}
+.sidebar::before,.selection-panel::before,.preview-pane::before {
+  content:none!important;
+  display:none!important;
+  animation:none!important;
+}
+.sidebar,.selection-panel,.preview-pane {
+  border:0!important;
+  box-shadow:none!important;
+}
+.game-header {
+  border-bottom:1px solid rgba(255,139,79,.7);
+}
+.game-header::before {
+  background:none!important;
+}

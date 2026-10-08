@@ -5,6 +5,8 @@ Only UGC items confirmed as publicly visible (visibility == 0) appear in the
 deployed cache. Workshop IDs come exclusively from custommap_cate.json.
 Published item creators come from Steam's creator field; display names are
 resolved from publicly available Steam Community profiles when possible.
+Public Workshop IDs in eligible open review PRs are included temporarily,
+without editing custommap_cate.json.
 """
 from __future__ import annotations
 
@@ -21,6 +23,7 @@ from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "custommap_cate.json"
+PENDING_SOURCE = ROOT / "pending_pr_maps.json"
 DEST = ROOT / "steam_workshop.json"
 API = "https://api.steampowered.com/ISteamRemoteStorage/GetPublishedFileDetails/v1/"
 BATCH_SIZE = 50
@@ -36,6 +39,15 @@ def workshop_ids():
         for item in category.get("ugc", []):
             value = item.get("id") if isinstance(item, dict) else item
             key = str(value or "")
+            if key.isdecimal() and key not in seen:
+                ids.append(key)
+                seen.add(key)
+    if PENDING_SOURCE.is_file():
+        pending = json.loads(PENDING_SOURCE.read_text(encoding="utf-8"))
+        if not isinstance(pending.get("items"), list):
+            raise ValueError("Invalid pending PR map list")
+        for item in pending["items"]:
+            key = str(item.get("id", ""))
             if key.isdecimal() and key not in seen:
                 ids.append(key)
                 seen.add(key)

@@ -34,7 +34,7 @@ def github(method: str, endpoint: str, data=None, not_found_ok=False):
     })
     try:
         with urlopen(req, timeout=30) as res:
-            return json.load(res)
+            return {} if res.status == 204 else json.load(res)
     except HTTPError as exc:
         if exc.code == 404 and not_found_ok:
             return None
@@ -252,6 +252,12 @@ def main():
         })
         issue_comment(number, "Verified the public Steam map and opened a PR for review: " +
                       pull["html_url"])
+        # GITHUB_TOKEN-generated PRs do not emit new PR Actions events. Explicit
+        # workflow_dispatch refreshes the public pending PR catalog immediately.
+        try:
+            github("POST", "/actions/workflows/pages.yml/dispatches", {"ref": "main"})
+        except Exception as exc:
+            print("WARNING: Pages refresh dispatch failed:", exc, file=sys.stderr)
         print("PR created:", pull["html_url"])
     except ValueError as exc:
         issue_comment(number, "Map submission rejected: " + str(exc))

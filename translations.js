@@ -66,7 +66,10 @@ window.AAE_I18N = {
       "localizationError": "Localization unavailable: {detail}",
       "publicSteamError": "Public Steam verification unavailable ({detail}). Maps are hidden.",
       "failedCatalog": "Unable to load the map catalog: {detail}",
-      "mapCatalog": "MAP CATALOG"
+      "mapCatalog": "MAP CATALOG",
+      "pendingPR": "PENDING PR",
+      "newMap": "NEW",
+      "viewPR": "VIEW PR"
     },
     "zh-CN": {
       "submitMap": "提交地图",
@@ -128,7 +131,10 @@ window.AAE_I18N = {
       "localizationError": "语言资源不可用：{detail}",
       "publicSteamError": "无法验证公开 Steam 地图（{detail}），地图已隐藏。",
       "failedCatalog": "加载地图目录失败：{detail}",
-      "mapCatalog": "地图目录"
+      "mapCatalog": "地图目录",
+      "pendingPR": "PR 待审核",
+      "newMap": "新",
+      "viewPR": "查看 PR"
     },
     "zh-TW": {
       "submitMap": "提交地圖",
@@ -190,7 +196,10 @@ window.AAE_I18N = {
       "localizationError": "語言資源無法使用：{detail}",
       "publicSteamError": "無法驗證公開 Steam 地圖（{detail}），地圖已隱藏。",
       "failedCatalog": "載入地圖目錄失敗：{detail}",
-      "mapCatalog": "地圖目錄"
+      "mapCatalog": "地圖目錄",
+      "pendingPR": "PR 待審核",
+      "newMap": "新",
+      "viewPR": "檢視 PR"
     },
     "fr": {
       "submitMap": "PROPOSER UNE CARTE",
@@ -252,7 +261,10 @@ window.AAE_I18N = {
       "localizationError": "Traduction indisponible : {detail}",
       "publicSteamError": "Vérification Steam impossible ({detail}). Cartes masquées.",
       "failedCatalog": "Impossible de charger le catalogue : {detail}",
-      "mapCatalog": "CATALOGUE DES CARTES"
+      "mapCatalog": "CATALOGUE DES CARTES",
+      "pendingPR": "PR EN ATTENTE",
+      "newMap": "NOUVEAU",
+      "viewPR": "VOIR LA PR"
     },
     "de": {
       "submitMap": "KARTE EINREICHEN",
@@ -314,7 +326,10 @@ window.AAE_I18N = {
       "localizationError": "Übersetzung nicht verfügbar: {detail}",
       "publicSteamError": "Öffentliche Steam-Daten nicht verfügbar ({detail}). Karten ausgeblendet.",
       "failedCatalog": "Katalog konnte nicht geladen werden: {detail}",
-      "mapCatalog": "KARTENKATALOG"
+      "mapCatalog": "KARTENKATALOG",
+      "pendingPR": "PR AUSSTEHEND",
+      "newMap": "NEU",
+      "viewPR": "PR ANSEHEN"
     },
     "it": {
       "submitMap": "INVIA UNA MAPPA",
@@ -376,7 +391,10 @@ window.AAE_I18N = {
       "localizationError": "Traduzione non disponibile: {detail}",
       "publicSteamError": "Verifica Steam pubblica non disponibile ({detail}). Mappe nascoste.",
       "failedCatalog": "Impossibile caricare il catalogo: {detail}",
-      "mapCatalog": "CATALOGO MAPPE"
+      "mapCatalog": "CATALOGO MAPPE",
+      "pendingPR": "PR IN ATTESA",
+      "newMap": "NUOVO",
+      "viewPR": "VEDI PR"
     },
     "ja": {
       "submitMap": "マップを投稿",
@@ -438,7 +456,10 @@ window.AAE_I18N = {
       "localizationError": "翻訳データを利用できません: {detail}",
       "publicSteamError": "Steam の公開情報を確認できません ({detail})。マップを非表示にしました。",
       "failedCatalog": "カタログを読み込めません: {detail}",
-      "mapCatalog": "マップカタログ"
+      "mapCatalog": "マップカタログ",
+      "pendingPR": "PR 審査待ち",
+      "newMap": "新着",
+      "viewPR": "PR を表示"
     },
     "pl": {
       "submitMap": "ZGŁOŚ MAPĘ",
@@ -500,7 +521,10 @@ window.AAE_I18N = {
       "localizationError": "Tłumaczenie niedostępne: {detail}",
       "publicSteamError": "Brak możliwości weryfikacji Steam ({detail}). Mapy ukryte.",
       "failedCatalog": "Nie można załadować katalogu: {detail}",
-      "mapCatalog": "KATALOG MAP"
+      "mapCatalog": "KATALOG MAP",
+      "pendingPR": "PR OCZEKUJĄCY",
+      "newMap": "NOWOŚĆ",
+      "viewPR": "ZOBACZ PR"
     },
     "pt": {
       "submitMap": "ENVIAR MAPA",
@@ -562,7 +586,10 @@ window.AAE_I18N = {
       "localizationError": "Tradução indisponível: {detail}",
       "publicSteamError": "Não foi possível verificar mapas públicos do Steam ({detail}). Mapas ocultos.",
       "failedCatalog": "Não foi possível carregar o catálogo: {detail}",
-      "mapCatalog": "CATÁLOGO DE MAPAS"
+      "mapCatalog": "CATÁLOGO DE MAPAS",
+      "pendingPR": "PR PENDENTE",
+      "newMap": "NOVO",
+      "viewPR": "VER PR"
     },
     "ru": {
       "submitMap": "ПРЕДЛОЖИТЬ КАРТУ",
@@ -624,7 +651,10 @@ window.AAE_I18N = {
       "localizationError": "Перевод недоступен: {detail}",
       "publicSteamError": "Не удалось проверить публичные данные Steam ({detail}). Карты скрыты.",
       "failedCatalog": "Не удалось загрузить каталог: {detail}",
-      "mapCatalog": "КАТАЛОГ КАРТ"
+      "mapCatalog": "КАТАЛОГ КАРТ",
+      "pendingPR": "PR НА ПРОВЕРКЕ",
+      "newMap": "НОВОЕ",
+      "viewPR": "ОТКРЫТЬ PR"
     },
     "es": {
       "submitMap": "ENVIAR UN MAPA",
@@ -686,7 +716,10 @@ window.AAE_I18N = {
       "localizationError": "Traducción no disponible: {detail}",
       "publicSteamError": "No se pudo verificar Steam ({detail}). Mapas ocultos.",
       "failedCatalog": "No se pudo cargar el catálogo: {detail}",
-      "mapCatalog": "CATÁLOGO DE MAPAS"
+      "mapCatalog": "CATÁLOGO DE MAPAS",
+      "pendingPR": "PR PENDIENTE",
+      "newMap": "NUEVO",
+      "viewPR": "VER PR"
     }
   },
   "categories": {
