@@ -6,23 +6,25 @@
 <meta name="theme-color" content="#050507">
 <meta name="description" content="All-Around Enhancement — a Black Ops III Zombies-style catalog of public Steam Workshop maps.">
 <title>All-Around Enhancement — Map Catalog</title>
-<link rel="stylesheet" href="styles.css?v=language-picker-20261008">
-<script src="app.js?v=duplicate-pr-and-map-check-20261008" defer></script>
+<link rel="stylesheet" href="styles.css?v=full-ui-locales-motion-20261008">
+<script src="translations.js?v=full-ui-locales-20261008" defer></script>
+<script src="app.js?v=full-ui-locales-motion-20261008" defer></script>
 </head>
 <body>
 <div class="game-shell">
   <header class="game-header">
     <span class="header-bars" aria-hidden="true"></span>
     <div class="heading">
-      <h1>ALL-AROUND ENHANCEMENT <span>MAP CATALOG</span></h1>
+      <h1>ALL-AROUND ENHANCEMENT <span data-i18n="mapCatalog">MAP CATALOG</span></h1>
+      <p class="heading-description" data-i18n="submitHint">SUGGEST A WORKSHOP MAP</p>
     </div>
     <div class="header-actions">
       <button id="submitMapOpen" class="submit-trigger" type="button" aria-haspopup="dialog" aria-controls="submitMapOverlay">
         <span class="submit-trigger-icon" aria-hidden="true">+</span>
-        <span class="submit-trigger-copy"><strong>SUBMIT A MAP</strong><small>SUGGEST A WORKSHOP MAP</small></span>
+        <span class="submit-trigger-copy"><strong data-i18n="submitMap">SUBMIT A MAP</strong></span>
         <span class="submit-trigger-chevron" aria-hidden="true">›</span>
       </button>
-      <div class="header-stats"><span id="groupCount">—</span> CATEGORIES <span class="stat-separator">/</span> <span id="mapCount">—</span> PUBLIC MAPS <span class="stat-separator">/</span> <span id="liteCount">—</span> LITE ONLY</div>
+      <div class="header-stats"><span id="groupCount">—</span> <span class="stat-label" data-i18n="statCategories">CATEGORIES</span> <span class="stat-separator">/</span> <span id="mapCount">—</span> <span class="stat-label" data-i18n="statMaps">PUBLIC MAPS</span> <span class="stat-separator">/</span> <span id="liteCount">—</span> <span class="stat-label" data-i18n="statLite">LITE ONLY</span></div>
     </div>
   </header>
   <main class="game-content">
@@ -32,23 +34,23 @@
     <section class="selection-panel" aria-label="Map selection">
       <div class="menu-toolbar">
         <label class="search-field">
-          <span class="sr-only">Search Steam map title or Workshop ID</span>
-          <input id="searchInput" type="search" placeholder="SEARCH TITLE OR WORKSHOP ID…" autocomplete="off" spellcheck="false" aria-label="Search Steam map title or Workshop ID">
+          <span class="sr-only" data-i18n="search">Search Steam map title or Workshop ID</span>
+          <input id="searchInput" type="search" placeholder="SEARCH TITLE OR WORKSHOP ID…" data-i18n-placeholder="searchPlaceholder" autocomplete="off" spellcheck="false" aria-label="Search Steam map title or Workshop ID" data-i18n-aria-label="search">
         </label>
-        <label class="toggle"><input id="liteToggle" type="checkbox"><span>LITE ONLY</span></label>
+        <label class="toggle"><input id="liteToggle" type="checkbox"><span data-i18n="liteOnly">LITE ONLY</span></label>
       </div>
-      <div id="catalog" class="catalog" aria-live="polite"><p class="empty">VERIFYING PUBLIC WORKSHOP MAPS…</p></div>
+      <div id="catalog" class="catalog" aria-live="polite"><p class="empty" data-i18n="loading">VERIFYING PUBLIC WORKSHOP MAPS…</p></div>
       <p id="errorMessage" class="error" hidden></p>
     </section>
     <aside id="previewPane" class="preview-pane" aria-label="Selected map information">
-      <div class="preview-empty"><p>SELECT A MAP</p><small>Choose a public Workshop map to view its details.</small></div>
+      <div class="preview-empty"><p data-i18n="selectMap">SELECT A MAP</p><small data-i18n="previewHint">Choose a public Workshop map to view its details.</small></div>
     </aside>
   </main>
   <div class="language-picker" id="languagePicker">
     <button class="language-toggle" id="languageToggle" type="button" aria-haspopup="true"
-      aria-controls="languageMenu" aria-expanded="false" aria-label="Change website language">
+      aria-controls="languageMenu" aria-expanded="false" aria-label="Change website language" data-i18n-aria-label="changeLanguage">
       <span class="language-globe" aria-hidden="true">◎</span>
-      <span class="language-caption">LANGUAGE</span>
+      <span class="language-caption" data-i18n="language">LANGUAGE</span>
       <strong id="languageCurrent">AUTO</strong>
       <span class="language-chevron" aria-hidden="true">⌃</span>
     </button>
@@ -57,23 +59,23 @@
   <section class="submit-overlay" id="submitMapOverlay" hidden role="presentation">
     <div class="submit-dialog" role="dialog" aria-modal="true" aria-labelledby="submitMapTitle">
       <div class="submit-heading">
-        <h2 id="submitMapTitle">SUBMIT A MAP</h2>
-        <button id="submitMapClose" class="submit-close" type="button" aria-label="Close submission form">×</button>
+        <h2 id="submitMapTitle" data-i18n="submitMap">SUBMIT A MAP</h2>
+        <button id="submitMapClose" class="submit-close" type="button" aria-label="Close submission form" data-i18n-aria-label="close">×</button>
       </div>
-      <p class="submit-description">Propose a public Black Ops III Workshop map. Submissions are automatically checked and prepared as pull requests for review.</p>
+      <p class="submit-description" data-i18n="submitDescription">Propose a public Black Ops III Workshop map. Submissions are automatically checked and prepared as pull requests for review.</p>
       <form id="submitMapForm">
-        <label for="submitWorkshopId">STEAM WORKSHOP URL OR ID</label>
+        <label for="submitWorkshopId" data-i18n="fieldWorkshop">STEAM WORKSHOP URL OR ID</label>
         <input id="submitWorkshopId" name="workshopId" type="text" required autocomplete="off"
           placeholder="https://steamcommunity.com/sharedfiles/filedetails/?id=…" maxlength="250">
-        <label for="submitCategory">MAP CATEGORY</label>
-        <select id="submitCategory" name="category" required><option value="">SELECT CATEGORY</option></select>
-        <label for="submitNotes">ADDITIONAL NOTES <span>(OPTIONAL)</span></label>
-        <textarea id="submitNotes" name="notes" rows="3" maxlength="400" placeholder="Optional information for the reviewer"></textarea>
+        <label for="submitCategory" data-i18n="fieldCategory">MAP CATEGORY</label>
+        <select id="submitCategory" name="category" required><option value="" data-i18n="selectCategory">SELECT CATEGORY</option></select>
+        <label for="submitNotes"><span data-i18n="fieldNotes">ADDITIONAL NOTES</span> <span data-i18n="optional">(OPTIONAL)</span></label>
+        <textarea id="submitNotes" name="notes" rows="3" maxlength="400" placeholder="Optional information for the reviewer" data-i18n-placeholder="notesPlaceholder"></textarea>
         <p class="submit-error" id="submitMapError" role="alert" hidden></p>
-        <p class="submit-github-notice">A GitHub account is required to confirm your submission. After confirmation, validation and PR creation run automatically.</p>
+        <p class="submit-github-notice" data-i18n="confirmAccount">A GitHub account is required to confirm your submission. After confirmation, validation and PR creation run automatically.</p>
         <div class="submit-actions">
-          <button type="button" id="submitMapCancel">CANCEL</button>
-          <button type="submit" class="submit-confirm">CONTINUE TO GITHUB ↗</button>
+          <button type="button" id="submitMapCancel" data-i18n="cancel">CANCEL</button>
+          <button type="submit" class="submit-confirm" data-i18n="continueGithub">CONTINUE TO GITHUB ↗</button>
         </div>
       </form>
     </div>
