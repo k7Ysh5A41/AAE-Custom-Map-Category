@@ -453,7 +453,13 @@ function renderNav() {
         summary:t("pendingChangesSummary")};
     const pendingDeletion = {order:PENDING_DELETION, name:t("pendingDeletion"),
         summary:t("pendingDeletionSummary")};
-    $("categoryNav").innerHTML = [all, pending, pendingChanges, pendingDeletion, ...visible].map(category => {
+    // Virtual review queues are shown only when at least one public map is in them.
+    const reviewCategories = state.pendingReady && state.steamReady ? [
+        ...(pendingMaps().length ? [pending] : []),
+        ...(changeMaps("move").length ? [pendingChanges] : []),
+        ...(changeMaps("delete").length ? [pendingDeletion] : [])
+    ] : [];
+    $("categoryNav").innerHTML = [all, ...reviewCategories, ...visible].map(category => {
         const count = category.order === null ? category.visibleCount :
             category.order === PENDING_CATEGORY ?
                 (state.pendingReady && state.steamReady ? pendingMaps().length : "—") :
@@ -519,7 +525,7 @@ function renderPreview() {
     const map = filtered().find(item => item.id === state.activeMapId);
     const info = map ? getSteamInfo(map.id) : null;
     if (!map || !info) {
-        $("previewPane").innerHTML =
+        $("previewContent").innerHTML =
             '<div class="preview-empty"><p>' + escapeHtml(t("selectMap")) + '</p>' +
             '<small>' + escapeHtml(t("previewHintLeft")) + '</small></div>';
         return;
@@ -530,7 +536,7 @@ function renderPreview() {
         .replace(/\[(?:\/)?[a-z0-9_*]+(?:=[^\]]+)?\]/gi, "")
         .replace(/<[^>]*>/g, "")
         .replace(/\r/g, "").trim().slice(0, 550) : "";
-    $("previewPane").innerHTML =
+    $("previewContent").innerHTML =
         '<div class="preview-topline"></div>' + squareCover(info.preview_url, true) +
         '<div class="preview-title-band">' + escapeHtml(info.title) + '</div>' +
         (map.pending ? '<div class="preview-pr-status">' + pendingTags(map) +

@@ -6,9 +6,9 @@
 <meta name="theme-color" content="#050507">
 <meta name="description" content="All-Around Enhancement — a Black Ops III Zombies-style catalog of public Steam Workshop maps.">
 <title>All-Around Enhancement — Map Catalog</title>
-<link rel="stylesheet" href="styles.css?v=change-requests-20261008">
+<link rel="stylesheet" href="styles.css?v=preview-side-social-hide-empty-20261008">
 <script src="translations.js?v=change-requests-20261008" defer></script>
-<script src="app.js?v=change-requests-20261008" defer></script>
+<script src="app.js?v=preview-side-social-hide-empty-20261008" defer></script>
 </head>
 <body>
 <div class="game-shell">
@@ -33,26 +33,6 @@
       </div>
     </div>
   </header>
-  <nav class="social-bar" aria-label="Community links" data-i18n-aria-label="communityLinks">
-    <span class="social-heading" data-i18n="communityLinks">COMMUNITY</span>
-    <div class="social-buttons">
-      <a class="social-link social-discord" href="https://discord.com/invite/all-around-enhancement-975438698491572324" target="_blank" rel="noopener noreferrer">
-        <span class="social-icon" aria-hidden="true">D</span><span>Discord</span><span class="social-external" aria-hidden="true">↗</span>
-      </a>
-      <a class="social-link social-steam" href="https://steamcommunity.com/sharedfiles/filedetails/?id=2631943123" target="_blank" rel="noopener noreferrer">
-        <span class="social-icon" aria-hidden="true">S</span><span>Steam · AAE</span><span class="social-external" aria-hidden="true">↗</span>
-      </a>
-      <a class="social-link social-steam" href="https://steamcommunity.com/workshop/filedetails/?id=2994481309" target="_blank" rel="noopener noreferrer">
-        <span class="social-icon" aria-hidden="true">S</span><span>Steam · AAE Lite</span><span class="social-external" aria-hidden="true">↗</span>
-      </a>
-      <a class="social-link social-qq" data-chinese-only hidden href="https://qun.qq.com/universal-share/share?ac=1&amp;authKey=NTNolzpkSK0kNgA2m%2BROV%2BH5%2BPq1HTk1I6saDDRLHoO%2BOaq/aLG0ggmJu44QZzNE&amp;busi_data=eyJncm91cENvZGUiOiI4MjM2NDUxMzciLCJ0b2tlbiI6IkFjemJxVjArRUpMN0hrbUpGeFBKdWJnbHhxelMzQllPa3dkaVd3UjZsMy96dUtnUlc2UUNrNTFTL2Vac3ovRnEiLCJ1aW4iOiI4NzIwNTA4NjEifQ==&amp;data=R5GgdaPOJSTFcyU6ObfUGxavMcmscvyAzlPvOlv1SotHk2oYzRS1q_YcOzYBEE12EBFkeZ1puLBdgZmL7N__Ng&amp;svctype=4&amp;tempid=h5_group_info" target="_blank" rel="noopener noreferrer">
-        <span class="social-icon" aria-hidden="true">Q</span><span>QQ 群</span><span class="social-external" aria-hidden="true">↗</span>
-      </a>
-      <a class="social-link social-bilibili" data-chinese-only hidden href="https://space.bilibili.com/175659130" target="_blank" rel="noopener noreferrer">
-        <span class="social-icon" aria-hidden="true">B</span><span>Bilibili</span><span class="social-external" aria-hidden="true">↗</span>
-      </a>
-    </div>
-  </nav>
   <main class="game-content">
     <aside class="sidebar">
       <nav id="categoryNav" aria-label="Map categories"></nav>
@@ -69,7 +49,31 @@
       <p id="errorMessage" class="error" hidden></p>
     </section>
     <aside id="previewPane" class="preview-pane" aria-label="Selected map information">
-      <div class="preview-empty"><p data-i18n="selectMap">SELECT A MAP</p><small data-i18n="previewHint">Choose a public Workshop map to view its details.</small></div>
+      <div class="preview-layout">
+        <div id="previewContent" class="preview-content">
+          <div class="preview-empty"><p data-i18n="selectMap">SELECT A MAP</p><small data-i18n="previewHint">Choose a public Workshop map to view its details.</small></div>
+        </div>
+      <nav class="social-bar" aria-label="Community links" data-i18n-aria-label="communityLinks">
+      <span class="social-heading" data-i18n="communityLinks">COMMUNITY</span>
+      <div class="social-buttons">
+      <a class="social-link social-discord" href="https://discord.com/invite/all-around-enhancement-975438698491572324" target="_blank" rel="noopener noreferrer">
+      <span class="social-icon" aria-hidden="true">D</span><span>Discord</span><span class="social-external" aria-hidden="true">↗</span>
+      </a>
+      <a class="social-link social-steam" href="https://steamcommunity.com/sharedfiles/filedetails/?id=2631943123" target="_blank" rel="noopener noreferrer">
+      <span class="social-icon" aria-hidden="true">S</span><span>Steam · AAE</span><span class="social-external" aria-hidden="true">↗</span>
+      </a>
+      <a class="social-link social-steam" href="https://steamcommunity.com/workshop/filedetails/?id=2994481309" target="_blank" rel="noopener noreferrer">
+      <span class="social-icon" aria-hidden="true">S</span><span>Steam · AAE Lite</span><span class="social-external" aria-hidden="true">↗</span>
+      </a>
+      <a class="social-link social-qq" data-chinese-only hidden href="https://qun.qq.com/universal-share/share?ac=1&amp;authKey=NTNolzpkSK0kNgA2m%2BROV%2BH5%2BPq1HTk1I6saDDRLHoO%2BOaq/aLG0ggmJu44QZzNE&amp;busi_data=eyJncm91cENvZGUiOiI4MjM2NDUxMzciLCJ0b2tlbiI6IkFjemJxVjArRUpMN0hrbUpGeFBKdWJnbHhxelMzQllPa3dkaVd3UjZsMy96dUtnUlc2UUNrNTFTL2Vac3ovRnEiLCJ1aW4iOiI4NzIwNTA4NjEifQ==&amp;data=R5GgdaPOJSTFcyU6ObfUGxavMcmscvyAzlPvOlv1SotHk2oYzRS1q_YcOzYBEE12EBFkeZ1puLBdgZmL7N__Ng&amp;svctype=4&amp;tempid=h5_group_info" target="_blank" rel="noopener noreferrer">
+      <span class="social-icon" aria-hidden="true">Q</span><span>QQ 群</span><span class="social-external" aria-hidden="true">↗</span>
+      </a>
+      <a class="social-link social-bilibili" data-chinese-only hidden href="https://space.bilibili.com/175659130" target="_blank" rel="noopener noreferrer">
+      <span class="social-icon" aria-hidden="true">B</span><span>Bilibili</span><span class="social-external" aria-hidden="true">↗</span>
+      </a>
+      </div>
+      </nav>
+      </div>
     </aside>
   </main>
   <div class="language-picker" id="languagePicker">

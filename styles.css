@@ -1414,86 +1414,71 @@ html,body { max-width:100%;overflow-x:clip; }
 }
 
 
-/* Social links: a vertically centred left-side rail. At narrower widths,
-   return to document flow so links never obscure map selectors. */
-@media(min-width:1300px) {
-  .game-shell {
-    width:min(100%,1760px);
-    padding-left:214px;
-    padding-right:34px;
-  }
-  .social-bar {
-    position:fixed;
-    z-index:40;
-    left:max(16px,calc((100vw - 1760px)/2 + 16px));
-    top:50%;
-    transform:translateY(-50%);
-    width:176px;
-    max-width:176px;
-    max-height:calc(100dvh - 40px);
-    overflow-y:auto;
-    overscroll-behavior:contain;
-    scrollbar-width:thin;
-    scrollbar-color:#875a3b transparent;
-    padding:16px 9px 16px 0;
-    display:flex;
-    flex-direction:column;
-    justify-content:flex-start;
-    align-items:stretch;
-    flex-wrap:nowrap;
-    gap:13px;
-    background:transparent;
-  }
-  .social-bar .social-heading {
-    padding-left:4px;
-    font-size:12px;
-    line-height:1.3;
-    letter-spacing:.11em;
-  }
-  .social-bar .social-buttons {
-    width:100%;
-    display:flex;
-    flex-direction:column;
-    flex-wrap:nowrap;
-    gap:9px;
-    align-items:stretch;
-  }
-  .social-bar .social-link {
-    justify-content:flex-start;
-    width:100%;
-    min-width:0;
-    min-height:43px;
-    padding:8px 9px;
-    gap:7px;
-    font-size:12px;
-    line-height:1.3;
-  }
-  .social-bar .social-link .social-external {
-    margin-left:auto;
-  }
+/* Community links share the preview's available width to the right of the
+   square artwork. When the panel is narrow, they flow below without overlap. */
+.preview-pane { container-type:inline-size; }
+.preview-layout {
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  align-items:start;
+  gap:18px;
+  max-width:100%;
+  min-width:0;
 }
-/* On tablets, keep buttons at the left of the content instead of
-   layering them over the category list. */
-@media(max-width:1299px) {
-  .social-bar {
-    position:relative;
-    z-index:2;
-    transform:none;
-    top:auto;
-    left:auto;
-    width:100%;
-    max-width:100%;
-    padding:15px 0 0;
-    margin:0;
-    justify-content:flex-start;
-    align-items:center;
-    gap:10px 13px;
-  }
+.preview-content { min-width:0; max-width:100%; }
+.preview-pane .social-bar {
+  position:relative;
+  top:auto;left:auto;right:auto;bottom:auto;
+  transform:none;
+  z-index:2;
+  width:100%;
+  max-width:220px;
+  max-height:none;
+  min-width:0;
+  overflow:visible;
+  padding:12px 0 0;
+  margin:0;
+  align-self:start;
+  align-items:stretch;
+  justify-content:flex-start;
+  display:flex;
+  flex-direction:column;
+  flex-wrap:nowrap;
+  gap:12px;
 }
-@media(max-width:700px) {
-  .social-bar { align-items:flex-start; }
-  .social-bar .social-heading { font-size:12px; }
-  .social-bar .social-buttons { justify-content:flex-start; }
+.preview-pane .social-bar .social-heading {
+  padding:0 0 7px 3px;
+  font-size:12px;
+  line-height:1.3;
+  letter-spacing:.1em;
+}
+.preview-pane .social-bar .social-buttons {
+  width:100%;min-width:0;
+  display:flex;flex-direction:column;flex-wrap:nowrap;
+  align-items:stretch;gap:9px;
+}
+.preview-pane .social-bar .social-link {
+  width:100%;min-width:0;min-height:44px;
+  justify-content:flex-start;
+  gap:7px;padding:9px 10px;
+  font-size:13px;
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
+.preview-pane .social-bar .social-external { margin-left:auto; }
+@container (min-width:470px) {
+  .preview-layout {
+    grid-template-columns:minmax(0,360px) minmax(150px,1fr);
+    column-gap:clamp(14px,1.4vw,26px);
+  }
+  .preview-pane .social-bar { padding-top:10px; }
+}
+@media(max-width:650px) {
+  .preview-pane .social-bar { max-width:none;padding-top:7px; }
+  .preview-pane .social-bar .social-buttons {
+    flex-direction:row;flex-wrap:wrap;align-items:center;
+  }
+  .preview-pane .social-bar .social-link { width:auto;max-width:100%; }
 }
 body.submission-open .social-bar { pointer-events:none; }
 
