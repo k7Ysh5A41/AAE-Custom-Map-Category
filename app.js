@@ -357,7 +357,7 @@ async function loadPendingPRMaps() {
             !Number.isFinite(Date.parse(entry?.created_at)) || seen.has(id)) continue;
         seen.add(id);
         state.maps.push({
-            id, liteOnly:false, category, position:category.ugc.length + 1,
+            id, liteOnly:entry?.lite_only === true, category, position:category.ugc.length + 1,
             pending: { number, url:entry.pr_url, createdAt:entry.created_at }
         });
     }
@@ -371,17 +371,20 @@ async function loadPendingPRMaps() {
         const target = change?.target;
         const number = change?.pr_number;
         if (!map || changeSeen.has(id) ||
-            !["move","delete"].includes(action) ||
+            !["move","update","delete"].includes(action) ||
             change?.from !== map.category.button ||
             (action === "move" && (!state.categories.some(c => c.button === target) ||
                 target === map.category.button)) ||
+            (action === "update" && (target !== map.category.button ||
+                typeof change?.lite_only !== "boolean" ||
+                change.lite_only === map.liteOnly)) ||
             (action === "delete" && target !== "none") ||
             !Number.isSafeInteger(number) || number < 1 ||
             change.pr_url !== "https://github.com/k7Ysh5A41/AAE-Custom-Map-Category/pull/" + number ||
             !Number.isFinite(Date.parse(change?.created_at))) continue;
         changeSeen.add(id);
         const status = {
-            id, action, from:change.from, target,
+            id, action, from:change.from, target, liteOnly:change.lite_only,
             number, url:change.pr_url, createdAt:change.created_at
         };
         state.changeRequests.push(status);
@@ -413,7 +416,7 @@ function filtered() {
         // Each public map belongs to exactly one displayed category:
         // a pending queue or its approved category, never both.
         const categoryMatches = state.selected === PENDING_CATEGORY ? Boolean(map.pending) :
-            state.selected === PENDING_CHANGES ? map.changeRequest?.action === "move" :
+            state.selected === PENDING_CHANGES ? ["move","update"].includes(map.changeRequest?.action) :
             state.selected === PENDING_DELETION ? map.changeRequest?.action === "delete" :
             !map.pending && !map.changeRequest &&
                 (state.selected === null || map.category.order === state.selected);
@@ -436,7 +439,9 @@ function pendingMaps() {
         (!state.liteOnly || map.liteOnly));
 }
 function changeMaps(action) {
-    return publicMaps().filter(map => map.changeRequest?.action === action &&
+    return publicMaps().filter(map =>
+        (action === "move" ? ["move","update"].includes(map.changeRequest?.action) :
+            map.changeRequest?.action === action) &&
         (!state.liteOnly || map.liteOnly));
 }
 function categoryCount() {
@@ -516,6 +521,9 @@ function reviewCategoryInfo(map) {
     if (map.pending) {
         return {label:t("reviewProposedCategory"), name:map.category.name, kind:"new"};
     }
+    if (map.changeRequest?.action === "update") {
+        return {label:t("reviewCurrentCategory"), name:map.category.name, kind:"move"};
+    }
     if (map.changeRequest?.action === "move") {
         const target = state.categories.find(c => c.button === map.changeRequest.target);
         return target ? {label:t("reviewMoveToCategory"), name:target.name, kind:"move"} : null;
@@ -550,8 +558,8 @@ function mapRow(map) {
         (map.liteOnly ? '<span class="chip lite">' + escapeHtml(t("lite")) + '</span>' : '') +
         pendingTags(map) +
         (map.changeRequest ? '<span class="chip change-chip">' +
-            escapeHtml(t(map.changeRequest.action === "move" ?
-                "changePendingMove" : "changePendingDelete")) + '</span>' : '') +
+            escapeHtml(t(map.changeRequest.action === "delete" ?
+                "changePendingDelete" : map.changeRequest.action === "update" ? "changePendingUpdate" : "changePendingMove")) + '</span>' : '') +
         '</div>';
 }
 function renderPreview() {
@@ -577,8 +585,8 @@ function renderPreview() {
             ' <span>#' + map.pending.number + '</span></div>' : '') +
         (map.changeRequest ?
             '<div class="preview-pr-status"><span class="chip change-chip">' +
-            escapeHtml(t(map.changeRequest.action === "move" ?
-                "changePendingMove" : "changePendingDelete")) +
+            escapeHtml(t(map.changeRequest.action === "delete" ?
+                "changePendingDelete" : map.changeRequest.action === "update" ? "changePendingUpdate" : "changePendingMove")) +
             '</span> <a href="' + escapeHtml(map.changeRequest.url) +
             '" target="_blank" rel="noopener noreferrer">' + escapeHtml(t("viewPR")) +
             ' #' + map.changeRequest.number + ' ↗</a></div>' :
@@ -922,6 +930,7 @@ async function submitMapProposal(event) {
             "<!-- aae-map-submission:v1 -->",
             "Workshop ID: " + id,
             "Category: " + selectedKey,
+            "Lite Only: " + String($("submitLiteOnly").checked),
             "Notes:",
             notes || "None"
         ].join("\n");
@@ -968,6 +977,10 @@ function openChangeRequest(id) {
     setChangePending(false);
     $("changeMapForm").reset();
     $("changeMove").checked = true;
+    $("changeLiteOnly").checked = Boolean(map.liteOnly);
+    const status = $("changeCurrentLite");
+    status.dataset.i18n = map.liteOnly ? "currentLiteYes" : "currentLiteNo";
+    status.textContent = t(status.dataset.i18n);
     const incompatibleOption = $("changeIncompatible");
     incompatibleOption.disabled = map.category.button === INCOMPATIBLE_CATEGORY;
     incompatibleOption.closest("label").hidden = incompatibleOption.disabled;
@@ -975,7 +988,8 @@ function openChangeRequest(id) {
     const available = state.categories.filter(c =>
         c.button !== map.category.button && c.button !== INCOMPATIBLE_CATEGORY);
     $("changeTargetCategory").innerHTML =
-        '<option value="">' + escapeHtml(t("selectCategory")) + '</option>' +
+        '<option value="' + escapeHtml(map.category.button) + '">' +
+            escapeHtml(t("changeKeepCategory")) + '</option>' +
         available.map(c => '<option value="' + escapeHtml(c.button) + '">' +
             escapeHtml(c.name) + '</option>').join("");
     setChangeError("");
@@ -1019,13 +1033,15 @@ async function submitChangeRequest(event) {
     const id = changeRequestMapId;
     const map = state.maps.find(x => x.id === id && !x.pending);
     if (!map || map.changeRequest) return setChangeError(t("changeAlreadyPending"));
-    const action = "move";
     const target = $("changeIncompatible").checked
         ? INCOMPATIBLE_CATEGORY : $("changeTargetCategory").value;
-    if (!state.categories.some(c => c.button === target) ||
-        target === map.category.button) {
+    if (!state.categories.some(c => c.button === target)) {
         return setChangeError(t("changeInvalidCategory"));
     }
+    const liteOnly = $("changeLiteOnly").checked;
+    const action = target === map.category.button ? "update" : "move";
+    if (action === "update" && liteOnly === map.liteOnly)
+        return setChangeError(t("changeNoChanges"));
     const reason = $("changeReason").value.trim().replace(/\r/g,"");
     if (reason.length < 5 || reason.length > 400)
         return setChangeError(t("changeInvalidReason"));
@@ -1051,6 +1067,8 @@ async function submitChangeRequest(event) {
             "Action: " + action,
             "Original Category: " + map.category.button,
             "Target Category: " + target,
+            "Current Lite Only: " + String(map.liteOnly),
+            "Lite Only: " + String(liteOnly),
             "Reason:",
             reason
         ].join("\n");
