@@ -6,13 +6,13 @@ const state={categories:[],maps:[],selected:null,query:"",liteOnly:false};
 function categoryName(c){
  const key=String(c.button||"");
  const m=/^AAEP_(.+?)_MAP$/i.exec(key);
- return m?m[1].replaceAll("_"," · "):(key||"分类 "+c.index);
+ return m?m[1].replaceAll("_"," · "):(key||"Category "+c.index);
 }
 function normalize(raw){
- if(!Array.isArray(raw))throw Error("JSON 顶层必须为数组");
+ if(!Array.isArray(raw))throw Error("The JSON root must be an array");
  const maps=[];
  const categories=raw.map((c,i)=>{
-  if(!c||!Array.isArray(c.ugc))throw Error("分类 "+(i+1)+" 缺少 ugc 数组");
+  if(!c||!Array.isArray(c.ugc))throw Error("Category "+(i+1)+" has no ugc array");
   const category={...c,order:i,name:categoryName(c)};
   c.ugc.forEach((v,pos)=>{
    const object=typeof v==="object"&&v!==null&&!Array.isArray(v);
@@ -32,26 +32,26 @@ function filtered(){
  );
 }
 function renderNav(){
- const buttons=[{order:null,name:"全部地图",ugc:state.maps},...state.categories];
+ const buttons=[{order:null,name:"All Maps",ugc:state.maps},...state.categories];
  $("categoryNav").innerHTML=buttons.map(c=>'<button class="nav-btn'+(state.selected===c.order?' active':'')+'" data-category="'+(c.order??"all")+'"><span>'+escapeHtml(c.name)+'</span><small>'+c.ugc.length+'</small></button>').join("");
 }
 function render(){
  renderNav();
  const category=state.categories[state.selected];
- $("viewTitle").textContent=state.selected===null?"全部地图":(category?.name||"分类");
+ $("viewTitle").textContent=state.selected===null?"All Maps":(category?.name||"Category");
  const matches=filtered();
- $("resultCount").textContent=matches.length.toLocaleString("zh-CN")+" 条";
+ $("resultCount").textContent=matches.length.toLocaleString("en-US")+" entries";
  if(state.selected===null&&!state.query&&!state.liteOnly){
   $("catalog").innerHTML=state.categories.map(c=>{
    const liteCount=c.ugc.filter(v=>v&&typeof v==="object"&&v.lite_only===true).length;
-   return '<article tabindex="0" role="button" class="card category-card" data-open="'+c.order+'"><div class="card-head"><span class="chip">CATEGORY '+escapeHtml(c.index)+'</span><span class="meta">#'+(c.order+1)+'</span></div><h3>'+escapeHtml(c.name)+'</h3><p class="meta">'+escapeHtml(c.button??"")+'</p><div class="category-count">'+c.ugc.length+' <small>地图</small></div><span class="meta">'+(liteCount?liteCount+" 条 Lite 专属":"查看地图 →")+'</span></article>';
+   return '<article tabindex="0" role="button" class="card category-card" data-open="'+c.order+'"><div class="card-head"><span class="chip">CATEGORY '+escapeHtml(c.index)+'</span><span class="meta">#'+(c.order+1)+'</span></div><h3>'+escapeHtml(c.name)+'</h3><p class="meta">'+escapeHtml(c.button??"")+'</p><div class="category-count">'+c.ugc.length+' <small>maps</small></div><span class="meta">'+(liteCount?liteCount+" Lite-only entries":"Browse maps →")+'</span></article>';
   }).join("");
   return;
  }
  $("catalog").innerHTML=matches.length?matches.map(m=>{
   const url="https://steamcommunity.com/sharedfiles/filedetails/?id="+encodeURIComponent(m.id);
-  return '<article class="card"><div class="card-head"><span class="chip">分类 '+escapeHtml(m.category.index)+'</span>'+(m.liteOnly?'<span class="chip lite">LITE ONLY</span>':'')+'</div><h3>'+escapeHtml(m.id)+'</h3><div class="meta">'+escapeHtml(m.category.name)+' · 条目 '+m.position+'</div><div class="actions"><button data-copy="'+escapeHtml(m.id)+'">复制 ID</button><a target="_blank" rel="noopener noreferrer" href="'+url+'">Steam ↗</a></div></article>';
- }).join(""):'<p class="empty">没有匹配的地图条目。请调整分类或搜索条件。</p>';
+  return '<article class="card"><div class="card-head"><span class="chip">Category '+escapeHtml(m.category.index)+'</span>'+(m.liteOnly?'<span class="chip lite">LITE ONLY</span>':'')+'</div><h3>'+escapeHtml(m.id)+'</h3><div class="meta">'+escapeHtml(m.category.name)+' · Entry '+m.position+'</div><div class="actions"><button data-copy="'+escapeHtml(m.id)+'">Copy ID</button><a target="_blank" rel="noopener noreferrer" href="'+url+'">Steam ↗</a></div></article>';
+ }).join(""):'<p class="empty">No matching maps. Try another category or search.</p>';
 }
 async function copy(value){
  try{await navigator.clipboard.writeText(value);}
@@ -72,7 +72,7 @@ function bind(){
   state.selected=btn.dataset.category==="all"?null:Number(btn.dataset.category);render();
  });
  $("catalog").addEventListener("click",async e=>{
-  const c=e.target.closest("[data-copy]");if(c){await copy(c.dataset.copy);c.textContent="已复制";setTimeout(()=>c.textContent="复制 ID",1300);return;}
+  const c=e.target.closest("[data-copy]");if(c){await copy(c.dataset.copy);c.textContent="Copied";setTimeout(()=>c.textContent="Copy ID",1300);return;}
   const o=e.target.closest("[data-open]");if(o){state.selected=Number(o.dataset.open);render();window.scrollTo({top:310,behavior:"smooth"});}
  });
  $("catalog").addEventListener("keydown",e=>{
@@ -89,10 +89,10 @@ async function init(){
   if(!response.ok)throw Error("HTTP "+response.status);
   const data=normalize(await response.json());
   state.categories=data.categories;state.maps=data.maps;
-  $("groupCount").textContent=data.categories.length.toLocaleString("zh-CN");
-  $("mapCount").textContent=data.maps.length.toLocaleString("zh-CN");
-  $("liteCount").textContent=data.maps.filter(m=>m.liteOnly).length.toLocaleString("zh-CN");
+  $("groupCount").textContent=data.categories.length.toLocaleString("en-US");
+  $("mapCount").textContent=data.maps.length.toLocaleString("en-US");
+  $("liteCount").textContent=data.maps.filter(m=>m.liteOnly).length.toLocaleString("en-US");
   render();
- }catch(e){$("catalog").innerHTML="";$("errorMessage").hidden=false;$("errorMessage").textContent="无法读取 custommap_cate.json："+e.message;}
+ }catch(e){$("catalog").innerHTML="";$("errorMessage").hidden=false;$("errorMessage").textContent="Unable to load custommap_cate.json: "+e.message;}
 }
 document.addEventListener("DOMContentLoaded",init);
