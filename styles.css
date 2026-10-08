@@ -1141,9 +1141,6 @@ body::before,body::after,.game-shell::before {
   max-height:65px;
   object-fit:contain;
   object-position:left center;
-  filter:drop-shadow(0 0 7px rgba(255,116,29,.58))
-         drop-shadow(0 0 23px rgba(255,86,15,.32));
-  animation:aaeLogoGlow 5s ease-in-out infinite;
 }
 .game-header .heading h1{
   font-size:clamp(17px,1.35vw,23px);
@@ -1154,16 +1151,104 @@ body::before,body::after,.game-shell::before {
 }
 .game-header .heading h1 span{color:#ffdcad;font-weight:750}
 .game-header .heading-description{margin-top:8px}
-@keyframes aaeLogoGlow{
-  0%,100% {filter:drop-shadow(0 0 7px rgba(255,116,29,.58))
-                     drop-shadow(0 0 23px rgba(255,86,15,.32))}
-  50% {filter:drop-shadow(0 0 12px rgba(255,169,69,.93))
-              drop-shadow(0 0 32px rgba(255,87,21,.57))}
-}
 @media(max-width:700px){
   .game-header .brand-logo{max-height:none}
   .game-header .heading h1{font-size:clamp(16px,4vw,22px)}
 }
-@media(prefers-reduced-motion:reduce){
-  .game-header .brand-logo{animation:none!important}
+
+
+/* Compact header and language control; native-language label stays visible. */
+.game-header .heading h1 {
+  font-size:clamp(12px,1.02vw,16px);
+  line-height:1.17;
+  margin:3px 0 0;
+  letter-spacing:.095em;
+}
+.language-toggle {
+  min-height:33px;
+  min-width:0;
+  height:33px;
+  gap:7px;
+  padding:4px 10px;
+  font-size:11px;
+}
+.language-globe { font-size:17px;line-height:1; }
+.language-caption { font-size:9px;letter-spacing:.065em; }
+.language-toggle strong { font-size:11px; }
+.language-chevron { font-size:12px; }
+.language-picker { bottom:max(11px,env(safe-area-inset-bottom)); }
+
+/* Animate the light *inside* a fixed header width. The previous
+   translateX sweep enlarged scrollWidth on the right edge. */
+@keyframes aaeHeaderLightContained {
+  0%,100% { background-position:100% 50%;opacity:0; }
+  12%,75% { opacity:1; }
+  64% { background-position:0% 50%; }
+  90% { background-position:0% 50%;opacity:0; }
+}
+.game-header::after {
+  left:0;
+  right:0;
+  width:auto;
+  max-width:100%;
+  transform:none;
+  height:3px;
+  background-image:linear-gradient(90deg,
+    transparent 0%, transparent 35%,rgba(255,197,133,.4) 44%,
+    #ffd49d 50%,#ff7032 55%,transparent 65%,transparent 100%);
+  background-size:240% 100%;
+  background-repeat:no-repeat;
+  animation:aaeHeaderLightContained 4.2s ease-in-out .3s infinite;
+}
+
+/* No page-level or internal horizontal scrollbars, including during
+   hover/enter animations and on narrow layouts or translated labels. */
+html,body { max-width:100%;overflow-x:clip; }
+.game-shell,.game-content,.game-header,
+.sidebar,.selection-panel,.preview-pane,.header-actions {
+  min-width:0;
+  max-width:100%;
+}
+.header-actions .header-stats { white-space:normal;overflow-wrap:anywhere; }
+#categoryNav,.catalog {
+  width:100%;
+  max-width:100%;
+  min-width:0;
+  overflow-x:hidden;
+  overscroll-behavior-x:contain;
+}
+#categoryNav .nav-btn,.catalog .map-row,.catalog .category-row {
+  min-width:0;
+  max-width:100%;
+  transform-origin:center center;
+}
+#categoryNav .nav-btn > span,.catalog .map-copy,.catalog .category-copy {
+  min-width:0;
+  max-width:100%;
+  overflow-wrap:anywhere;
+}
+#categoryNav .nav-btn:hover,#categoryNav .nav-btn:focus-visible,
+.catalog .map-row:hover,.catalog .map-row:focus-visible,
+.catalog .category-row:hover,.catalog .category-row:focus-visible {
+  transform:translateY(-1px);
+}
+@media(max-width:650px) {
+  .game-header .heading h1 { font-size:13px; }
+  .language-picker { bottom:max(9px,env(safe-area-inset-bottom)); }
+  .language-toggle {
+    min-width:0;
+    min-height:32px;
+    height:32px;
+    padding:3px 8px;
+    gap:6px;
+  }
+  .language-caption { font-size:9px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .game-header::after { animation:none!important;opacity:.55; }
+  #categoryNav .nav-btn:hover,#categoryNav .nav-btn:focus-visible,
+  .catalog .map-row:hover,.catalog .map-row:focus-visible,
+  .catalog .category-row:hover,.catalog .category-row:focus-visible {
+    transform:none!important;
+  }
 }
