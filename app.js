@@ -232,7 +232,6 @@ function render() {
     const publicItems = publicMaps();
     renderNav();
     const category = state.selected === null ? null : state.categories[state.selected];
-    $("viewTitle").textContent = state.query.trim() ? "SEARCH RESULTS" : (category?.name || (state.liteOnly ? "LITE-ONLY MAPS" : "MAPS"));
     $("viewDescription").textContent = state.query.trim() ? "" : (category?.summary || "");
     $("groupCount").textContent = state.steamReady ?
         state.categories.filter(cat => categoryMaps(cat).length).length.toLocaleString("en-US") : "—";
@@ -245,8 +244,6 @@ function render() {
         state.activeMapId = null;
     }
     if (!state.activeMapId && matches.length) state.activeMapId = matches[0].id;
-    $("resultCount").textContent = state.steamReady ?
-        matches.length.toLocaleString("en-US") + " MAPS" : "VERIFYING STEAM";
     $("catalog").innerHTML = !state.steamReady ?
         '<p class="empty">' + (state.steamFailed ?
         "PUBLIC WORKSHOP DATA UNAVAILABLE. MAPS HIDDEN." :

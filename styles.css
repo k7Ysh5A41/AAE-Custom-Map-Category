@@ -283,3 +283,80 @@ a{color:inherit}
 @media(max-width:650px){
   .preview-details p:first-child strong{font-size:28px}
 }
+
+
+/* BO3 menu: doubled status size and soft diffuse lighting on interactive rows. */
+.header-stats{
+  font-size:20px;
+  line-height:1.35;
+  letter-spacing:.035em;
+  padding-bottom:1px;
+}
+.header-stats>span:not(.stat-separator){
+  font-size:26px;
+  font-weight:750;
+}
+.stat-separator{padding:0 9px;color:#87949b}
+.game-header{min-height:106px}
+.heading{flex-shrink:0}
+.sidebar #categoryNav{max-height:calc(100vh - 162px)}
+.selection-panel .menu-toolbar{
+  margin-top:0;
+  padding-top:12px;
+  border-top:1px solid rgba(192,208,217,.30);
+}
+.category-description:not(:empty){margin-top:0;padding:3px 0 10px}
+.nav-btn,.category-row,.map-row,
+.preview-buttons button,.preview-buttons a{
+  position:relative;
+  transition:background-color .15s ease,box-shadow .22s ease,color .15s ease;
+  box-shadow:inset 0 0 0 rgba(255,101,54,0);
+}
+.nav-btn:hover,.nav-btn:focus-visible,
+.category-row:hover,.category-row:focus-visible,
+.map-row:hover,.map-row:focus-visible,
+.preview-buttons button:hover,.preview-buttons button:focus-visible,
+.preview-buttons a:hover,.preview-buttons a:focus-visible{
+  box-shadow:
+    0 0 9px 2px rgba(250,86,48,.28),
+    0 0 25px 5px rgba(250,86,48,.14),
+    0 0 46px 8px rgba(250,86,48,.055),
+    inset 0 0 19px rgba(255,111,70,.14);
+  z-index:1;
+}
+.nav-btn.active,.map-row.active,.map-row[aria-selected="true"],
+.category-row.active{
+  background:linear-gradient(105deg,#ff7652 0%,#fa5630 47%,#de4b2b 100%);
+  box-shadow:
+    0 0 12px 3px rgba(255,89,49,.40),
+    0 0 34px 8px rgba(250,86,48,.18),
+    inset 0 0 24px rgba(255,200,149,.18);
+  z-index:2;
+}
+.nav-btn.active:hover,.map-row.active:hover,
+.map-row[aria-selected="true"]:hover{
+  box-shadow:
+    0 0 16px 4px rgba(255,101,57,.48),
+    0 0 44px 10px rgba(255,77,37,.24),
+    inset 0 0 25px rgba(255,224,166,.25);
+}
+.toggle:hover{color:#fff;text-shadow:0 0 8px rgba(250,86,48,.46)}
+.search-field input:focus{
+  border-color:#ff7351;
+  box-shadow:0 0 14px 2px rgba(250,86,48,.22),
+             inset 2px 0 0 #fa5630;
+}
+@media(max-width:1380px){
+ .game-header{flex-wrap:wrap}
+ .header-stats{width:100%;margin-left:30px;padding-top:8px}
+}
+@media(max-width:650px){
+ .header-stats{font-size:17px;line-height:1.6;white-space:normal;margin-left:14px}
+ .header-stats>span:not(.stat-separator){font-size:24px}
+ .stat-separator{padding:0 5px}
+}
+@media(prefers-reduced-motion:reduce){
+ .nav-btn,.category-row,.map-row,.preview-buttons button,.preview-buttons a{
+   transition:none!important;
+ }
+}
