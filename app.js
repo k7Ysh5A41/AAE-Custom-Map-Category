@@ -2,6 +2,16 @@
 
 const DATA_URL = "./custommap_cate.json";
 const STEAM_URL = "./steam_workshop.json";
+const RESOURCE_TIMEOUT_MS = 10000;
+async function fetchWithTimeout(url, options = {}) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), RESOURCE_TIMEOUT_MS);
+    try {
+        return await fetch(url, { ...options, signal: controller.signal });
+    } finally {
+        clearTimeout(timer);
+    }
+}
 const LOCALIZATION_BASE = "https://raw.githubusercontent.com/k7Ysh5A41/AAE-localizedstrings/main/english/localizedstrings/";
 const LOCALIZATION_MIRROR = "./localization/";
 const $ = id => document.getElementById(id);
@@ -41,7 +51,7 @@ async function loadStringEd(prefix) {
     const errors = [];
     for (const url of candidates) {
         try {
-            const response = await fetch(url, { cache: "no-store" });
+            const response = await fetchWithTimeout(url, { cache: "no-store" });
             if (!response.ok) throw new Error("HTTP " + response.status);
             if (!parseStringEd(await response.text(), prefix)) throw new Error("Empty StringEd data");
             return;
@@ -64,7 +74,7 @@ async function loadLocalizations(categories) {
 
 async function loadSteamMetadata() {
     try {
-        const response = await fetch(STEAM_URL, { cache: "no-store" });
+        const response = await fetchWithTimeout(STEAM_URL, { cache: "no-store" });
         if (!response.ok) throw new Error("HTTP " + response.status);
         const json = await response.json();
         if (!json || typeof json.items !== "object" || !json.items)
@@ -239,16 +249,21 @@ function bind() {
     });
     $("exportCsv").addEventListener("click", exportCsv);
 }
+// Rendering is independent of Steam / localization network requests.
+// The category JSON is enough to show the UI immediately.
+const resourceErrors = new Map();
+function reportResourceError(source, message) {
+    if (message) resourceErrors.set(source, message);
+    else resourceErrors.delete(source);
+    $("errorMessage").hidden = resourceErrors.size === 0;
+    $("errorMessage").textContent = [...resourceErrors.values()].join(" ");
+}
 async function init() {
     bind();
     try {
-        const response = await fetch(DATA_URL, { cache: "no-store" });
+        const response = await fetchWithTimeout(DATA_URL, { cache: "no-store" });
         if (!response.ok) throw new Error("HTTP " + response.status);
         const raw = await response.json();
-        if (!Array.isArray(raw)) throw new Error("The JSON root must be an array");
-        const [localizationErrors, steamError] = await Promise.all([
-            loadLocalizations(raw), loadSteamMetadata()
-        ]);
         const data = normalize(raw);
         state.categories = data.categories;
         state.maps = data.maps;
@@ -256,17 +271,37 @@ async function init() {
         $("mapCount").textContent = data.maps.length.toLocaleString("en-US");
         $("liteCount").textContent = data.maps.filter(map => map.liteOnly).length.toLocaleString("en-US");
         render();
-        const warnings = [];
-        if (localizationErrors.length) warnings.push(
-            "Localization unavailable: " + localizationErrors.join("; "));
-        if (steamError) warnings.push(
-            "Steam metadata unavailable (" + steamError + "). Showing Workshop IDs.");
-        $("errorMessage").hidden = !warnings.length;
-        $("errorMessage").textContent = warnings.join(" ");
+
+        // Enrich the already visible map list as each optional source finishes.
+        loadLocalizations(raw).then(errors => {
+            for (const category of state.categories) {
+                category.name = categoryName(category);
+                category.summary = localize(category.description) || "";
+            }
+            render();
+            reportResourceError("localization", errors.length
+                ? "Localization unavailable: " + errors.join("; ")
+                : null);
+        }).catch(error => {
+            reportResourceError("localization", "Localization unavailable: " + error.message);
+        });
+
+        loadSteamMetadata().then(error => {
+            render();
+            reportResourceError("steam", error
+                ? "Steam metadata unavailable (" + error + "). Showing Workshop IDs."
+                : null);
+        }).catch(error => {
+            reportResourceError("steam", "Steam metadata unavailable: " + error.message);
+        });
     } catch (error) {
         $("catalog").innerHTML = "";
         $("errorMessage").hidden = false;
         $("errorMessage").textContent = "Unable to load the map catalog: " + error.message;
     }
 }
-document.addEventListener("DOMContentLoaded", init);
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init, { once: true });
+} else {
+    init();
+}
