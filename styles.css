@@ -57,9 +57,6 @@ a{color:inherit}
   padding:0 1px 11px;border-bottom:1px solid rgba(192,208,217,.36)}
 .selection-top h2{font-size:24px;line-height:1;letter-spacing:.02em;margin:0;font-weight:750;color:white}
 .selection-top span{font-size:9px;color:#abb4bd;letter-spacing:.06em;white-space:nowrap}
-.category-description{margin:10px 0 9px;color:#909498;font-size:11px;line-height:1.5;
-  font-family:"Segoe UI",Arial,sans-serif}
-.category-description:empty{display:none}
 .menu-toolbar{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:11px 1px 13px}
 .toggle{display:flex;gap:7px;align-items:center;color:#979da2;font-size:10px;letter-spacing:.025em;cursor:pointer}
 .toggle input{accent-color:var(--accent);width:13px;height:13px;margin:0}
@@ -302,7 +299,6 @@ a{color:inherit}
   padding-top:12px;
   border-top:1px solid rgba(192,208,217,.30);
 }
-.category-description:not(:empty){margin-top:0;padding:3px 0 10px}
 .nav-btn,.category-row,.map-row,
 .preview-buttons button,.preview-buttons a{
   position:relative;

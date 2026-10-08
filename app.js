@@ -232,7 +232,6 @@ function render() {
     const publicItems = publicMaps();
     renderNav();
     const category = state.selected === null ? null : state.categories[state.selected];
-    $("viewDescription").textContent = state.query.trim() ? "" : (category?.summary || "");
     $("groupCount").textContent = state.steamReady ?
         state.categories.filter(cat => categoryMaps(cat).length).length.toLocaleString("en-US") : "—";
     $("mapCount").textContent = state.steamReady ?
