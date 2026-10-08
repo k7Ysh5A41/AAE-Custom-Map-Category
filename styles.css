@@ -1801,7 +1801,7 @@ body.submission-open .social-bar { pointer-events:none; }
   .game-shell { width:min(100%,1900px); padding-inline:30px; }
   .game-header {
     display:grid;
-    grid-template-columns:11px minmax(230px,1fr) minmax(205px,275px) minmax(360px,480px);
+    grid-template-columns:11px minmax(230px,520px) minmax(205px,1fr) minmax(360px,480px);
     column-gap:clamp(15px,1.25vw,24px);
     align-items:center;
   }
@@ -1817,7 +1817,7 @@ body.submission-open .social-bar { pointer-events:none; }
 @media(min-width:1101px) and (max-width:1400px) {
   .game-header {
     display:grid;
-    grid-template-columns:11px minmax(180px,1fr) minmax(195px,265px) minmax(290px,390px);
+    grid-template-columns:11px minmax(200px,390px) minmax(195px,1fr) minmax(290px,390px);
     column-gap:clamp(11px,1vw,17px);
     align-items:center;
   }
@@ -2009,4 +2009,68 @@ body.submission-open .social-bar { pointer-events:none; }
 @media(prefers-reduced-motion:reduce) {
   .header-lite-filter,.lite-filter-switch,.lite-filter-knob {animation:none!important;transition:none!important}
   .header-lite-filter::after,.lite-filter-spark {animation:none!important}
+}
+
+/* Frameless Lite-only header switch, centered between the logo and submit action. */
+.header-lite-filter,
+.header-lite-filter:hover,
+.header-lite-filter:focus-within,
+.header-lite-filter:has(input:checked) {
+  width:max-content;
+  max-width:100%;
+  min-height:46px;
+  padding:7px 8px;
+  justify-content:center;
+  justify-self:center;
+  border:0;
+  border-left:0;
+  background:transparent;
+  box-shadow:none;
+}
+.header-lite-filter:has(input:checked) {animation:none;}
+.header-lite-filter::after,
+.header-lite-filter:has(input:checked)::after {content:none;animation:none;}
+.lite-filter-switch,
+.header-lite-filter:has(input:checked) .lite-filter-switch {border:0;}
+
+/* Explicit Lite-only selection in new-map and change-request dialogs. */
+.submit-dialog form > label.lite-form-option {
+  display:flex;
+  align-items:center;
+  gap:13px;
+  width:100%;
+  min-height:55px;
+  margin:12px 0 6px;
+  padding:12px 15px;
+  border:1px solid rgba(254,137,83,.38);
+  background:rgba(255,123,53,.075);
+  cursor:pointer;
+  letter-spacing:0;
+}
+.submit-dialog .lite-form-option input[type="checkbox"] {
+  flex:0 0 21px;
+  width:21px;
+  height:21px;
+  min-height:21px;
+  margin:0;
+  padding:0;
+  accent-color:#fa703a;
+  cursor:pointer;
+}
+.submit-dialog form > label.lite-form-option > span {
+  flex:1;
+  color:#f4dfce;
+  font:700 15px/1.4 "Segoe UI",Arial,sans-serif;
+}
+.submit-dialog .lite-form-option:has(input:checked) {
+  border-color:rgba(255,190,114,.86);
+  background:rgba(249,115,53,.19);
+}
+.lite-current-status {
+  padding:10px 14px;
+  margin:12px 0 0;
+  color:#f1c69f;
+  border-left:3px solid #f78b48;
+  background:rgba(245,106,50,.09);
+  font:650 14px/1.45 "Segoe UI",Arial,sans-serif;
 }
