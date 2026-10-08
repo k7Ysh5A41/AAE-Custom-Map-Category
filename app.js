@@ -341,6 +341,88 @@ function bind() {
         state.activeMapId = null;
         render();
     });
+    bindMapSubmission();
+}
+
+// An authenticated GitHub Issue hands a validated proposal to PR automation.
+const SUBMISSION_ISSUE_URL = "https://github.com/k7Ysh5A41/AAE-Custom-Map-Category/issues/new";
+
+function parseWorkshopId(value) {
+    const input = String(value || "").trim();
+    if (/^\d{7,20}$/.test(input)) return input;
+    try {
+        const url = new URL(input);
+        if (url.protocol !== "https:" ||
+            !["steamcommunity.com", "www.steamcommunity.com"].includes(url.hostname) ||
+            !/^\/(?:sharedfiles|workshop)\/filedetails\/?$/.test(url.pathname)) return null;
+        const id = url.searchParams.get("id");
+        return id && /^\d{7,20}$/.test(id) ? id : null;
+    } catch (_) {
+        return null;
+    }
+}
+function setSubmissionError(message) {
+    $("submitMapError").textContent = message || "";
+    $("submitMapError").hidden = !message;
+}
+function closeSubmission() {
+    $("submitMapOverlay").hidden = true;
+    $("submitMapOpen").focus();
+}
+function openSubmission() {
+    if (!state.categories.length) {
+        setSubmissionError("The catalog is still loading.");
+        return;
+    }
+    const select = $("submitCategory");
+    select.innerHTML = '<option value="">SELECT CATEGORY</option>' +
+        state.categories.map(cat => '<option value="' +
+        escapeHtml(cat.button) + '">' + escapeHtml(cat.name) + '</option>').join("");
+    $("submitMapForm").reset();
+    if (state.selected !== null && state.categories[state.selected]) {
+        select.value = state.categories[state.selected].button;
+    }
+    setSubmissionError("");
+    $("submitMapOverlay").hidden = false;
+    $("submitWorkshopId").focus();
+}
+function submitMapProposal(event) {
+    event.preventDefault();
+    const id = parseWorkshopId($("submitWorkshopId").value);
+    const selectedKey = $("submitCategory").value;
+    const category = state.categories.find(cat => cat.button === selectedKey);
+    if (!id) return setSubmissionError("Enter a valid Steam Workshop URL or Workshop ID.");
+    if (!category) return setSubmissionError("Select an existing map category.");
+    if (state.maps.some(map => map.id === id))
+        return setSubmissionError("This Workshop ID is already in the catalog.");
+    const notes = $("submitNotes").value.trim().replace(/\r/g, "");
+    if (notes.length > 400) return setSubmissionError("Notes must be at most 400 characters.");
+    const body = [
+        "<!-- aae-map-submission:v1 -->",
+        "Workshop ID: " + id,
+        "Category: " + selectedKey,
+        "Notes:",
+        notes || "None"
+    ].join("\n");
+    const url = new URL(SUBMISSION_ISSUE_URL);
+    url.searchParams.set("title", "[Map Submission] " + id);
+    url.searchParams.set("body", body);
+    window.location.assign(url.toString());
+}
+function bindMapSubmission() {
+    $("submitMapOpen").addEventListener("click", openSubmission);
+    $("submitMapClose").addEventListener("click", closeSubmission);
+    $("submitMapCancel").addEventListener("click", closeSubmission);
+    $("submitMapOverlay").addEventListener("click", event => {
+        if (event.target === $("submitMapOverlay")) closeSubmission();
+    });
+    document.addEventListener("keydown", event => {
+        if (event.key === "Escape" && !$("submitMapOverlay").hidden) {
+            event.preventDefault();
+            closeSubmission();
+        }
+    });
+    $("submitMapForm").addEventListener("submit", submitMapProposal);
 }
 
 // Rendering is independent of Steam / localization network requests.

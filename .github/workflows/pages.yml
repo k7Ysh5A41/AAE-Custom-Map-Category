@@ -20,6 +20,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Validate community submission automation
+        run: |
+          python3 -m py_compile scripts/process_submission.py
+          python3 - <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+          sys.path.insert(0, "scripts")
+          from process_submission import updated_catalog, parse_proposal
+          original = Path("custommap_cate.json").read_text(encoding="utf-8")
+          categories = json.loads(original)
+          new_id = "999888777666"
+          for index in (0, len(categories) // 2, len(categories) - 1):
+              updated = json.loads(updated_catalog(original, categories[index]["button"], new_id))
+              assert updated[index]["ugc"] == categories[index]["ugc"] + [new_id]
+              assert all(updated[i] == categories[i] for i in range(len(categories)) if i != index)
+          proposal = {"title": "[Map Submission] 1234567890",
+                      "body": "<!-- aae-map-submission:v1 -->\nWorkshop ID: 1234567890\nCategory: AAEP_ZC2_MAP\nNotes:\nNone"}
+          assert parse_proposal(proposal)[0] == "1234567890"
+          print("Submission workflow validation passed.")
+          PY
       - name: Fetch external English localization
         shell: bash
         run: |

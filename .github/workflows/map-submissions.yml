@@ -1,0 +1,32 @@
+name: Community Map Submission
+
+on:
+  issues:
+    types: [opened, reopened]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: map-submission-${{ github.event.issue.title }}
+  cancel-in-progress: false
+
+jobs:
+  prepare-pull-request:
+    if: >-
+      github.event.issue.pull_request == null &&
+      startsWith(github.event.issue.title, '[Map Submission] ')
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify Python script syntax
+        run: python3 -m py_compile scripts/process_submission.py
+      - name: Verify map and automatically create pull request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 scripts/process_submission.py

@@ -353,3 +353,60 @@ a{color:inherit}
    transition:none!important;
  }
 }
+
+
+/* Community map submission: BO3-style modal and controls. */
+.menu-toolbar{flex-wrap:wrap}
+.submit-trigger{
+  flex:0 0 auto;min-height:44px;padding:10px 15px;border:1px solid #d45a40;
+  background:rgba(33,20,18,.8);color:#f8d6c7;font-size:13px;font-weight:700;
+  letter-spacing:.04em;cursor:pointer;
+}
+.submit-trigger:hover,.submit-trigger:focus-visible{
+  color:#111;background:#fa5630;outline:none;
+  box-shadow:0 0 11px rgba(255,91,55,.38),0 0 34px rgba(250,86,48,.18);
+}
+.submit-overlay[hidden],.submit-error[hidden]{display:none!important}
+.submit-overlay{
+  position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;
+  padding:18px;background:rgba(1,2,4,.86);backdrop-filter:blur(7px);
+}
+.submit-dialog{
+  width:min(100%,560px);max-height:min(92vh,850px);overflow-y:auto;padding:27px 30px;
+  background:#101215;border:1px solid #61707a;
+  box-shadow:0 0 20px rgba(0,0,0,.7),0 0 45px rgba(250,86,48,.1);
+}
+.submit-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  border-bottom:1px solid #52616d;padding-bottom:12px}
+.submit-heading h2{font-size:26px;line-height:1.1;margin:0;letter-spacing:.055em}
+.submit-close{font-size:32px;line-height:1;width:36px;height:36px;background:none;
+  border:0;color:#aeb5bb;cursor:pointer}
+.submit-close:hover{color:#ff785b}
+.submit-description,.submit-github-notice{font:13px/1.6 "Segoe UI",Arial,sans-serif;color:#aeb6bb}
+.submit-description{margin:17px 0 19px}
+.submit-dialog form{display:flex;flex-direction:column;gap:8px}
+.submit-dialog form>label{color:#d6dfe3;font-size:13px;letter-spacing:.07em;margin-top:10px}
+.submit-dialog form>label span{color:#849098;font-size:11px}
+.submit-dialog input,.submit-dialog select,.submit-dialog textarea{
+  width:100%;min-height:44px;padding:11px 12px;border-radius:0;
+  border:1px solid #53616d;background:#090b0d;color:#fff;
+  font:14px/1.4 "Segoe UI",Arial,sans-serif;
+}
+.submit-dialog textarea{min-height:86px;resize:vertical}
+.submit-dialog input:focus,.submit-dialog select:focus,.submit-dialog textarea:focus{
+  outline:none;border-color:#ff7351;box-shadow:0 0 12px rgba(250,86,48,.23);
+}
+.submit-error{margin:9px 0;padding:10px 12px;background:#391c1c;color:#ffbdb3;font-size:13px}
+.submit-github-notice{margin:10px 0 2px;font-size:12px}
+.submit-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:14px}
+.submit-actions button{min-height:44px;padding:12px 17px;color:#e2e6e8;
+  border:1px solid #59616a;background:#1b2025;font-size:12px;cursor:pointer}
+.submit-actions .submit-confirm{border-color:#ff764e;background:#fa5630;color:#141313;font-weight:700}
+.submit-actions button:hover,.submit-actions button:focus-visible{
+  box-shadow:0 0 15px rgba(250,86,48,.34);border-color:#ff906a;outline:none}
+@media(max-width:650px){
+  .submit-trigger{width:100%;font-size:14px}
+  .submit-dialog{padding:20px 18px}
+  .submit-actions{flex-wrap:wrap}
+  .submit-actions button{flex:1;min-width:140px}
+}
