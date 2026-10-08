@@ -1123,3 +1123,47 @@ body::before,body::after,.game-shell::before {
 .game-header::before {
   background:none!important;
 }
+
+
+/* Original BO3-style AAE orange logotype, optimized for a responsive header. */
+.game-header .heading{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  justify-content:center;
+  gap:0;
+}
+.game-header .brand-logo{
+  display:block;
+  width:min(100%,520px);
+  height:auto;
+  max-height:65px;
+  object-fit:contain;
+  object-position:left center;
+  filter:drop-shadow(0 0 7px rgba(255,116,29,.58))
+         drop-shadow(0 0 23px rgba(255,86,15,.32));
+  animation:aaeLogoGlow 5s ease-in-out infinite;
+}
+.game-header .heading h1{
+  font-size:clamp(17px,1.35vw,23px);
+  letter-spacing:.13em;
+  font-weight:750;
+  line-height:1.18;
+  margin:6px 0 0;
+}
+.game-header .heading h1 span{color:#ffdcad;font-weight:750}
+.game-header .heading-description{margin-top:8px}
+@keyframes aaeLogoGlow{
+  0%,100% {filter:drop-shadow(0 0 7px rgba(255,116,29,.58))
+                     drop-shadow(0 0 23px rgba(255,86,15,.32))}
+  50% {filter:drop-shadow(0 0 12px rgba(255,169,69,.93))
+              drop-shadow(0 0 32px rgba(255,87,21,.57))}
+}
+@media(max-width:700px){
+  .game-header .brand-logo{max-height:none}
+  .game-header .heading h1{font-size:clamp(16px,4vw,22px)}
+}
+@media(prefers-reduced-motion:reduce){
+  .game-header .brand-logo{animation:none!important}
+}
