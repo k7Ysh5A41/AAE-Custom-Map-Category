@@ -11,6 +11,21 @@ A static, searchable catalog of custom Zombies map categories for All-Around Enh
 - Update and commit this JSON file to change the catalog. No changes to HTML or JavaScript are necessary.
 - The site fetches the JSON on every visit instead of embedding a separate copy.
 
+## Live English localization
+
+Category button labels and descriptions are **not stored in this repository**.
+
+The website dynamically fetches [AAE-localizedstrings/english/localizedstrings/AAEP.str](https://github.com/k7Ysh5A41/AAE-localizedstrings/blob/main/english/localizedstrings/AAEP.str) from the separate localization repository and parses the game's StringEd format:
+
+- Each `REFERENCE` is paired with its following `LANG_ENGLISH` quoted string.
+- The `.str` filename supplies the localization namespace. For example, `AAEP.str` with `REFERENCE ZC2_MAP` resolves the JSON key `AAEP_ZC2_MAP`.
+- The JSON `button` and `description` keys are looked up independently; both the category name and its introduction come from that source.
+- Escape sequences and in-game color codes are handled for website display.
+- The page derives the required localization file names from JSON key prefixes instead of hardcoding individual category texts.
+- Updating the localization repository updates the website automatically on the next page load (subject to ordinary CDN/browser caching).
+
+If localization cannot be loaded, category names fall back to identifiers derived from the JSON keys. No translation copy is committed to this repository.
+
 ## Features
 
 - Browse maps by category.
