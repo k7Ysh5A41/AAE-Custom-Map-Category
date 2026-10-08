@@ -845,9 +845,10 @@ function openSubmission() {
         state.categories.map(cat => '<option value="' +
         escapeHtml(cat.button) + '">' + escapeHtml(cat.name) + '</option>').join("");
     $("submitMapForm").reset();
-    if (state.selected !== null && state.categories[state.selected]) {
-        select.value = state.categories[state.selected].button;
-    }
+    // A new submission must start without a category even if a category
+    // (including Zombies Chronicles 2) is currently selected in the catalog.
+    select.value = "";
+    $("submitLiteOnly").checked = false;
     setSubmissionError("");
     submissionScrollY = window.scrollY || window.pageYOffset || 0;
     submissionPreviousTop = document.body.style.top;
@@ -977,7 +978,9 @@ function openChangeRequest(id) {
     setChangePending(false);
     $("changeMapForm").reset();
     $("changeMove").checked = true;
-    $("changeLiteOnly").checked = Boolean(map.liteOnly);
+    // Initialize from the approved map, never the form's previous state.
+    const changeLiteCheckbox = $("changeLiteOnly");
+    changeLiteCheckbox.checked = map.liteOnly === true;
     const status = $("changeCurrentLite");
     status.dataset.i18n = map.liteOnly ? "currentLiteYes" : "currentLiteNo";
     status.textContent = t(status.dataset.i18n);
