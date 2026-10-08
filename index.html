@@ -6,8 +6,8 @@
 <meta name="theme-color" content="#050507">
 <meta name="description" content="All-Around Enhancement — a Black Ops III Zombies-style catalog of public Steam Workshop maps.">
 <title>All-Around Enhancement — Map Catalog</title>
-<link rel="stylesheet" href="styles.css?v=browser-locale-aae-20261008">
-<script src="app.js?v=browser-locale-aae-20261008" defer></script>
+<link rel="stylesheet" href="styles.css?v=language-picker-20261008">
+<script src="app.js?v=language-picker-20261008" defer></script>
 </head>
 <body>
 <div class="game-shell">
@@ -44,6 +44,16 @@
       <div class="preview-empty"><p>SELECT A MAP</p><small>Choose a public Workshop map to view its details.</small></div>
     </aside>
   </main>
+  <div class="language-picker" id="languagePicker">
+    <button class="language-toggle" id="languageToggle" type="button" aria-haspopup="true"
+      aria-controls="languageMenu" aria-expanded="false" aria-label="Change website language">
+      <span class="language-globe" aria-hidden="true">◎</span>
+      <span class="language-caption">LANGUAGE</span>
+      <strong id="languageCurrent">AUTO</strong>
+      <span class="language-chevron" aria-hidden="true">⌃</span>
+    </button>
+    <div class="language-menu" id="languageMenu" role="group" aria-label="Website language" hidden></div>
+  </div>
   <section class="submit-overlay" id="submitMapOverlay" hidden role="presentation">
     <div class="submit-dialog" role="dialog" aria-modal="true" aria-labelledby="submitMapTitle">
       <div class="submit-heading">

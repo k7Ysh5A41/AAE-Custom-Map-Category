@@ -19,6 +19,17 @@ const LOCALIZATION_LANGUAGES = Object.freeze({
     ja: "japanese", pl: "polish", pt: "portuguese",
     ru: "russian", es: "spanish"
 });
+const LANGUAGE_NAMES = Object.freeze({
+    en: "English", fr: "Français", de: "Deutsch", it: "Italiano",
+    ja: "日本語", pl: "Polski", pt: "Português", ru: "Русский", es: "Español"
+});
+const LANGUAGE_PREFERENCE_KEY = "aae-map-catalog-language";
+function savedLanguageChoice() {
+    try {
+        const value = window.localStorage.getItem(LANGUAGE_PREFERENCE_KEY);
+        return value && Object.hasOwn(LOCALIZATION_LANGUAGES, value) ? value : "auto";
+    } catch (_) { return "auto"; }
+}
 function preferredLocalization() {
     const candidates = Array.isArray(navigator.languages) && navigator.languages.length
         ? navigator.languages : [navigator.language || "en"];
@@ -30,6 +41,10 @@ function preferredLocalization() {
     }
     return { code: "en", folder: "english" };
 }
+function selectedLocalization() {
+    return state.languageChoice === "auto" ? preferredLocalization() :
+        { code: state.languageChoice, folder: LOCALIZATION_LANGUAGES[state.languageChoice] };
+}
 const $ = id => document.getElementById(id);
 const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, char =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]
@@ -37,8 +52,10 @@ const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, char =>
 const state = {
     categories: [], maps: [], selected: null, liteOnly: false,
     translations: new Map(), workshop: {}, steamReady: false, steamFailed: false,
-    activeMapId: null, query: ""
+    activeMapId: null, query: "", languageChoice: savedLanguageChoice()
 };
+let localizationRequestId = 0;
+const localizationCache = new Map();
 
 // Each language folder stores translated values under LANG_ENGLISH, with
 // the original REFERENCE identifiers preserved (e.g. AAEP_ZC2_MAP).
@@ -60,26 +77,35 @@ function parseStringEd(source, prefix, output = new Map()) {
     return count;
 }
 async function loadStringEd(prefix, folder) {
-    const segment = encodeURIComponent(prefix) + ".str";
-    const candidates = [
-        LOCALIZATION_MIRROR + folder + "/" + segment,
-        LOCALIZATION_BASE + folder + "/localizedstrings/" + segment
-    ];
-    const errors = [];
-    for (const url of candidates) {
-        try {
-            const response = await fetchWithTimeout(url, { cache: "no-store" });
-            if (!response.ok) throw new Error("HTTP " + response.status);
-            const translations = new Map();
-            if (!parseStringEd(await response.text(), prefix, translations))
-                throw new Error("Empty StringEd data");
-            return translations;
-        } catch (error) { errors.push(error.message); }
+    const key = folder + "/" + prefix;
+    if (localizationCache.has(key)) return localizationCache.get(key);
+    const pending = (async () => {
+        const segment = encodeURIComponent(prefix) + ".str";
+        const candidates = [
+            LOCALIZATION_MIRROR + folder + "/" + segment,
+            LOCALIZATION_BASE + folder + "/localizedstrings/" + segment
+        ];
+        const errors = [];
+        for (const url of candidates) {
+            try {
+                const response = await fetchWithTimeout(url, { cache: "no-store" });
+                if (!response.ok) throw new Error("HTTP " + response.status);
+                const translations = new Map();
+                if (!parseStringEd(await response.text(), prefix, translations))
+                    throw new Error("Empty StringEd data");
+                return translations;
+            } catch (error) { errors.push(error.message); }
+        }
+        throw new Error(folder + "/" + prefix + ": " + errors.join("; "));
+    })();
+    localizationCache.set(key, pending);
+    try { return await pending; }
+    catch (error) {
+        if (localizationCache.get(key) === pending) localizationCache.delete(key);
+        throw error;
     }
-    throw new Error(folder + "/" + prefix + ": " + errors.join("; "));
 }
-async function loadLocalizations(categories) {
-    const locale = preferredLocalization();
+async function loadLocalizations(categories, locale) {
     const prefixes = [...new Set(categories
         .flatMap(category => [category?.button, category?.description])
         .filter(key => typeof key === "string")
@@ -90,7 +116,6 @@ async function loadLocalizations(categories) {
         if (locale.folder !== "english") requests.push(loadStringEd(prefix, locale.folder));
         const settled = await Promise.allSettled(requests);
         const translations = new Map();
-        // English supplies missing or untranslated entries for every locale.
         if (settled[0].status === "fulfilled") {
             for (const [key, value] of settled[0].value) translations.set(key, value);
         }
@@ -107,16 +132,111 @@ async function loadLocalizations(categories) {
         }
         return { translations, selectedLanguageLoaded };
     }));
-    state.translations.clear();
+    const translations = new Map();
     let localized = false;
     for (const result of results) {
         if (result.status !== "fulfilled") continue;
-        for (const [key, value] of result.value.translations) state.translations.set(key, value);
+        for (const [key, value] of result.value.translations) translations.set(key, value);
         localized ||= result.value.selectedLanguageLoaded;
     }
-    document.documentElement.lang = localized ? locale.code : "en";
-    return results.filter(result => result.status === "rejected")
-        .map(result => result.reason.message);
+    return {
+        translations,
+        code: localized ? locale.code : "en",
+        errors: results.filter(result => result.status === "rejected")
+            .map(result => result.reason.message)
+    };
+}
+async function refreshLocalization() {
+    if (!state.categories.length) return;
+    const requestId = ++localizationRequestId;
+    const locale = selectedLocalization();
+    try {
+        const result = await loadLocalizations(state.categories, locale);
+        if (requestId !== localizationRequestId) return;
+        state.translations = result.translations;
+        document.documentElement.lang = result.code;
+        for (const category of state.categories) {
+            category.name = categoryName(category);
+            category.summary = localize(category.description) || "";
+        }
+        // Preserve the current map/category/search and update localized labels.
+        render();
+        updateLanguagePicker();
+        reportResourceError("localization", result.errors.length
+            ? "Localization unavailable: " + result.errors.join("; ")
+            : null);
+    } catch (error) {
+        if (requestId !== localizationRequestId) return;
+        reportResourceError("localization", "Localization unavailable: " + error.message);
+    }
+}
+function updateLanguagePicker() {
+    const locale = selectedLocalization();
+    const displayed = state.languageChoice === "auto" ? "AUTO · " + locale.code.toUpperCase() :
+        state.languageChoice.toUpperCase();
+    $("languageCurrent").textContent = displayed;
+    $("languageToggle").title = "Language: " + (state.languageChoice === "auto"
+        ? "Browser (" + LANGUAGE_NAMES[locale.code] + ")" : LANGUAGE_NAMES[locale.code]);
+    $("languageMenu").innerHTML =
+        '<button type="button" class="language-option' +
+        (state.languageChoice === "auto" ? " selected" : "") +
+        '" data-language="auto" aria-pressed="' + (state.languageChoice === "auto") +
+        '"><span>AUTO · BROWSER</span><small>⌁</small></button>' +
+        Object.keys(LOCALIZATION_LANGUAGES).map(code =>
+            '<button type="button" class="language-option' +
+            (state.languageChoice === code ? " selected" : "") +
+            '" data-language="' + code + '" aria-pressed="' +
+            (state.languageChoice === code) + '"><span>' +
+            escapeHtml(LANGUAGE_NAMES[code]) + '</span><small>' +
+            code.toUpperCase() + '</small></button>'
+        ).join("");
+}
+function closeLanguagePicker(restoreFocus = false) {
+    $("languageMenu").hidden = true;
+    $("languageToggle").setAttribute("aria-expanded", "false");
+    if (restoreFocus) $("languageToggle").focus({preventScroll:true});
+}
+function setLanguageChoice(code) {
+    if (code !== "auto" && !Object.hasOwn(LOCALIZATION_LANGUAGES, code)) return;
+    const changed = state.languageChoice !== code;
+    state.languageChoice = code;
+    if (changed) {
+        try { window.localStorage.setItem(LANGUAGE_PREFERENCE_KEY, code); }
+        catch (_) { /* Session-only preference if storage is unavailable. */ }
+    }
+    updateLanguagePicker();
+    closeLanguagePicker(true);
+    if (changed) refreshLocalization();
+}
+function bindLanguagePicker() {
+    updateLanguagePicker();
+    $("languageToggle").addEventListener("click", () => {
+        const menu = $("languageMenu");
+        menu.hidden = !menu.hidden;
+        $("languageToggle").setAttribute("aria-expanded", String(!menu.hidden));
+        if (!menu.hidden) menu.querySelector(".language-option.selected")?.focus({preventScroll:true});
+    });
+    $("languageMenu").addEventListener("click", event => {
+        const option = event.target.closest("[data-language]");
+        if (option) setLanguageChoice(option.dataset.language);
+    });
+    $("languageMenu").addEventListener("keydown", event => {
+        if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+        const options = [...$("languageMenu").querySelectorAll("[data-language]")];
+        const current = options.indexOf(document.activeElement);
+        const next = (current + (event.key === "ArrowDown" ? 1 : -1) + options.length) % options.length;
+        event.preventDefault();
+        options[next].focus({preventScroll:true});
+    });
+    document.addEventListener("click", event => {
+        if (!$("languagePicker").contains(event.target)) closeLanguagePicker();
+    });
+    document.addEventListener("keydown", event => {
+        if (event.key === "Escape" && !$("languageMenu").hidden) {
+            event.preventDefault();
+            closeLanguagePicker(true);
+        }
+    });
 }
 
 async function loadSteamMetadata() {
@@ -317,6 +437,7 @@ function selectCategory(value) {
     render();
 }
 function bind() {
+    bindLanguagePicker();
     $("categoryNav").addEventListener("click", event => {
         const button = event.target.closest("[data-category]");
         if (button) selectCategory(button.dataset.category);
@@ -505,18 +626,7 @@ async function init() {
         render();
 
         // Enrich the already visible map list as each optional source finishes.
-        loadLocalizations(raw).then(errors => {
-            for (const category of state.categories) {
-                category.name = categoryName(category);
-                category.summary = localize(category.description) || "";
-            }
-            render();
-            reportResourceError("localization", errors.length
-                ? "Localization unavailable: " + errors.join("; ")
-                : null);
-        }).catch(error => {
-            reportResourceError("localization", "Localization unavailable: " + error.message);
-        });
+        refreshLocalization();
 
         loadSteamMetadata().then(error => {
             if (!error && state.selected === null && !state.liteOnly && !state.query.trim()) {
