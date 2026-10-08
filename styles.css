@@ -221,18 +221,18 @@ a{color:inherit}
 }
 .sidebar{min-width:0}
 .nav-btn{
-  min-height:96px;
-  padding:18px 20px;
-  font-size:21px;
-  line-height:1.28;
-  gap:13px;
+  min-height:72px;
+  padding:11px 15px;
+  font-size:19.5px;
+  line-height:1.25;
+  gap:12px;
 }
 .nav-btn small{font-size:15px}
-.category-row{min-height:116px;padding:20px 23px;gap:15px}
-.category-copy h3{font-size:21px;line-height:1.35}
+.category-row{min-height:87px;padding:12px 16px;gap:13px}
+.category-copy h3{font-size:20.8px;line-height:1.3}
 .category-count{font-size:16px}
-.map-row{min-height:168px;padding:20px;gap:16px}
-.map-copy h3{font-size:21px;line-height:1.32;white-space:normal;max-height:5.3em}
+.map-row{min-height:126px;padding:3px 12px;gap:13px}
+.map-copy h3{font-size:24px;line-height:1.23;white-space:normal;max-height:3.7em}
 .map-publisher{font-size:10px;line-height:1.45}
 .cover-square{
   width:120px;height:120px;min-width:120px;min-height:120px;
@@ -256,21 +256,21 @@ a{color:inherit}
     border-left:0;border-top:1px solid #3c464d;
   }
   .preview-cover,.preview-title-band{width:min(100%,360px)}
-  .nav-btn{min-height:96px;font-size:19px}
+  .nav-btn{min-height:72px;font-size:19px}
 }
 @media(max-width:650px){
   .game-content{grid-template-columns:minmax(0,1fr);gap:20px}
   .sidebar{max-height:280px}
   #categoryNav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
     max-height:250px;min-height:0;gap:3px}
-  .nav-btn{min-height:94px;font-size:16px;padding:12px;overflow-wrap:anywhere}
+  .nav-btn{min-height:71px;font-size:17px;padding:8px 10px;overflow-wrap:anywhere}
   .nav-btn small{font-size:12px}
-  .category-row{min-height:110px;padding:17px}
+  .category-row{min-height:83px;padding:10px}
   .category-copy h3{font-size:18px}
-  .map-row{min-height:150px;padding:12px;gap:12px}
+  .map-row{min-height:113px;padding:4px 7px;gap:8px}
   .cover-square{width:105px;height:105px;min-width:105px;min-height:105px;
     max-width:105px;max-height:105px;flex-basis:105px}
-  .map-copy h3{font-size:18px}
+  .map-copy h3{font-size:21px;line-height:1.2}
   .preview-pane{grid-column:1;min-height:0;padding:18px 0 0}
   .preview-cover,.preview-title-band{width:min(100%,330px)}
   .preview-details{font-size:14px}
