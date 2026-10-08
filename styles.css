@@ -1466,9 +1466,9 @@ html,body { max-width:100%;overflow-x:clip; }
   overflow-wrap:anywhere;
 }
 .preview-pane .social-bar .social-external { margin-left:auto; }
-@container (min-width:470px) {
+@container (min-width:360px) {
   .preview-layout {
-    grid-template-columns:minmax(0,360px) minmax(150px,1fr);
+    grid-template-columns:minmax(0,1fr) minmax(150px,200px);
     column-gap:clamp(14px,1.4vw,26px);
   }
   .preview-pane .social-bar { padding-top:10px; }
@@ -1687,6 +1687,7 @@ body.submission-open .social-bar { pointer-events:none; }
 .change-types span {flex:1}
 #changeTargetCategory[hidden],#changeTargetLabel[hidden]{display:none!important}
 #changeMapSubmit:disabled{opacity:.65;cursor:progress}
+.change-types label[hidden]{display:none!important}
 @media(max-width:580px) {
   .change-types {grid-template-columns:1fr}
   .change-types label {min-height:47px}
@@ -1809,7 +1810,7 @@ body.submission-open .social-bar { pointer-events:none; }
   .game-header .header-actions {grid-column:4;grid-row:1;display:flex;flex-direction:column;align-items:stretch;}
   .header-actions .submit-trigger {width:100%;flex:0 0 auto;}
   .game-content {
-    grid-template-columns:minmax(281.25px,331.25px) minmax(400px,1fr) minmax(470px,clamp(470px,35vw,600px));
+    grid-template-columns:minmax(281.25px,331.25px) minmax(400px,1fr) clamp(370px,28vw,520px);
     gap:clamp(13px,1.3vw,26px);
   }
 }
@@ -1825,7 +1826,7 @@ body.submission-open .social-bar { pointer-events:none; }
   .game-header .header-actions {grid-column:4;grid-row:1;display:flex;flex-direction:column;align-items:stretch;}
   .header-actions .submit-trigger {width:100%;flex:0 0 auto;}
   .game-content {
-    grid-template-columns:minmax(237.5px,306.25px) minmax(320px,1fr) minmax(305px,clamp(305px,30vw,420px));
+    grid-template-columns:minmax(237.5px,306.25px) minmax(360px,1fr) clamp(290px,26vw,385px);
     gap:clamp(11px,1vw,18px);
   }
 }
@@ -1841,9 +1842,9 @@ body.submission-open .social-bar { pointer-events:none; }
   max-width:100%;
 }
 .preview-pane .social-bar .social-buttons {width:100%;}
-@container (min-width:470px) {
+@container (min-width:360px) {
   .preview-layout {
-    grid-template-columns:minmax(0,360px) minmax(150px,1fr);
+    grid-template-columns:minmax(0,1fr) minmax(150px,200px);
   }
   .preview-pane .social-bar {
     justify-self:end;
