@@ -173,7 +173,7 @@ function categoryRow(category) {
         '</div><span class="category-chevron" aria-hidden="true">›</span></article>';
 }
 function squareCover(url, large = false) {
-    const size = large ? 240 : 54;
+    const size = large ? 360 : 120;
     const isHttps = typeof url === "string" && /^https:\/\//i.test(url);
     return '<span class="' + (large ? "preview-cover" : "cover-square") + '">' +
         (isHttps ?

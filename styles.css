@@ -211,3 +211,68 @@ a{color:inherit}
 .preview-buttons button,.preview-buttons a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:12px 16px;font-size:13px}
 .toggle{font-size:12px;gap:9px}.toggle input{width:17px;height:17px}
 .map-row:focus-visible,.nav-btn:focus-visible,.category-row:focus-visible,.preview-buttons a:focus-visible,.preview-buttons button:focus-visible{outline:2px solid #f5f5f5;outline-offset:-2px}
+
+
+/* Larger BO3-style category and map selectors; 150% map preview.
+   Native square Steam preview images are preserved without cropping. */
+.game-content{
+  grid-template-columns:minmax(235px,300px) minmax(350px,475px) minmax(310px,1fr);
+  gap:clamp(12px,1.5vw,24px);
+}
+.sidebar{min-width:0}
+.nav-btn{
+  min-height:96px;
+  padding:18px 20px;
+  font-size:21px;
+  line-height:1.28;
+  gap:13px;
+}
+.nav-btn small{font-size:15px}
+.category-row{min-height:116px;padding:20px 23px;gap:15px}
+.category-copy h3{font-size:21px;line-height:1.35}
+.category-count{font-size:16px}
+.map-row{min-height:168px;padding:20px;gap:16px}
+.map-copy h3{font-size:21px;line-height:1.32;white-space:normal;max-height:5.3em}
+.map-publisher{font-size:10px;line-height:1.45}
+.cover-square{
+  width:120px;height:120px;min-width:120px;min-height:120px;
+  max-width:120px;max-height:120px;flex:0 0 120px;aspect-ratio:1/1;
+}
+.cover-square img,.preview-cover img{object-fit:contain;aspect-ratio:1/1}
+.preview-pane{min-width:0}
+.preview-cover,.preview-title-band{width:min(100%,360px)}
+.preview-cover{aspect-ratio:1/1}
+.preview-title-band{font-size:20px;padding:11px 13px}
+.preview-heading{font-size:16px;margin-top:30px}
+.preview-details{font-size:15px;line-height:1.75}
+.preview-blurb{font-size:15px;line-height:1.7;max-width:540px}
+.preview-buttons button,.preview-buttons a{min-height:48px;padding:13px 17px;font-size:14px}
+.preview-empty p{font-size:20px}
+.preview-empty small{font-size:14px}
+@media(max-width:1100px){
+  .game-content{grid-template-columns:minmax(225px,275px) minmax(0,1fr);gap:19px}
+  .preview-pane{
+    grid-column:2;min-height:0;padding:19px 0 0;
+    border-left:0;border-top:1px solid #3c464d;
+  }
+  .preview-cover,.preview-title-band{width:min(100%,360px)}
+  .nav-btn{min-height:96px;font-size:19px}
+}
+@media(max-width:650px){
+  .game-content{grid-template-columns:minmax(0,1fr);gap:20px}
+  .sidebar{max-height:280px}
+  #categoryNav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+    max-height:250px;min-height:0;gap:3px}
+  .nav-btn{min-height:94px;font-size:16px;padding:12px;overflow-wrap:anywhere}
+  .nav-btn small{font-size:12px}
+  .category-row{min-height:110px;padding:17px}
+  .category-copy h3{font-size:18px}
+  .map-row{min-height:150px;padding:12px;gap:12px}
+  .cover-square{width:105px;height:105px;min-width:105px;min-height:105px;
+    max-width:105px;max-height:105px;flex-basis:105px}
+  .map-copy h3{font-size:18px}
+  .preview-pane{grid-column:1;min-height:0;padding:18px 0 0}
+  .preview-cover,.preview-title-band{width:min(100%,330px)}
+  .preview-details{font-size:14px}
+  .preview-blurb{font-size:14px}
+}
