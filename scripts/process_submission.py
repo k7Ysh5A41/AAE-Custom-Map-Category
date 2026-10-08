@@ -165,6 +165,8 @@ def find_open_pr(workshop_id: str):
         if len(pulls) < 100:
             break
         page += 1
+    if page > 10:
+        raise RuntimeError("Cannot safely verify duplicates: more than 1000 open pull requests.")
     return None
 
 
@@ -191,6 +193,16 @@ def main():
             issue_comment(number, "A review pull request already exists: " + existing)
             return
         item = workshop_details(workshop_id)
+        # Refresh both checks after network validation, immediately before branch creation.
+        current = github("GET", "/contents/custommap_cate.json?ref=main")
+        original = base64.b64decode(current["content"]).decode("utf-8")
+        catalog = json.loads(original)
+        if workshop_id in map_ids(catalog):
+            raise ValueError("This Workshop ID already exists in the catalog.")
+        existing = find_open_pr(workshop_id)
+        if existing:
+            issue_comment(number, "A review pull request already exists: " + existing)
+            return
         title = re.sub(r"[\r\n\t]+", " ", str(item["title"])).strip()[:95]
         changed = updated_catalog(original, category_key, workshop_id)
         branch = f"community-maps/issue-{number}"

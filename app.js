@@ -534,8 +534,18 @@ function setSubmissionError(message) {
 }
 let submissionScrollY = 0;
 let submissionPreviousTop = "";
+let submissionValidationId = 0;
+let submissionValidationPending = false;
+function setSubmissionPending(pending) {
+    submissionValidationPending = pending;
+    const button = $("submitMapForm").querySelector(".submit-confirm");
+    button.disabled = pending;
+    button.textContent = pending ? "CHECKING MAP AND PULL REQUESTS…" : "CONTINUE TO GITHUB ↗";
+}
 function closeSubmission() {
     if ($("submitMapOverlay").hidden) return;
+    submissionValidationId++;
+    setSubmissionPending(false);
     $("submitMapOverlay").hidden = true;
     document.documentElement.classList.remove("submission-open");
     document.body.classList.remove("submission-open");
@@ -545,6 +555,8 @@ function closeSubmission() {
 }
 function openSubmission() {
     if (!$("submitMapOverlay").hidden) return;
+    submissionValidationId++;
+    setSubmissionPending(false);
     if (!state.categories.length) {
         setSubmissionError("The catalog is still loading.");
         return;
@@ -566,8 +578,46 @@ function openSubmission() {
     $("submitMapOverlay").hidden = false;
     $("submitWorkshopId").focus({ preventScroll: true });
 }
-function submitMapProposal(event) {
+// Recheck current public main, not just the catalog snapshot loaded with this page.
+async function isWorkshopIdInMain(workshopId) {
+    const url = "https://raw.githubusercontent.com/k7Ysh5A41/" +
+        "AAE-Custom-Map-Category/main/custommap_cate.json";
+    const response = await fetchWithTimeout(url, { cache: "no-store" });
+    if (!response.ok) throw new Error("Unable to check the latest map catalog (HTTP " + response.status + ").");
+    const catalog = await response.json();
+    if (!Array.isArray(catalog) || !catalog.every(category =>
+        category && Array.isArray(category.ugc))) {
+        throw new Error("The latest catalog is invalid. Submission has been stopped.");
+    }
+    return catalog.some(category => category.ugc.some(item =>
+        String(item && typeof item === "object" ? item.id : item) === workshopId));
+}
+async function findExistingMapPR(workshopId) {
+    const base = "https://api.github.com/repos/k7Ysh5A41/AAE-Custom-Map-Category/pulls";
+    const exactLine = new RegExp("^Workshop ID: " + workshopId + "\\r?$", "m");
+    for (let page = 1; page <= 10; page++) {
+        const response = await fetchWithTimeout(
+            base + "?state=open&per_page=100&page=" + page, {
+                cache: "no-store",
+                headers: { Accept: "application/vnd.github+json" }
+            });
+        if (!response.ok) {
+            throw new Error("Unable to check open pull requests (HTTP " +
+                response.status + "). Please retry.");
+        }
+        const pulls = await response.json();
+        if (!Array.isArray(pulls)) throw new Error("The pull request response is invalid.");
+        const existing = pulls.find(pr => exactLine.test(String(pr.body || "")) ||
+            (String(pr.head?.ref || "").startsWith("community-maps/") &&
+                String(pr.title || "").includes("(" + workshopId + ")")));
+        if (existing) return existing.html_url || "an open PR";
+        if (pulls.length < 100) return null;
+    }
+    throw new Error("There are too many open PRs to verify this map safely.");
+}
+async function submitMapProposal(event) {
     event.preventDefault();
+    if (submissionValidationPending) return;
     const id = parseWorkshopId($("submitWorkshopId").value);
     const selectedKey = $("submitCategory").value;
     const category = state.categories.find(cat => cat.button === selectedKey);
@@ -577,17 +627,40 @@ function submitMapProposal(event) {
         return setSubmissionError("This Workshop ID is already in the catalog.");
     const notes = $("submitNotes").value.trim().replace(/\r/g, "");
     if (notes.length > 400) return setSubmissionError("Notes must be at most 400 characters.");
-    const body = [
-        "<!-- aae-map-submission:v1 -->",
-        "Workshop ID: " + id,
-        "Category: " + selectedKey,
-        "Notes:",
-        notes || "None"
-    ].join("\n");
-    const url = new URL(SUBMISSION_ISSUE_URL);
-    url.searchParams.set("title", "[Map Submission] " + id);
-    url.searchParams.set("body", body);
-    window.location.assign(url.toString());
+    const requestId = ++submissionValidationId;
+    setSubmissionError("");
+    setSubmissionPending(true);
+    try {
+        const [alreadyListed, existingPR] = await Promise.all([
+            isWorkshopIdInMain(id), findExistingMapPR(id)
+        ]);
+        if (requestId !== submissionValidationId || $("submitMapOverlay").hidden) return;
+        if (alreadyListed) {
+            setSubmissionError("This Workshop ID already exists in custommap_cate.json.");
+            return;
+        }
+        if (existingPR) {
+            setSubmissionError("A pull request for this Workshop ID is already open: " + existingPR);
+            return;
+        }
+        const body = [
+            "<!-- aae-map-submission:v1 -->",
+            "Workshop ID: " + id,
+            "Category: " + selectedKey,
+            "Notes:",
+            notes || "None"
+        ].join("\n");
+        const url = new URL(SUBMISSION_ISSUE_URL);
+        url.searchParams.set("title", "[Map Submission] " + id);
+        url.searchParams.set("body", body);
+        window.location.assign(url.toString());
+    } catch (error) {
+        if (requestId === submissionValidationId && !$("submitMapOverlay").hidden) {
+            setSubmissionError("Submission blocked: " + error.message);
+        }
+    } finally {
+        if (requestId === submissionValidationId) setSubmissionPending(false);
+    }
 }
 function bindMapSubmission() {
     $("submitMapOpen").addEventListener("click", openSubmission);
