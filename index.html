@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#050507">
 <meta name="description" content="All-Around Enhancement — a Black Ops III Zombies-style catalog of public Steam Workshop maps.">
 <title>All-Around Enhancement — Map Catalog</title>
-<link rel="stylesheet" href="styles.css?v=compact-language-no-overflow-20261008">
+<link rel="stylesheet" href="styles.css?v=stats-category-motion-preview-fix-20261008">
 <script src="translations.js?v=pr-proposals-three-day-new-20261008" defer></script>
 <script src="app.js?v=pr-proposals-three-day-new-20261008" defer></script>
 </head>
@@ -24,7 +24,13 @@
         <span class="submit-trigger-copy"><strong data-i18n="submitMap">SUBMIT A MAP</strong></span>
         <span class="submit-trigger-chevron" aria-hidden="true">›</span>
       </button>
-      <div class="header-stats"><span id="groupCount">—</span> <span class="stat-label" data-i18n="statCategories">CATEGORIES</span> <span class="stat-separator">/</span> <span id="mapCount">—</span> <span class="stat-label" data-i18n="statMaps">PUBLIC MAPS</span> <span class="stat-separator">/</span> <span id="liteCount">—</span> <span class="stat-label" data-i18n="statLite">LITE ONLY</span></div>
+      <div class="header-stats">
+        <div class="stat-item"><span id="groupCount">—</span><span class="stat-label" data-i18n="statCategories">CATEGORIES</span></div>
+        <span class="stat-separator" aria-hidden="true">/</span>
+        <div class="stat-item"><span id="mapCount">—</span><span class="stat-label" data-i18n="statMaps">PUBLIC MAPS</span></div>
+        <span class="stat-separator" aria-hidden="true">/</span>
+        <div class="stat-item"><span id="liteCount">—</span><span class="stat-label" data-i18n="statLite">LITE ONLY</span></div>
+      </div>
     </div>
   </header>
   <main class="game-content">
@@ -50,7 +56,6 @@
     <button class="language-toggle" id="languageToggle" type="button" aria-haspopup="true"
       aria-controls="languageMenu" aria-expanded="false" aria-label="Change website language" data-i18n-aria-label="changeLanguage">
       <span class="language-globe" aria-hidden="true">◎</span>
-      <span class="language-caption" data-i18n="language">LANGUAGE</span>
       <strong id="languageCurrent">AUTO</strong>
       <span class="language-chevron" aria-hidden="true">⌃</span>
     </button>
