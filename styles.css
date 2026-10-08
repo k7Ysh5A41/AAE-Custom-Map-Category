@@ -276,3 +276,10 @@ a{color:inherit}
   .preview-details{font-size:14px}
   .preview-blurb{font-size:14px}
 }
+
+/* Publisher text: 2x the previous font size, without changing map titles. */
+.map-publisher,.map-publisher .publisher-name{font-size:20px;line-height:1.25}
+.preview-details p:first-child strong{display:inline-block;font-size:30px;line-height:1.25;overflow-wrap:anywhere}
+@media(max-width:650px){
+  .preview-details p:first-child strong{font-size:28px}
+}
