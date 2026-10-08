@@ -7,6 +7,7 @@ const PENDING_URL = "./pending_pr_maps.json";
 const PENDING_CATEGORY = "pending";
 const PENDING_CHANGES = "pending-changes";
 const PENDING_DELETION = "pending-deletion";
+const INCOMPATIBLE_CATEGORY = "AAEP_INCP_MAP";
 const NEW_PR_WINDOW_MS = 3 * 24 * 60 * 60 * 1000;
 const RESOURCE_TIMEOUT_MS = 10000;
 async function fetchWithTimeout(url, options = {}) {
@@ -863,26 +864,31 @@ async function isWorkshopIdInMain(workshopId) {
         String(item && typeof item === "object" ? item.id : item) === workshopId));
 }
 async function findExistingMapPR(workshopId) {
+    // The GitHub REST API can return 403 to anonymous browser clients.
+    // This is a best-effort UX check: the issue-processing workflow independently
+    // rejects duplicate open PRs, so API failures must not block submissions.
     const base = "https://api.github.com/repos/k7Ysh5A41/AAE-Custom-Map-Category/pulls";
     const exactLine = new RegExp("^Workshop ID: " + workshopId + "\\r?$", "m");
-    for (let page = 1; page <= 10; page++) {
-        const response = await fetchWithTimeout(
-            base + "?state=open&per_page=100&page=" + page, {
-                cache: "no-store",
-                headers: { Accept: "application/vnd.github+json" }
-            });
-        if (!response.ok) {
-            throw new Error(t("prCheckError", {status:response.status}));
+    try {
+        for (let page = 1; page <= 10; page++) {
+            const response = await fetchWithTimeout(
+                base + "?state=open&per_page=100&page=" + page, {
+                    cache: "no-store",
+                    headers: { Accept: "application/vnd.github+json" }
+                });
+            if (!response.ok) return null;
+            const pulls = await response.json();
+            if (!Array.isArray(pulls)) return null;
+            const existing = pulls.find(pr => exactLine.test(String(pr.body || "")) ||
+                (String(pr.head?.ref || "").startsWith("community-maps/") &&
+                    String(pr.title || "").includes("(" + workshopId + ")")));
+            if (existing) return existing.html_url || "an open PR";
+            if (pulls.length < 100) return null;
         }
-        const pulls = await response.json();
-        if (!Array.isArray(pulls)) throw new Error(t("invalidPrResponse"));
-        const existing = pulls.find(pr => exactLine.test(String(pr.body || "")) ||
-            (String(pr.head?.ref || "").startsWith("community-maps/") &&
-                String(pr.title || "").includes("(" + workshopId + ")")));
-        if (existing) return existing.html_url || "an open PR";
-        if (pulls.length < 100) return null;
+    } catch (_) {
+        return null;
     }
-    throw new Error(t("manyPrs"));
+    return null;
 }
 async function submitMapProposal(event) {
     event.preventDefault();
@@ -948,10 +954,10 @@ function setChangePending(pending) {
     btn.textContent = t(pending ? "changeChecking" : "continueGithub");
 }
 function updateChangeAction() {
-    const removing = $("changeDelete").checked;
-    $("changeTargetLabel").hidden = removing;
-    $("changeTargetCategory").hidden = removing;
-    $("changeTargetCategory").required = !removing;
+    const incompatible = $("changeIncompatible").checked;
+    $("changeTargetLabel").hidden = incompatible;
+    $("changeTargetCategory").hidden = incompatible;
+    $("changeTargetCategory").required = !incompatible;
 }
 function openChangeRequest(id) {
     if (!$("changeMapOverlay").hidden || !$("submitMapOverlay").hidden) return;
@@ -962,8 +968,12 @@ function openChangeRequest(id) {
     setChangePending(false);
     $("changeMapForm").reset();
     $("changeMove").checked = true;
+    const incompatibleOption = $("changeIncompatible");
+    incompatibleOption.disabled = map.category.button === INCOMPATIBLE_CATEGORY;
+    incompatibleOption.closest("label").hidden = incompatibleOption.disabled;
     $("changeMapName").textContent = getSteamInfo(id).title + " · " + id;
-    const available = state.categories.filter(c => c.button !== map.category.button);
+    const available = state.categories.filter(c =>
+        c.button !== map.category.button && c.button !== INCOMPATIBLE_CATEGORY);
     $("changeTargetCategory").innerHTML =
         '<option value="">' + escapeHtml(t("selectCategory")) + '</option>' +
         available.map(c => '<option value="' + escapeHtml(c.button) + '">' +
@@ -1009,10 +1019,11 @@ async function submitChangeRequest(event) {
     const id = changeRequestMapId;
     const map = state.maps.find(x => x.id === id && !x.pending);
     if (!map || map.changeRequest) return setChangeError(t("changeAlreadyPending"));
-    const action = $("changeDelete").checked ? "delete" : "move";
-    const target = action === "delete" ? "none" : $("changeTargetCategory").value;
-    if (action === "move" && (!state.categories.some(c => c.button === target) ||
-        target === map.category.button)) {
+    const action = "move";
+    const target = $("changeIncompatible").checked
+        ? INCOMPATIBLE_CATEGORY : $("changeTargetCategory").value;
+    if (!state.categories.some(c => c.button === target) ||
+        target === map.category.button) {
         return setChangeError(t("changeInvalidCategory"));
     }
     const reason = $("changeReason").value.trim().replace(/\r/g,"");
@@ -1057,7 +1068,7 @@ async function submitChangeRequest(event) {
 function bindChangeRequests() {
     $("changeMapForm").addEventListener("submit", submitChangeRequest);
     $("changeMove").addEventListener("change", updateChangeAction);
-    $("changeDelete").addEventListener("change", updateChangeAction);
+    $("changeIncompatible").addEventListener("change", updateChangeAction);
     $("changeMapClose").addEventListener("click", closeChangeRequest);
     $("changeMapCancel").addEventListener("click", closeChangeRequest);
     $("changeMapOverlay").addEventListener("click", event => {
