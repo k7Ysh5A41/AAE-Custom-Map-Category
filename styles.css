@@ -1698,3 +1698,39 @@ body.submission-open .social-bar { pointer-events:none; }
     transform:none!important;
   }
 }
+
+
+/* Readable map-row badge for AAE Lite-only Workshop maps. */
+.map-row .chip.lite {
+  display:inline-flex;
+  flex:0 0 auto;
+  align-items:center;
+  justify-content:center;
+  box-sizing:border-box;
+  max-width:116px;
+  min-height:32px;
+  padding:6px 9px;
+  font:750 14px/1.22 "Segoe UI",Arial,sans-serif;
+  letter-spacing:.01em;
+  text-align:center;
+  white-space:normal;
+  overflow-wrap:anywhere;
+  color:#ffe1bb;
+  border:1px solid rgba(255,164,99,.81);
+  background:rgba(111,53,25,.53);
+  box-shadow:0 0 12px rgba(255,107,45,.30);
+}
+.map-row.active .chip.lite,
+.map-row[aria-selected="true"] .chip.lite {
+  color:#25130c;
+  background:#ffe2b9;
+  border-color:#fff1d8;
+}
+@media(max-width:650px) {
+  .map-row .chip.lite {
+    max-width:95px;
+    min-height:30px;
+    padding:5px 7px;
+    font-size:13px;
+  }
+}
