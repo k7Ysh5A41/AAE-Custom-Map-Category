@@ -19,7 +19,8 @@ jobs:
     if: >-
       github.event_name != 'pull_request_target' ||
       (github.event.pull_request.head.repo.full_name == github.repository &&
-       startsWith(github.event.pull_request.head.ref, 'community-maps/issue-'))
+       (startsWith(github.event.pull_request.head.ref, 'community-maps/issue-') ||
+        startsWith(github.event.pull_request.head.ref, 'community-changes/issue-')))
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -28,7 +29,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Validate community submission automation
         run: |
-          python3 -m py_compile scripts/process_submission.py
+          python3 -m py_compile scripts/process_submission.py scripts/process_change_request.py
           python3 - <<'PY'
           import json
           import sys
@@ -72,6 +73,68 @@ jobs:
           assert parse_pending({**pr, "head": {"repo": {"full_name": "other/repo"},
               "ref": "community-maps/issue-16"}}, categories, existing) is None
           print("Pending PR feed validation passed.")
+          PY
+      - name: Validate map change and removal PR generation
+        run: |
+          python3 -m py_compile scripts/process_change_request.py
+          python3 - <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+          sys.path.insert(0, "scripts")
+          from process_change_request import parse_change, updated_change_catalog
+          from fetch_pending_prs import parse_pending_change
+          source = Path("custommap_cate.json").read_text(encoding="utf-8")
+          categories = json.loads(source)
+          first, second = categories[0], categories[1]
+          item = first["ugc"][0]
+          workshop_id = str(item["id"] if isinstance(item, dict) else item)
+          before = sum(len(c["ugc"]) for c in categories)
+          issue = {
+              "title": "[Map Change] " + workshop_id,
+              "body": "<!-- aae-map-change:v1 -->\n"
+                      "Workshop ID: " + workshop_id + "\nAction: move\n"
+                      "Original Category: " + first["button"] + "\n"
+                      "Target Category: " + second["button"] + "\n"
+                      "Reason:\nIncorrect map category"
+          }
+          assert parse_change(issue)[:4] == (
+              workshop_id, "move", first["button"], second["button"])
+          moved = json.loads(updated_change_catalog(source, workshop_id,
+              "move", first["button"], second["button"]))
+          assert sum(len(c["ugc"]) for c in moved) == before
+          assert item not in moved[0]["ugc"]
+          assert moved[1]["ugc"][-1] == item
+          deleted = json.loads(updated_change_catalog(source, workshop_id,
+              "delete", first["button"], "none"))
+          assert sum(len(c["ugc"]) for c in deleted) == before - 1
+          assert item not in deleted[0]["ugc"]
+          for action, changed in (("move", moved), ("delete", deleted)):
+              assert all(changed[i] == categories[i] for i in range(2,len(categories)))
+          try:
+              updated_change_catalog(source, workshop_id,
+                                     "move", first["button"], first["button"])
+              raise AssertionError("Same-category move should fail")
+          except ValueError:
+              pass
+          pr = {
+              "state":"open","draft":False,"number":13,
+              "created_at":"2026-10-08T10:00:00Z",
+              "head":{"repo":{"full_name":"k7Ysh5A41/AAE-Custom-Map-Category"},
+                      "ref":"community-changes/issue-12"},
+              "base":{"ref":"main"},
+              "html_url":"https://github.com/k7Ysh5A41/AAE-Custom-Map-Category/pull/13",
+              "body":"<!-- aae-map-change-pr:v1 -->\n"
+                  "Workshop ID: " + workshop_id + "\nAction: move\n"
+                  "From Category: " + first["button"] + "\n"
+                  "Target Category: " + second["button"] + "\n"
+          }
+          keys = {c["button"] for c in categories}
+          assert parse_pending_change(pr,keys,categories)["id"] == workshop_id
+          assert parse_pending_change(dict(pr,state="closed"),keys,categories) is None
+          assert parse_pending_change(dict(pr,body=pr["body"].replace(
+              "Action: move", "Action: invalid")),keys,categories) is None
+          print("Move/delete PR validation passed.")
           PY
       - name: Fetch AAE category localizations
         shell: bash

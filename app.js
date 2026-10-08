@@ -5,6 +5,8 @@ const STEAM_URL = "./steam_workshop.json";
 const AAE_LITE_WORKSHOP_URL = "https://steamcommunity.com/workshop/filedetails/?id=2994481309";
 const PENDING_URL = "./pending_pr_maps.json";
 const PENDING_CATEGORY = "pending";
+const PENDING_CHANGES = "pending-changes";
+const PENDING_DELETION = "pending-deletion";
 const NEW_PR_WINDOW_MS = 3 * 24 * 60 * 60 * 1000;
 const RESOURCE_TIMEOUT_MS = 10000;
 async function fetchWithTimeout(url, options = {}) {
@@ -90,7 +92,8 @@ function applyUiText() {
 const state = {
     categories: [], maps: [], selected: null, liteOnly: false,
     translations: new Map(), workshop: {}, steamReady: false, steamFailed: false,
-    activeMapId: null, query: "", pendingReady: false, languageChoice: savedLanguageChoice()
+    activeMapId: null, query: "", pendingReady: false,
+    changeRequests: [], languageChoice: savedLanguageChoice()
 };
 let localizationRequestId = 0;
 const localizationCache = new Map();
@@ -357,6 +360,32 @@ async function loadPendingPRMaps() {
             pending: { number, url:entry.pr_url, createdAt:entry.created_at }
         });
     }
+    state.changeRequests = [];
+    const official = new Map(state.maps.filter(map => !map.pending).map(map => [map.id, map]));
+    const changeSeen = new Set();
+    for (const change of Array.isArray(payload.changes) ? payload.changes : []) {
+        const id = String(change?.id || "");
+        const map = official.get(id);
+        const action = change?.action;
+        const target = change?.target;
+        const number = change?.pr_number;
+        if (!map || changeSeen.has(id) ||
+            !["move","delete"].includes(action) ||
+            change?.from !== map.category.button ||
+            (action === "move" && (!state.categories.some(c => c.button === target) ||
+                target === map.category.button)) ||
+            (action === "delete" && target !== "none") ||
+            !Number.isSafeInteger(number) || number < 1 ||
+            change.pr_url !== "https://github.com/k7Ysh5A41/AAE-Custom-Map-Category/pull/" + number ||
+            !Number.isFinite(Date.parse(change?.created_at))) continue;
+        changeSeen.add(id);
+        const status = {
+            id, action, from:change.from, target,
+            number, url:change.pr_url, createdAt:change.created_at
+        };
+        state.changeRequests.push(status);
+        map.changeRequest = status;
+    }
     state.pendingReady = true;
     render();
 }
@@ -382,6 +411,8 @@ function filtered() {
         const info = getSteamInfo(map.id);
         const categoryMatches = state.selected === null || query ||
             (state.selected === PENDING_CATEGORY ? Boolean(map.pending) :
+             state.selected === PENDING_CHANGES ? map.changeRequest?.action === "move" :
+             state.selected === PENDING_DELETION ? map.changeRequest?.action === "delete" :
              !map.pending && map.category.order === state.selected);
         return categoryMatches &&
             (!state.liteOnly || map.liteOnly) &&
@@ -394,6 +425,15 @@ function categoryMaps(category) {
 }
 function pendingMaps() {
     return publicMaps().filter(map => Boolean(map.pending));
+}
+function changeMaps(action) {
+    return publicMaps().filter(map => map.changeRequest?.action === action);
+}
+function categoryCount() {
+    return state.categories.filter(cat => categoryMaps(cat).length).length +
+        (pendingMaps().length ? 1 : 0) +
+        (changeMaps("move").length ? 1 : 0) +
+        (changeMaps("delete").length ? 1 : 0);
 }
 function getSteamInfo(id) {
     const entry = state.workshop[id];
@@ -409,13 +449,23 @@ function renderNav() {
         order:PENDING_CATEGORY, name:t("pendingCategory"),
         summary:t("pendingCategorySummary")
     };
-    $("categoryNav").innerHTML = [all, pending, ...visible].map(category => {
+    const pendingChanges = {order:PENDING_CHANGES, name:t("pendingChanges"),
+        summary:t("pendingChangesSummary")};
+    const pendingDeletion = {order:PENDING_DELETION, name:t("pendingDeletion"),
+        summary:t("pendingDeletionSummary")};
+    $("categoryNav").innerHTML = [all, pending, pendingChanges, pendingDeletion, ...visible].map(category => {
         const count = category.order === null ? category.visibleCount :
             category.order === PENDING_CATEGORY ?
                 (state.pendingReady && state.steamReady ? pendingMaps().length : "—") :
+            category.order === PENDING_CHANGES ?
+                (state.pendingReady && state.steamReady ? changeMaps("move").length : "—") :
+            category.order === PENDING_DELETION ?
+                (state.pendingReady && state.steamReady ? changeMaps("delete").length : "—") :
                 state.steamReady ? categoryMaps(category).length : "—";
         return '<button class="nav-btn' + (category.order === state.selected ? " active" : "") +
             (category.order === PENDING_CATEGORY ? " pending-category" : "") +
+            (category.order === PENDING_CHANGES ? " pending-change-category" : "") +
+            (category.order === PENDING_DELETION ? " pending-delete-category" : "") +
             '" data-category="' + (category.order ?? "all") +
             '" title="' + escapeHtml(category.summary || "") + '">' +
             '<span>' + escapeHtml(category.name) + '</span><small>' + count +
@@ -459,7 +509,11 @@ function mapRow(map) {
         escapeHtml(info.title) + '</h3><div class="map-publisher">' +
         escapeHtml(publisherName(info)) + '</div></div>' +
         (map.liteOnly ? '<span class="chip lite">' + escapeHtml(t("lite")) + '</span>' : '') +
-        pendingTags(map) + '</div>';
+        pendingTags(map) +
+        (map.changeRequest ? '<span class="chip change-chip">' +
+            escapeHtml(t(map.changeRequest.action === "move" ?
+                "changePendingMove" : "changePendingDelete")) + '</span>' : '') +
+        '</div>';
 }
 function renderPreview() {
     const map = filtered().find(item => item.id === state.activeMapId);
@@ -481,6 +535,16 @@ function renderPreview() {
         '<div class="preview-title-band">' + escapeHtml(info.title) + '</div>' +
         (map.pending ? '<div class="preview-pr-status">' + pendingTags(map) +
             ' <span>#' + map.pending.number + '</span></div>' : '') +
+        (map.changeRequest ?
+            '<div class="preview-pr-status"><span class="chip change-chip">' +
+            escapeHtml(t(map.changeRequest.action === "move" ?
+                "changePendingMove" : "changePendingDelete")) +
+            '</span> <a href="' + escapeHtml(map.changeRequest.url) +
+            '" target="_blank" rel="noopener noreferrer">' + escapeHtml(t("viewPR")) +
+            ' #' + map.changeRequest.number + ' ↗</a></div>' :
+            !map.pending ? '<button type="button" class="request-change-button" data-request-change="' +
+                escapeHtml(map.id) + '"><span aria-hidden="true">↺</span> ' +
+                escapeHtml(t("requestChange")) + ' <span aria-hidden="true">›</span></button>' : '') +
         '<h3 class="preview-heading">' + escapeHtml(t("mapInformation")) + '</h3>' +
         '<div class="preview-details"><p>' + escapeHtml(t("createdBy")) + ' <strong>' +
         escapeHtml(publisherName(info)) + '</strong></p>' +
@@ -505,8 +569,7 @@ function render() {
     renderNav();
     const category = state.selected === null ? null : state.categories[state.selected];
     $("groupCount").textContent = state.steamReady ?
-        (state.categories.filter(cat => categoryMaps(cat).length).length +
-         (pendingMaps().length > 0 ? 1 : 0)).toLocaleString("en-US") : "—";
+        categoryCount().toLocaleString("en-US") : "—";
     $("mapCount").textContent = state.steamReady ?
         publicItems.length.toLocaleString("en-US") : "—";
     $("liteCount").textContent = state.steamReady ?
@@ -537,8 +600,9 @@ async function copyID(id) {
     }
 }
 function selectCategory(value) {
+    const virtual = [PENDING_CATEGORY, PENDING_CHANGES, PENDING_DELETION];
     state.selected = value === "all" ? null :
-        value === PENDING_CATEGORY ? PENDING_CATEGORY : Number(value);
+        virtual.includes(value) ? value : Number(value);
     state.query = "";
     $("searchInput").value = "";
     state.activeMapId = null;
@@ -547,6 +611,11 @@ function selectCategory(value) {
 function bind() {
     applyUiText();
     bindLanguagePicker();
+    bindChangeRequests();
+    $("previewPane").addEventListener("click", event => {
+        const button = event.target.closest("[data-request-change]");
+        if (button) openChangeRequest(button.dataset.requestChange);
+    });
     $("categoryNav").addEventListener("click", event => {
         const button = event.target.closest("[data-category]");
         if (button) selectCategory(button.dataset.category);
@@ -770,6 +839,146 @@ async function submitMapProposal(event) {
         if (requestId === submissionValidationId) setSubmissionPending(false);
     }
 }
+// Reviewable move/delete requests always operate on an approved map.
+let changeRequestMapId = null;
+let changeValidationPending = false;
+let changeValidationToken = 0;
+let changeScrollY = 0;
+let changePreviousTop = "";
+function setChangeError(message) {
+    $("changeMapError").textContent = message || "";
+    $("changeMapError").hidden = !message;
+}
+function setChangePending(pending) {
+    changeValidationPending = pending;
+    const btn = $("changeMapSubmit");
+    btn.disabled = pending;
+    btn.textContent = t(pending ? "changeChecking" : "continueGithub");
+}
+function updateChangeAction() {
+    const removing = $("changeDelete").checked;
+    $("changeTargetLabel").hidden = removing;
+    $("changeTargetCategory").hidden = removing;
+    $("changeTargetCategory").required = !removing;
+}
+function openChangeRequest(id) {
+    if (!$("changeMapOverlay").hidden || !$("submitMapOverlay").hidden) return;
+    const map = state.maps.find(item => item.id === id);
+    if (!map || map.pending || map.changeRequest || !getSteamInfo(map.id)) return;
+    changeRequestMapId = id;
+    changeValidationToken++;
+    setChangePending(false);
+    $("changeMapForm").reset();
+    $("changeMove").checked = true;
+    $("changeMapName").textContent = getSteamInfo(id).title + " · " + id;
+    const available = state.categories.filter(c => c.button !== map.category.button);
+    $("changeTargetCategory").innerHTML =
+        '<option value="">' + escapeHtml(t("selectCategory")) + '</option>' +
+        available.map(c => '<option value="' + escapeHtml(c.button) + '">' +
+            escapeHtml(c.name) + '</option>').join("");
+    setChangeError("");
+    updateChangeAction();
+    changeScrollY = window.scrollY || window.pageYOffset || 0;
+    changePreviousTop = document.body.style.top;
+    document.body.style.top = -changeScrollY + "px";
+    document.documentElement.classList.add("submission-open");
+    document.body.classList.add("submission-open");
+    $("changeMapOverlay").hidden = false;
+    $("changeReason").focus({preventScroll:true});
+}
+function closeChangeRequest() {
+    if ($("changeMapOverlay").hidden) return;
+    changeValidationToken++;
+    setChangePending(false);
+    $("changeMapOverlay").hidden = true;
+    document.documentElement.classList.remove("submission-open");
+    document.body.classList.remove("submission-open");
+    document.body.style.top = changePreviousTop;
+    window.scrollTo(0, changeScrollY);
+    const actionButton = $("previewPane").querySelector("[data-request-change]");
+    if (actionButton) actionButton.focus({preventScroll:true});
+    changeRequestMapId = null;
+}
+async function findMapCategoryInMain(workshopId) {
+    const response = await fetchWithTimeout(
+        "https://raw.githubusercontent.com/k7Ysh5A41/AAE-Custom-Map-Category/main/custommap_cate.json",
+        {cache:"no-store"});
+    if (!response.ok) throw new Error(t("latestCatalogError", {status:response.status}));
+    const catalog = await response.json();
+    if (!Array.isArray(catalog) || !catalog.every(c => c && Array.isArray(c.ugc)))
+        throw new Error(t("invalidLatestCatalog"));
+    const matches = catalog.filter(c => c.ugc.some(x =>
+        String(x && typeof x === "object" ? x.id : x) === workshopId));
+    return matches.length === 1 ? matches[0].button : null;
+}
+async function submitChangeRequest(event) {
+    event.preventDefault();
+    if (changeValidationPending || $("changeMapOverlay").hidden) return;
+    const id = changeRequestMapId;
+    const map = state.maps.find(x => x.id === id && !x.pending);
+    if (!map || map.changeRequest) return setChangeError(t("changeAlreadyPending"));
+    const action = $("changeDelete").checked ? "delete" : "move";
+    const target = action === "delete" ? "none" : $("changeTargetCategory").value;
+    if (action === "move" && (!state.categories.some(c => c.button === target) ||
+        target === map.category.button)) {
+        return setChangeError(t("changeInvalidCategory"));
+    }
+    const reason = $("changeReason").value.trim().replace(/\r/g,"");
+    if (reason.length < 5 || reason.length > 400)
+        return setChangeError(t("changeInvalidReason"));
+    const token = ++changeValidationToken;
+    setChangeError("");
+    setChangePending(true);
+    try {
+        const [currentCategory, existingPR] = await Promise.all([
+            findMapCategoryInMain(id), findExistingMapPR(id)
+        ]);
+        if (token !== changeValidationToken || $("changeMapOverlay").hidden) return;
+        if (currentCategory !== map.category.button) {
+            setChangeError(t("changeStaleCategory"));
+            return;
+        }
+        if (existingPR) {
+            setChangeError(t("duplicatePr", {url:existingPR}));
+            return;
+        }
+        const body = [
+            "<!-- aae-map-change:v1 -->",
+            "Workshop ID: " + id,
+            "Action: " + action,
+            "Original Category: " + map.category.button,
+            "Target Category: " + target,
+            "Reason:",
+            reason
+        ].join("\n");
+        const url = new URL(SUBMISSION_ISSUE_URL);
+        url.searchParams.set("title", "[Map Change] " + id);
+        url.searchParams.set("body", body);
+        window.location.assign(url.toString());
+    } catch (error) {
+        if (token === changeValidationToken && !$("changeMapOverlay").hidden)
+            setChangeError(t("submissionBlocked", {detail:error.message}));
+    } finally {
+        if (token === changeValidationToken) setChangePending(false);
+    }
+}
+function bindChangeRequests() {
+    $("changeMapForm").addEventListener("submit", submitChangeRequest);
+    $("changeMove").addEventListener("change", updateChangeAction);
+    $("changeDelete").addEventListener("change", updateChangeAction);
+    $("changeMapClose").addEventListener("click", closeChangeRequest);
+    $("changeMapCancel").addEventListener("click", closeChangeRequest);
+    $("changeMapOverlay").addEventListener("click", event => {
+        if (event.target === $("changeMapOverlay")) closeChangeRequest();
+    });
+    document.addEventListener("keydown", event => {
+        if (event.key === "Escape" && !$("changeMapOverlay").hidden) {
+            event.preventDefault();
+            closeChangeRequest();
+        }
+    });
+}
+
 function bindMapSubmission() {
     $("submitMapOpen").addEventListener("click", openSubmission);
     $("submitMapClose").addEventListener("click", closeSubmission);

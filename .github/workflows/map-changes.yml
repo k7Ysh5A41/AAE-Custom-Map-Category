@@ -1,0 +1,33 @@
+name: Community Map Changes
+
+on:
+  issues:
+    types: [opened, reopened]
+
+permissions:
+  actions: write
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: map-change-${{ github.event.issue.title }}
+  cancel-in-progress: false
+
+jobs:
+  prepare-change-pr:
+    if: >-
+      github.event.issue.pull_request == null &&
+      startsWith(github.event.issue.title, '[Map Change] ')
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify change processor syntax
+        run: python3 -m py_compile scripts/process_change_request.py
+      - name: Validate map change and prepare review PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 scripts/process_change_request.py
