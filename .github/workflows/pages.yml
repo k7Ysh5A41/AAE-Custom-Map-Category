@@ -15,15 +15,12 @@ concurrency:
   group: github-pages
   cancel-in-progress: true
 jobs:
-  deploy:
+  build:
     if: >-
       github.event_name != 'pull_request_target' ||
       (github.event.pull_request.head.repo.full_name == github.repository &&
        (startsWith(github.event.pull_request.head.ref, 'community-maps/issue-') ||
         startsWith(github.event.pull_request.head.ref, 'community-changes/issue-')))
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -200,5 +197,31 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: .
-      - id: deployment
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy_final.outputs.page_url || steps.deploy_retry.outputs.page_url || steps.deploy_first.outputs.page_url }}
+    steps:
+      # A failed-job rerun now retries only deployment; the successful build
+      # retains the one "github-pages" artifact from its original job.
+      - name: Publish to Pages (first attempt)
+        id: deploy_first
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
+      - name: Back off before the second attempt
+        if: steps.deploy_first.outcome == 'failure'
+        run: sleep 15
+      - name: Publish to Pages (second attempt)
+        id: deploy_retry
+        if: steps.deploy_first.outcome == 'failure'
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
+      - name: Back off before the final attempt
+        if: steps.deploy_first.outcome == 'failure' && steps.deploy_retry.outcome == 'failure'
+        run: sleep 30
+      - name: Publish to Pages (final attempt)
+        id: deploy_final
+        if: steps.deploy_first.outcome == 'failure' && steps.deploy_retry.outcome == 'failure'
         uses: actions/deploy-pages@v4
