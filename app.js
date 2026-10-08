@@ -409,11 +409,13 @@ function filtered() {
     const query = state.query.trim().toLocaleLowerCase();
     return publicMaps().filter(map => {
         const info = getSteamInfo(map.id);
-        const categoryMatches = state.selected === null || query ||
-            (state.selected === PENDING_CATEGORY ? Boolean(map.pending) :
-             state.selected === PENDING_CHANGES ? map.changeRequest?.action === "move" :
-             state.selected === PENDING_DELETION ? map.changeRequest?.action === "delete" :
-             !map.pending && map.category.order === state.selected);
+        // Each public map belongs to exactly one displayed category:
+        // a pending queue or its approved category, never both.
+        const categoryMatches = state.selected === PENDING_CATEGORY ? Boolean(map.pending) :
+            state.selected === PENDING_CHANGES ? map.changeRequest?.action === "move" :
+            state.selected === PENDING_DELETION ? map.changeRequest?.action === "delete" :
+            !map.pending && !map.changeRequest &&
+                (state.selected === null || map.category.order === state.selected);
         return categoryMatches &&
             (!state.liteOnly || map.liteOnly) &&
             (!query || String(info?.title || "").toLocaleLowerCase().includes(query) ||
@@ -421,13 +423,20 @@ function filtered() {
     });
 }
 function categoryMaps(category) {
-    return publicMaps().filter(map => !map.pending && map.category.order === category.order);
+    return publicMaps().filter(map =>
+        !map.pending && !map.changeRequest && map.category.order === category.order &&
+        (!state.liteOnly || map.liteOnly));
+}
+function approvedMaps() {
+    return publicMaps().filter(map => !map.pending && !map.changeRequest);
 }
 function pendingMaps() {
-    return publicMaps().filter(map => Boolean(map.pending));
+    return publicMaps().filter(map => Boolean(map.pending) &&
+        (!state.liteOnly || map.liteOnly));
 }
 function changeMaps(action) {
-    return publicMaps().filter(map => map.changeRequest?.action === action);
+    return publicMaps().filter(map => map.changeRequest?.action === action &&
+        (!state.liteOnly || map.liteOnly));
 }
 function categoryCount() {
     return state.categories.filter(cat => categoryMaps(cat).length).length +
@@ -444,7 +453,7 @@ function renderNav() {
     const visible = state.steamReady ?
         state.categories.filter(category => categoryMaps(category).length > 0) :
         state.categories;
-    const all = { order:null, name:t("allMaps"), visibleCount:publicMaps().length };
+    const all = { order:null, name:t("allMaps"), visibleCount:approvedMaps().filter(map => !state.liteOnly || map.liteOnly).length };
     const pending = {
         order:PENDING_CATEGORY, name:t("pendingCategory"),
         summary:t("pendingCategorySummary")
@@ -502,6 +511,28 @@ function squareCover(url, large = false) {
 function publisherName(info) {
     return String(info.creator_name || (info.creator_id ? "Steam " + info.creator_id : t("unknownPublisher")));
 }
+function reviewCategoryInfo(map) {
+    if (map.pending) {
+        return {label:t("reviewProposedCategory"), name:map.category.name, kind:"new"};
+    }
+    if (map.changeRequest?.action === "move") {
+        const target = state.categories.find(c => c.button === map.changeRequest.target);
+        return target ? {label:t("reviewMoveToCategory"), name:target.name, kind:"move"} : null;
+    }
+    if (map.changeRequest?.action === "delete") {
+        return {label:t("reviewCurrentCategory"), name:map.category.name, kind:"delete"};
+    }
+    return null;
+}
+function reviewCategoryHtml(map, preview = false) {
+    const info = reviewCategoryInfo(map);
+    if (!info) return "";
+    return '<div class="' + (preview ? "review-category-banner" : "review-category-line") +
+        ' review-' + info.kind + '">' +
+        '<span>' + escapeHtml(info.label) + '</span>' +
+        '<strong>' + escapeHtml(info.name) + '</strong></div>';
+}
+
 function mapRow(map) {
     const info = getSteamInfo(map.id);
     if (!info) return "";
@@ -513,7 +544,8 @@ function mapRow(map) {
         squareCover(info.preview_url) +
         '<div class="map-copy"><h3 title="' + escapeHtml(info.title) + '">' +
         escapeHtml(info.title) + '</h3><div class="map-publisher">' +
-        escapeHtml(publisherName(info)) + '</div></div>' +
+        escapeHtml(publisherName(info)) + '</div>' +
+        reviewCategoryHtml(map) + '</div>' +
         (map.liteOnly ? '<span class="chip lite">' + escapeHtml(t("lite")) + '</span>' : '') +
         pendingTags(map) +
         (map.changeRequest ? '<span class="chip change-chip">' +
@@ -539,6 +571,7 @@ function renderPreview() {
     $("previewContent").innerHTML =
         '<div class="preview-topline"></div>' + squareCover(info.preview_url, true) +
         '<div class="preview-title-band">' + escapeHtml(info.title) + '</div>' +
+        reviewCategoryHtml(map, true) +
         (map.pending ? '<div class="preview-pr-status">' + pendingTags(map) +
             ' <span>#' + map.pending.number + '</span></div>' : '') +
         (map.changeRequest ?
@@ -605,14 +638,51 @@ async function copyID(id) {
         field.remove();
     }
 }
+let categoryScrollEffect = null;
+function animateCategoryList(previousScroll) {
+    const list = $("catalog");
+    if (categoryScrollEffect) {
+        categoryScrollEffect.cancel();
+        categoryScrollEffect = null;
+    }
+    const reducedMotion = typeof window.matchMedia === "function" &&
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reducedMotion || !state.steamReady) {
+        list.scrollTop = 0;
+        return;
+    }
+    // Scroll the *list*, never the whole webpage, towards its first map.
+    const maxScroll = Math.max(0, list.scrollHeight - list.clientHeight);
+    const start = Math.min(maxScroll, Math.max(120, Math.min(previousScroll, 280)));
+    if (start > 0 && typeof list.scrollTo === "function") {
+        list.scrollTop = start;
+        list.scrollTo({top:0, behavior:"smooth"});
+    } else {
+        list.scrollTop = 0;
+    }
+    // Also provide a short vertical transition for categories with too few
+    // maps to scroll. No sideways motion or per-row slide-in is introduced.
+    if (typeof list.animate === "function") {
+        categoryScrollEffect = list.animate([
+            {opacity:0.7, transform:"translateY(12px)"},
+            {opacity:1, transform:"translateY(0)"}
+        ], {duration:360, easing:"cubic-bezier(.22,.8,.24,1)"});
+        categoryScrollEffect.onfinish = () => { categoryScrollEffect = null; };
+    }
+}
 function selectCategory(value) {
     const virtual = [PENDING_CATEGORY, PENDING_CHANGES, PENDING_DELETION];
-    state.selected = value === "all" ? null :
+    const next = value === "all" ? null :
         virtual.includes(value) ? value : Number(value);
+    // A repeat click does nothing: preserve the current scroll and map.
+    if (next === state.selected) return;
+    const previousScroll = $("catalog").scrollTop || 0;
+    state.selected = next;
     state.query = "";
     $("searchInput").value = "";
     state.activeMapId = null;
-    render();
+    render(); // Automatically selects the first map in the new category.
+    animateCategoryList(previousScroll);
 }
 function bind() {
     applyUiText();
@@ -683,8 +753,24 @@ function bind() {
     }, true);
     $("liteToggle").addEventListener("change", event => {
         state.liteOnly = event.target.checked;
+        // Never leave an active category selected when the Lite-only filter
+        // has removed every map from that category.
+        const selected = state.selected;
+        const count = selected === PENDING_CATEGORY ? pendingMaps().length :
+            selected === PENDING_CHANGES ? changeMaps("move").length :
+            selected === PENDING_DELETION ? changeMaps("delete").length :
+            selected === null ? approvedMaps().filter(map => !state.liteOnly || map.liteOnly).length :
+            (state.categories[selected] ? categoryMaps(state.categories[selected]).length : 0);
+        if (selected !== null && count === 0) {
+            const first = state.categories.find(category => categoryMaps(category).length > 0);
+            state.selected = first ? first.order :
+                pendingMaps().length ? PENDING_CATEGORY :
+                changeMaps("move").length ? PENDING_CHANGES :
+                changeMaps("delete").length ? PENDING_DELETION : null;
+        }
         state.activeMapId = null;
         render();
+        $("catalog").scrollTop = 0;
     });
     $("searchInput").addEventListener("input", event => {
         state.query = event.target.value;

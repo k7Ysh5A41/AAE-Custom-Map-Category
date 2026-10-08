@@ -93,7 +93,10 @@ window.AAE_I18N = {
       "changeAlreadyPending": "This map already has an open change request.",
       "changePendingMove": "MOVE REQUEST PENDING",
       "changePendingDelete": "REMOVAL PENDING",
-      "changeChecking": "CHECKING MAP AND EXISTING PRS…"
+      "changeChecking": "CHECKING MAP AND EXISTING PRS…",
+      "reviewProposedCategory": "PROPOSED CATEGORY",
+      "reviewMoveToCategory": "MOVE TO CATEGORY",
+      "reviewCurrentCategory": "CURRENT CATEGORY"
     },
     "zh-CN": {
       "submitMap": "提交地图",
@@ -182,7 +185,10 @@ window.AAE_I18N = {
       "changeAlreadyPending": "此地图已有待审核的变更请求。",
       "changePendingMove": "待移动",
       "changePendingDelete": "待删除",
-      "changeChecking": "正在检查地图与现有 PR…"
+      "changeChecking": "正在检查地图与现有 PR…",
+      "reviewProposedCategory": "申请加入分类",
+      "reviewMoveToCategory": "申请移至分类",
+      "reviewCurrentCategory": "当前所属分类"
     },
     "zh-TW": {
       "submitMap": "提交地圖",
@@ -271,7 +277,10 @@ window.AAE_I18N = {
       "changeAlreadyPending": "此地圖已有待審核的變更請求。",
       "changePendingMove": "待移動",
       "changePendingDelete": "待刪除",
-      "changeChecking": "正在檢查地圖與現有 PR…"
+      "changeChecking": "正在檢查地圖與現有 PR…",
+      "reviewProposedCategory": "申請加入分類",
+      "reviewMoveToCategory": "申請移至分類",
+      "reviewCurrentCategory": "目前所屬分類"
     },
     "fr": {
       "submitMap": "PROPOSER UNE CARTE",
@@ -360,7 +369,10 @@ window.AAE_I18N = {
       "changeAlreadyPending": "Une demande de modification existe déjà.",
       "changePendingMove": "DÉPLACEMENT EN ATTENTE",
       "changePendingDelete": "SUPPRESSION EN ATTENTE",
-      "changeChecking": "VÉRIFICATION DES PR EXISTANTES…"
+      "changeChecking": "VÉRIFICATION DES PR EXISTANTES…",
+      "reviewProposedCategory": "CATÉGORIE PROPOSÉE",
+      "reviewMoveToCategory": "DÉPLACER VERS LA CATÉGORIE",
+      "reviewCurrentCategory": "CATÉGORIE ACTUELLE"
     },
     "de": {
       "submitMap": "KARTE EINREICHEN",
@@ -449,7 +461,10 @@ window.AAE_I18N = {
       "changeAlreadyPending": "Für diese Karte besteht bereits ein Änderungsantrag.",
       "changePendingMove": "VERSCHIEBUNG AUSSTEHEND",
       "changePendingDelete": "ENTFERNUNG AUSSTEHEND",
-      "changeChecking": "KARTE UND PRS WERDEN GEPRÜFT…"
+      "changeChecking": "KARTE UND PRS WERDEN GEPRÜFT…",
+      "reviewProposedCategory": "VORGESCHLAGENE KATEGORIE",
+      "reviewMoveToCategory": "VERSCHIEBEN IN KATEGORIE",
+      "reviewCurrentCategory": "AKTUELLE KATEGORIE"
     },
     "it": {
       "submitMap": "INVIA UNA MAPPA",
@@ -538,7 +553,10 @@ window.AAE_I18N = {
       "changeAlreadyPending": "Esiste già una richiesta di modifica per questa mappa.",
       "changePendingMove": "SPOSTAMENTO IN ATTESA",
       "changePendingDelete": "RIMOZIONE IN ATTESA",
-      "changeChecking": "CONTROLLO MAPPA E PR…"
+      "changeChecking": "CONTROLLO MAPPA E PR…",
+      "reviewProposedCategory": "CATEGORIA PROPOSTA",
+      "reviewMoveToCategory": "SPOSTA NELLA CATEGORIA",
+      "reviewCurrentCategory": "CATEGORIA ATTUALE"
     },
     "ja": {
       "submitMap": "マップを投稿",
@@ -627,7 +645,10 @@ window.AAE_I18N = {
       "changeAlreadyPending": "このマップには既に審査待ちの変更申請があります。",
       "changePendingMove": "移動審査待ち",
       "changePendingDelete": "削除審査待ち",
-      "changeChecking": "マップと既存 PR を確認中…"
+      "changeChecking": "マップと既存 PR を確認中…",
+      "reviewProposedCategory": "追加希望カテゴリー",
+      "reviewMoveToCategory": "移動先カテゴリー",
+      "reviewCurrentCategory": "現在のカテゴリー"
     },
     "pl": {
       "submitMap": "ZGŁOŚ MAPĘ",
@@ -716,7 +737,10 @@ window.AAE_I18N = {
       "changeAlreadyPending": "Istnieje już wniosek o zmianę tej mapy.",
       "changePendingMove": "PRZENIESIENIE W TOKU",
       "changePendingDelete": "USUNIĘCIE W TOKU",
-      "changeChecking": "SPRAWDZANIE MAPY I PR…"
+      "changeChecking": "SPRAWDZANIE MAPY I PR…",
+      "reviewProposedCategory": "PROPONOWANA KATEGORIA",
+      "reviewMoveToCategory": "PRZENIEŚ DO KATEGORII",
+      "reviewCurrentCategory": "OBECNA KATEGORIA"
     },
     "pt": {
       "submitMap": "ENVIAR MAPA",
@@ -805,7 +829,10 @@ window.AAE_I18N = {
       "changeAlreadyPending": "Já há um pedido de alteração para este mapa.",
       "changePendingMove": "MOVIMENTAÇÃO PENDENTE",
       "changePendingDelete": "REMOÇÃO PENDENTE",
-      "changeChecking": "VERIFICANDO MAPA E PRS…"
+      "changeChecking": "VERIFICANDO MAPA E PRS…",
+      "reviewProposedCategory": "CATEGORIA PROPOSTA",
+      "reviewMoveToCategory": "MOVER PARA CATEGORIA",
+      "reviewCurrentCategory": "CATEGORIA ATUAL"
     },
     "ru": {
       "submitMap": "ПРЕДЛОЖИТЬ КАРТУ",
@@ -894,7 +921,10 @@ window.AAE_I18N = {
       "changeAlreadyPending": "Для этой карты уже есть открытый запрос на изменение.",
       "changePendingMove": "ПЕРЕМЕЩЕНИЕ ОЖИДАЕТ",
       "changePendingDelete": "УДАЛЕНИЕ ОЖИДАЕТ",
-      "changeChecking": "ПРОВЕРКА КАРТЫ И PR…"
+      "changeChecking": "ПРОВЕРКА КАРТЫ И PR…",
+      "reviewProposedCategory": "ПРЕДЛАГАЕМАЯ КАТЕГОРИЯ",
+      "reviewMoveToCategory": "ПЕРЕМЕСТИТЬ В КАТЕГОРИЮ",
+      "reviewCurrentCategory": "ТЕКУЩАЯ КАТЕГОРИЯ"
     },
     "es": {
       "submitMap": "ENVIAR UN MAPA",
@@ -983,7 +1013,10 @@ window.AAE_I18N = {
       "changeAlreadyPending": "Ya existe una solicitud de cambio para este mapa.",
       "changePendingMove": "TRASLADO PENDIENTE",
       "changePendingDelete": "ELIMINACIÓN PENDIENTE",
-      "changeChecking": "COMPROBANDO MAPA Y PR…"
+      "changeChecking": "COMPROBANDO MAPA Y PR…",
+      "reviewProposedCategory": "CATEGORÍA PROPUESTA",
+      "reviewMoveToCategory": "MOVER A CATEGORÍA",
+      "reviewCurrentCategory": "CATEGORÍA ACTUAL"
     }
   },
   "categories": {
