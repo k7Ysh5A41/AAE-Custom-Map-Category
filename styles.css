@@ -2295,3 +2295,30 @@ body.submission-open .social-bar { pointer-events:none; }
 @media(prefers-reduced-motion:reduce) {
   .github-help-trigger {transition:none!important;}
 }
+
+/* Submission confirmation and PR explanation. */
+.github-guide-pr-explainer {
+  margin:0 0 18px;
+  padding:15px 17px;
+  border:1px solid rgba(255,161,82,.38);
+  background:linear-gradient(105deg,rgba(255,132,59,.13),rgba(26,25,24,.55));
+}
+.github-guide-pr-explainer h3 {
+  margin:0 0 8px;
+  color:#ffcc93;
+  font:800 15px/1.4 "Segoe UI",Arial,sans-serif;
+  letter-spacing:.035em;
+}
+.github-guide-pr-explainer p {
+  margin:0;
+  color:#eaded2;
+  font:14px/1.65 "Segoe UI",Arial,sans-serif;
+}
+.github-guide-actions {justify-content:space-between;}
+.github-guide-actions #githubGuideBack {border-color:rgba(255,174,112,.5);}
+.github-guide-actions #githubGuideProceed {max-width:100%;}
+.github-guide-actions button[hidden] {display:none!important;}
+@media(max-width:650px) {
+  .github-guide-pr-explainer {padding:12px;}
+  .github-guide-actions {flex-direction:column-reverse;align-items:stretch;}
+}
