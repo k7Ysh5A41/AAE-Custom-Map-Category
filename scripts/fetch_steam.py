@@ -84,6 +84,9 @@ def collect(ids):
                     if key not in batch or not title:
                         continue
                     record = {"title": title, "visibility": 0}
+                    description = str(item.get("file_description") or "").strip()
+                    if description:
+                        record["description"] = description[:1200]
                     preview = item.get("preview_url")
                     if (isinstance(preview, str)
                             and urlsplit(preview).scheme == "https"):
