@@ -46,6 +46,13 @@ jobs:
           proposal = {"title": "[Map Submission] 1234567890",
                       "body": "<!-- aae-map-submission:v1 -->\nWorkshop ID: 1234567890\nCategory: AAEP_ZC2_MAP\nNotes:\nNone"}
           assert parse_proposal(proposal)[0] == "1234567890"
+          lite_proposal = {"title": "[Map Submission] 1234567890",
+                           "body": "<!-- aae-map-submission:v1 -->\nWorkshop ID: 1234567890\n"
+                                   "Category: AAEP_ZC2_MAP\nLite Only: true\nNotes:\nNone"}
+          assert parse_proposal(lite_proposal)[3] is True
+          lite_added = json.loads(updated_catalog(
+              original, categories[0]["button"], new_id, True))
+          assert lite_added[0]["ugc"][-1] == {"id": new_id, "lite_only": True}
           print("Submission workflow validation passed.")
           PY
       - name: Validate pending PR feed parser
@@ -68,6 +75,8 @@ jobs:
                       f"Category: {category}\n",
           }
           assert parse_pending(pr, categories, existing)["id"] == "999888777666"
+          pr["body"] += "Lite Only: true\n"
+          assert parse_pending(pr, categories, existing)["lite_only"] is True
           assert parse_pending({**pr, "state": "closed"}, categories, existing) is None
           assert parse_pending(pr, categories, existing | {"999888777666"}) is None
           assert parse_pending({**pr, "head": {"repo": {"full_name": "other/repo"},
@@ -105,6 +114,25 @@ jobs:
           assert sum(len(c["ugc"]) for c in moved) == before
           assert item not in moved[0]["ugc"]
           assert moved[1]["ugc"][-1] == item
+          current_lite = isinstance(item, dict) and item.get("lite_only") is True
+          status_update = json.loads(updated_change_catalog(
+              source, workshop_id, "update", first["button"], first["button"],
+              current_lite, not current_lite))
+          status_item = status_update[0]["ugc"][0]
+          assert (isinstance(status_item, dict) and
+                  status_item.get("lite_only") is True) is (not current_lite)
+          assert all(status_update[i] == categories[i]
+                     for i in range(1, len(categories)))
+          lite_move = json.loads(updated_change_catalog(
+              source, workshop_id, "move", first["button"], second["button"],
+              current_lite, not current_lite))
+          lite_moved = lite_move[1]["ugc"][-1]
+          assert (isinstance(lite_moved, dict) and
+                  lite_moved.get("lite_only") is True) is (not current_lite)
+          flagged_issue = dict(issue, body=issue["body"].replace(
+              "Reason:", f"Current Lite Only: {str(current_lite).lower()}\n"
+                         f"Lite Only: {str(not current_lite).lower()}\nReason:"))
+          assert parse_change(flagged_issue)[5:] == (current_lite, not current_lite)
           deleted = json.loads(updated_change_catalog(source, workshop_id,
               "delete", first["button"], "none"))
           assert sum(len(c["ugc"]) for c in deleted) == before - 1
@@ -131,6 +159,13 @@ jobs:
           }
           keys = {c["button"] for c in categories}
           assert parse_pending_change(pr,keys,categories)["id"] == workshop_id
+          update_pr = dict(pr, body=pr["body"].replace(
+              "Action: move", "Action: update").replace(
+              "Target Category: " + second["button"],
+              "Target Category: " + first["button"] +
+              f"\nCurrent Lite Only: {str(current_lite).lower()}" +
+              f"\nLite Only: {str(not current_lite).lower()}"))
+          assert parse_pending_change(update_pr,keys,categories)["lite_only"] is (not current_lite)
           assert parse_pending_change(dict(pr,state="closed"),keys,categories) is None
           assert parse_pending_change(dict(pr,body=pr["body"].replace(
               "Action: move", "Action: invalid")),keys,categories) is None
