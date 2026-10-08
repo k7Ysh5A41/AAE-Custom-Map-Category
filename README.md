@@ -37,10 +37,10 @@ The [Steam metadata fetcher](./scripts/fetch_steam.py) reads UGC IDs from `custo
 - No separate top navigation bar. Main heading: **ALL-AROUND ENHANCEMENT MAP CATALOG**.
 - Three sections: slightly larger category choices on the left, larger map selection rows in the middle, and a smaller square preview with Workshop information on the right.
 - Verified public Steam Workshop map titles, non-clickable uploader names, UGC IDs, square cover images, and Workshop-sourced mission briefing excerpts when available.
-- Keyboard navigable map list, live case-insensitive search by Steam Workshop map title or UGC ID across all public maps, Lite-only filter, Copy ID button in the preview, and direct Steam Workshop link.
+- Keyboard navigable map list, live case-insensitive search by Steam Workshop map title or Workshop ID across all public maps, Lite-only filter, Copy ID button in the preview, and direct Steam Workshop link.
 - Responsive desktop/mobile layout.
 
-There is no View JSON button or CSV export. The search bar matches verified public Steam titles and UGC IDs.
+There is no View JSON button or CSV export. The search bar matches verified public Steam titles and Workshop IDs.
 
 ## GitHub Pages
 

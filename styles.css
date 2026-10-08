@@ -172,21 +172,21 @@ a{color:inherit}
 
 /* BO3 refinements: larger menu targets; native square Workshop artwork. */
 .game-content{grid-template-columns:minmax(175px,238px) minmax(260px,380px) minmax(250px,1fr)}
-.nav-btn{min-height:37px;padding:8px 11px;font-size:13px}
-.nav-btn small{font-size:11px}
-.category-row{min-height:47px;padding:10px 12px}
-.category-copy h3{font-size:14px}
-.map-row{min-height:70px;padding:8px 10px}
-.map-copy h3{font-size:13px}
-.cover-square{width:54px;height:54px;min-width:54px;min-height:54px;max-width:54px;max-height:54px;flex:0 0 54px}
+.nav-btn{min-height:48px;padding:11px 13px;font-size:15px;line-height:1.25}
+.nav-btn small{font-size:12px}
+.category-row{min-height:58px;padding:12px 14px}
+.category-copy h3{font-size:16px;line-height:1.35}
+.map-row{min-height:84px;padding:11px 12px}
+.map-copy h3{font-size:15px;line-height:1.3}
+.cover-square{width:60px;height:60px;min-width:60px;min-height:60px;max-width:60px;max-height:60px;flex:0 0 60px}
 .cover-square img,.preview-cover img{object-fit:contain}
 .preview-cover{width:min(100%,240px)}
 .preview-title-band{width:min(100%,240px)}
 .preview-cover .cover-fallback{font-size:20px}
 .menu-toolbar{justify-content:flex-start;gap:10px}
 .search-field{min-width:0;flex:1;display:block;position:relative}
-.search-field input{width:100%;height:33px;outline:none;border-radius:0;border:1px solid #434b50;
- background:rgba(17,20,23,.85);color:#e7e9eb;font:11px "Segoe UI",Arial,sans-serif;
+.search-field input{width:100%;height:42px;outline:none;border-radius:0;border:1px solid #434b50;
+ background:rgba(17,20,23,.85);color:#e7e9eb;font:13px "Segoe UI",Arial,sans-serif;
  padding:6px 10px;letter-spacing:.02em}
 .search-field input::placeholder{color:#858d92}
 .search-field input:focus{border-color:var(--accent);box-shadow:inset 2px 0 0 var(--accent)}
@@ -201,8 +201,13 @@ a{color:inherit}
 }
 @media(max-width:580px){
  .game-content{grid-template-columns:1fr}
- .nav-btn{font-size:11px;min-height:39px}
+ .nav-btn{font-size:12px;min-height:46px;padding:10px 9px}
  .preview-cover,.preview-title-band{width:min(100%,220px)}
- .search-field input{font-size:10px;height:35px}
+ .search-field input{font-size:12px;height:40px}
  .menu-toolbar{gap:8px}
 }
+
+/* Larger menu targets with unchanged compact publisher text. */
+.preview-buttons button,.preview-buttons a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:12px 16px;font-size:13px}
+.toggle{font-size:12px;gap:9px}.toggle input{width:17px;height:17px}
+.map-row:focus-visible,.nav-btn:focus-visible,.category-row:focus-visible,.preview-buttons a:focus-visible,.preview-buttons button:focus-visible{outline:2px solid #f5f5f5;outline-offset:-2px}
