@@ -20,7 +20,8 @@ const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, char =>
 );
 const state = {
     categories: [], maps: [], selected: null, liteOnly: false,
-    translations: new Map(), workshop: {}, steamReady: false, steamFailed: false
+    translations: new Map(), workshop: {}, steamReady: false, steamFailed: false,
+    activeMapId: null
 };
 
 // StringEd .str files pair REFERENCE with LANG_ENGLISH. The file name supplies
@@ -144,17 +145,15 @@ function renderNav() {
     const visible = state.steamReady ?
         state.categories.filter(category => categoryMaps(category).length > 0) :
         state.categories;
-    const all = { order: null, name: "ALL MAPS",
-        visibleCount: publicMaps().length };
+    const all = { order:null, name:"ALL MAPS", visibleCount:publicMaps().length };
     $("categoryNav").innerHTML = [all, ...visible].map(category => {
         const count = category.order === null ? category.visibleCount :
-            (state.steamReady ? categoryMaps(category).length : "—");
-        return '<button class="nav-btn' +
-            (category.order === state.selected ? " active" : "") +
+            state.steamReady ? categoryMaps(category).length : "—";
+        return '<button class="nav-btn' + (category.order === state.selected ? " active" : "") +
             '" data-category="' + (category.order ?? "all") +
-            '" title="' + escapeHtml(category.summary || "") +
-            '"><span>' + escapeHtml(category.name) +
-            '</span><small>' + count + "</small></button>";
+            '" title="' + escapeHtml(category.summary || "") + '">' +
+            '<span>' + escapeHtml(category.name) + '</span><small>' + count +
+            '</small></button>';
     }).join("");
 }
 function categoryRow(category) {
@@ -168,64 +167,88 @@ function categoryRow(category) {
         (liteCount ? '<span class="lite-count">' + liteCount + ' LITE ONLY</span>' : '') +
         '</div><span class="category-chevron" aria-hidden="true">›</span></article>';
 }
+function squareCover(url, large = false) {
+    const size = large ? 350 : 47;
+    const isHttps = typeof url === "string" && /^https:\/\//i.test(url);
+    return '<span class="' + (large ? "preview-cover" : "cover-square") + '">' +
+        (isHttps ?
+            '<img src="' + escapeHtml(url) + '" width="' + size +
+            '" height="' + size + '" alt="" loading="' + (large ? "eager" : "lazy") +
+            '" decoding="async" referrerpolicy="no-referrer" style="object-fit:cover;aspect-ratio:1/1">' :
+            '<span class="cover-fallback">III</span>') + "</span>";
+}
+function publisherName(info) {
+    return String(info.creator_name || (info.creator_id ? "Steam " + info.creator_id : "Unknown publisher"));
+}
 function mapRow(map) {
     const info = getSteamInfo(map.id);
     if (!info) return "";
-    const title = info.title;
-    const preview = info.preview_url;
-    const thumbnail = typeof preview === "string" && /^https:\/\//.test(preview) ?
-        '<img class="map-thumbnail" src="' + escapeHtml(preview) +
-        '" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">' :
-        '<div class="map-thumbnail map-placeholder" aria-hidden="true">III</div>';
+    const chosen = state.activeMapId === map.id;
+    return '<div class="map-row' + (chosen ? ' active' : '') +
+        '" role="option" aria-selected="' + (chosen ? "true" : "false") +
+        '" tabindex="0" data-map-id="' + escapeHtml(map.id) + '">' +
+        squareCover(info.preview_url) +
+        '<div class="map-copy"><h3 title="' + escapeHtml(info.title) + '">' +
+        escapeHtml(info.title) + '</h3><div class="map-publisher">' +
+        escapeHtml(publisherName(info)) + '</div></div>' +
+        (map.liteOnly ? '<span class="chip lite">LITE</span>' : '') +
+        '</div>';
+}
+function renderPreview() {
+    const map = filtered().find(item => item.id === state.activeMapId);
+    const info = map ? getSteamInfo(map.id) : null;
+    if (!map || !info) {
+        $("previewPane").innerHTML =
+            '<div class="preview-empty"><p>SELECT A MAP</p>' +
+            '<small>Choose a public Steam Workshop map from the left.</small></div>';
+        return;
+    }
     const url = "https://steamcommunity.com/sharedfiles/filedetails/?id=" +
         encodeURIComponent(map.id);
-    const creator = /^\d+$/.test(String(info.creator_id || "")) ?
-        String(info.creator_id) : "";
-    const publisher = creator ?
-        '<a class="publisher-link" href="https://steamcommunity.com/profiles/' +
-        creator + '/" target="_blank" rel="noopener noreferrer">' +
-        escapeHtml(info.creator_name || ("STEAM " + creator)) + '</a>' :
-        '<span>UNAVAILABLE</span>';
-    return '<article class="map-row"><span class="map-accent" aria-hidden="true"></span>' +
-        thumbnail +
-        '<div class="map-copy"><h3 title="' + escapeHtml(title) + '">' +
-        escapeHtml(title) + '</h3><div class="map-publisher">CREATED BY ' +
-        publisher + '</div><div class="map-id">WORKSHOP ID: ' +
-        escapeHtml(map.id) + '</div></div>' +
-        (map.liteOnly ? '<span class="chip lite">LITE ONLY</span>' : '') +
-        '<div class="map-actions"><button type="button" data-copy="' +
-        escapeHtml(map.id) + '">COPY ID</button><a target="_blank" rel="noopener noreferrer" href="' +
-        url + '">WORKSHOP ↗</a></div></article>';
+    const desc = typeof info.description === "string" ? info.description
+        .replace(/\[(?:\/)?[a-z0-9_*]+(?:=[^\]]+)?\]/gi, "")
+        .replace(/<[^>]*>/g, "")
+        .replace(/\r/g, "").trim().slice(0, 550) : "";
+    $("previewPane").innerHTML =
+        '<div class="preview-topline"></div>' + squareCover(info.preview_url, true) +
+        '<div class="preview-title-band">' + escapeHtml(info.title) + '</div>' +
+        '<h3 class="preview-heading">MAP INFORMATION</h3>' +
+        '<div class="preview-details"><p>CREATED BY <strong>' +
+        escapeHtml(publisherName(info)) + '</strong></p>' +
+        '<p>WORKSHOP ID <strong>' + escapeHtml(map.id) + '</strong></p>' +
+        (map.liteOnly ? '<p><strong>LITE ONLY</strong></p>' : '') + '</div>' +
+        (desc ? '<h3 class="preview-heading">MISSION BRIEFING</h3>' +
+            '<p class="preview-blurb">' + escapeHtml(desc) + '</p>' : '') +
+        '<div class="preview-buttons"><button data-copy="' + escapeHtml(map.id) +
+        '">COPY WORKSHOP ID</button><a href="' + url +
+        '" target="_blank" rel="noopener noreferrer">OPEN WORKSHOP ↗</a></div>';
 }
 function render() {
-    const valid = publicMaps();
-    const activeCategories = state.categories.filter(category =>
-        valid.some(map => map.category.order === category.order));
+    const publicItems = publicMaps();
     renderNav();
     const category = state.selected === null ? null : state.categories[state.selected];
-    $("viewTitle").textContent = category?.name ||
-        (state.liteOnly ? "LITE-ONLY MAPS" : "MAP CATEGORIES");
+    $("viewTitle").textContent = category?.name || (state.liteOnly ? "LITE-ONLY MAPS" : "MAPS");
     $("viewDescription").textContent = category?.summary || "";
-    $("groupCount").textContent = state.steamReady ? activeCategories.length.toLocaleString("en-US") : "—";
-    $("mapCount").textContent = state.steamReady ? valid.length.toLocaleString("en-US") : "—";
+    $("groupCount").textContent = state.steamReady ?
+        state.categories.filter(cat => categoryMaps(cat).length).length.toLocaleString("en-US") : "—";
+    $("mapCount").textContent = state.steamReady ?
+        publicItems.length.toLocaleString("en-US") : "—";
     $("liteCount").textContent = state.steamReady ?
-        valid.filter(map => map.liteOnly).length.toLocaleString("en-US") : "—";
+        publicItems.filter(map => map.liteOnly).length.toLocaleString("en-US") : "—";
     const matches = filtered();
-    $("resultCount").textContent = state.steamReady ?
-        matches.length.toLocaleString("en-US") + " PUBLIC MAPS" : "VERIFYING STEAM";
-    if (!state.steamReady) {
-        $("catalog").innerHTML = '<p class="empty">' +
-            (state.steamFailed ?
-            "PUBLIC WORKSHOP VERIFICATION UNAVAILABLE. MAPS ARE HIDDEN." :
-            "VERIFYING PUBLIC STEAM WORKSHOP LISTINGS…") + '</p>';
-    } else if (state.selected === null && !state.liteOnly) {
-        $("catalog").innerHTML = activeCategories.length ?
-            activeCategories.map(categoryRow).join("") :
-            '<p class="empty">NO PUBLIC MAPS AVAILABLE.</p>';
-    } else {
-        $("catalog").innerHTML = matches.length ? matches.map(mapRow).join("") :
-            '<p class="empty">NO PUBLIC MAPS IN THIS CATEGORY.</p>';
+    if (state.activeMapId && !matches.some(map => map.id === state.activeMapId)) {
+        state.activeMapId = null;
     }
+    if (!state.activeMapId && matches.length) state.activeMapId = matches[0].id;
+    $("resultCount").textContent = state.steamReady ?
+        matches.length.toLocaleString("en-US") + " MAPS" : "VERIFYING STEAM";
+    $("catalog").innerHTML = !state.steamReady ?
+        '<p class="empty">' + (state.steamFailed ?
+        "PUBLIC WORKSHOP DATA UNAVAILABLE. MAPS HIDDEN." :
+        "VERIFYING PUBLIC WORKSHOP MAPS…") + '</p>' :
+        matches.length ? matches.map(mapRow).join("") :
+        '<p class="empty">NO PUBLIC MAPS FOUND.</p>';
+    renderPreview();
 }
 async function copyID(id) {
     try {
@@ -261,6 +284,7 @@ function exportCsv() {
 }
 function selectCategory(value) {
     state.selected = value === "all" ? null : Number(value);
+    state.activeMapId = null;
     render();
 }
 function bind() {
@@ -268,38 +292,69 @@ function bind() {
         const button = event.target.closest("[data-category]");
         if (button) selectCategory(button.dataset.category);
     });
-    $("catalog").addEventListener("click", async event => {
-        const copy = event.target.closest("[data-copy]");
-        if (copy) {
-            await copyID(copy.dataset.copy);
-            copy.textContent = "Copied";
-            setTimeout(() => { if (copy.isConnected) copy.textContent = "Copy ID"; }, 1300);
-            return;
-        }
-        const row = event.target.closest("[data-open]");
-        if (row) selectCategory(row.dataset.open);
+    $("catalog").addEventListener("click", event => {
+        const item = event.target.closest("[data-map-id]");
+        if (!item) return;
+        state.activeMapId = item.dataset.mapId;
+        render();
     });
     $("catalog").addEventListener("keydown", event => {
-        if ((event.key === "Enter" || event.key === " ") &&
-            event.target.matches("[data-open]")) {
+        const node = event.target.closest("[data-map-id]");
+        if (!node) return;
+        if (event.key === "Enter" || event.key === " ") {
             event.preventDefault();
-            selectCategory(event.target.dataset.open);
+            state.activeMapId = node.dataset.mapId;
+            render();
+        }
+        if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+            event.preventDefault();
+            const matches = filtered();
+            const index = matches.findIndex(map => map.id === node.dataset.mapId);
+            const next = matches[Math.max(0, Math.min(matches.length - 1,
+                index + (event.key === "ArrowDown" ? 1 : -1)))];
+            if (next) {
+                state.activeMapId = next.id;
+                render();
+                const selected = [...$("catalog").querySelectorAll("[data-map-id]")]
+                    .find(item => item.dataset.mapId === next.id);
+                if (selected) {
+                    selected.focus({preventScroll:true});
+                    selected.scrollIntoView({block:"nearest"});
+                }
+            }
         }
     });
+    $("previewPane").addEventListener("click", async event => {
+        const btn = event.target.closest("[data-copy]");
+        if (!btn) return;
+        await copyID(btn.dataset.copy);
+        btn.textContent = "COPIED";
+        setTimeout(() => {
+            if (btn.isConnected) btn.textContent = "COPY WORKSHOP ID";
+        }, 1300);
+    });
+    $("previewPane").addEventListener("error", event => {
+        if (event.target.matches(".preview-cover img")) {
+            event.target.replaceWith(Object.assign(document.createElement("span"), {
+                className:"cover-fallback",textContent:"III"
+            }));
+        }
+    }, true);
     $("catalog").addEventListener("error", event => {
-        if (event.target.matches("img.map-thumbnail")) {
-            const placeholder = document.createElement("div");
-            placeholder.className = "map-thumbnail map-placeholder";
-            placeholder.textContent = "AAE";
-            event.target.replaceWith(placeholder);
+        if (event.target.matches(".cover-square img")) {
+            event.target.replaceWith(Object.assign(document.createElement("span"), {
+                className:"cover-fallback",textContent:"III"
+            }));
         }
     }, true);
     $("liteToggle").addEventListener("change", event => {
         state.liteOnly = event.target.checked;
+        state.activeMapId = null;
         render();
     });
     $("exportCsv").addEventListener("click", exportCsv);
 }
+
 // Rendering is independent of Steam / localization network requests.
 // The category JSON is enough to show the UI immediately.
 const resourceErrors = new Map();
@@ -335,6 +390,10 @@ async function init() {
         });
 
         loadSteamMetadata().then(error => {
+            if (!error && state.selected === null && !state.liteOnly) {
+                const first = state.categories.find(category => categoryMaps(category).length > 0);
+                if (first) state.selected = first.order;
+            }
             render();
             reportResourceError("steam", error
                 ? "Public Steam verification unavailable (" + error + "). Maps are hidden."
