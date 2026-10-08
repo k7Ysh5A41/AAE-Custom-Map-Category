@@ -623,10 +623,6 @@ body.submission-open .language-picker{
   from { opacity:0;transform:translateY(10px); }
   to { opacity:1;transform:translateY(0); }
 }
-@keyframes aaeRowEnter {
-  from { opacity:0;transform:translateX(-7px); }
-  to { opacity:1;transform:translateX(0); }
-}
 @keyframes aaePreviewEnter {
   from { opacity:.5;transform:translateY(8px) scale(.982); }
   to { opacity:1;transform:translateY(0) scale(1); }
@@ -678,18 +674,6 @@ body.submission-open .language-picker{
 .preview-buttons button:active,.preview-buttons a:active {
   transform:scale(.988);
 }
-.catalog .map-row:nth-child(-n+10) {
-  animation:aaeRowEnter .22s ease-out both;
-}
-.catalog .map-row:nth-child(2) { animation-delay:.022s; }
-.catalog .map-row:nth-child(3) { animation-delay:.044s; }
-.catalog .map-row:nth-child(4) { animation-delay:.066s; }
-.catalog .map-row:nth-child(5) { animation-delay:.088s; }
-.catalog .map-row:nth-child(6) { animation-delay:.11s; }
-.catalog .map-row:nth-child(7) { animation-delay:.132s; }
-.catalog .map-row:nth-child(8) { animation-delay:.154s; }
-.catalog .map-row:nth-child(9) { animation-delay:.176s; }
-.catalog .map-row:nth-child(10) { animation-delay:.198s; }
 .preview-pane .preview-cover,
 .preview-pane .preview-title-band,
 .preview-pane .preview-empty {
@@ -1240,8 +1224,8 @@ html,body { max-width:100%;overflow-x:clip; }
 }
 
 
-/* Category selection is immediate; leave entrance animation only on map rows. */
-#categoryNav .nav-btn,.catalog .category-row { animation:none; }
+/* Category and map list items appear instantly; keep their hover/glow effects. */
+#categoryNav .nav-btn,.catalog .category-row,.catalog .map-row { animation:none; }
 
 /* Translated counters: three compact, unbroken metric groups.
    Labels can contract without creating a stray second line. */
@@ -1323,8 +1307,8 @@ html,body { max-width:100%;overflow-x:clip; }
 }
 /* Reserve more room for the longer AAE Lite counter while preventing wrap. */
 .header-actions .header-stats .stat-item:last-child {
-  flex-grow:1;
-  justify-content:flex-end;
+  flex-grow:0;
+  justify-content:flex-start;
 }
 .header-actions .header-stats .stat-item:last-child .stat-label {
   font-size:clamp(10px,.78vw,13px);
@@ -1333,4 +1317,98 @@ html,body { max-width:100%;overflow-x:clip; }
   .header-actions .header-stats .stat-item:last-child .stat-label {
     font-size:clamp(9px,2vw,12px);
   }
+}
+
+
+/* Community destinations sit below the catalog rather than obscuring lists.
+   Reserve the bottom-right fixed language picker on desktop. */
+.social-bar {
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:12px 18px;
+  min-width:0;
+  max-width:100%;
+  padding:12px 195px 5px 0;
+}
+.social-heading {
+  flex:0 0 auto;
+  color:#aeb8bd;
+  font-size:11px;
+  font-weight:700;
+  line-height:1.3;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+}
+.social-buttons {
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  min-width:0;
+  gap:8px;
+}
+.social-link {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  min-height:38px;
+  padding:7px 12px;
+  border:1px solid rgba(250,132,73,.48);
+  background:linear-gradient(110deg,#111419,#201b1a);
+  color:#e8dcd7;
+  font:700 12px/1.3 "Segoe UI",Arial,sans-serif;
+  text-decoration:none;
+  white-space:nowrap;
+  transition:border-color .18s ease,background .18s ease,box-shadow .18s ease,transform .18s ease;
+}
+.social-link[hidden] { display:none!important; }
+.social-icon {
+  display:inline-grid;
+  place-items:center;
+  width:23px;
+  height:23px;
+  flex:0 0 23px;
+  border:1px solid rgba(255,164,108,.45);
+  color:#ffc296;
+  font-size:13px;
+  line-height:1;
+}
+.social-external { font-size:14px;color:#ffa477; }
+.social-link:hover,.social-link:focus-visible {
+  outline:none;
+  transform:translateY(-2px);
+  border-color:#ffcf91;
+  background:linear-gradient(110deg,#3d241a,#1d1a1c);
+  box-shadow:0 0 15px rgba(250,103,45,.52),0 0 32px rgba(242,80,34,.24);
+  color:#fff;
+}
+.social-link:focus-visible { outline:2px solid #ffe5c1;outline-offset:2px; }
+.social-discord .social-icon { border-color:rgba(130,146,255,.64);color:#aeb7ff; }
+.social-steam .social-icon { border-color:rgba(115,182,228,.67);color:#9fcaf0; }
+.social-qq .social-icon { border-color:rgba(255,206,105,.67);color:#ffdb91; }
+.social-bilibili .social-icon { border-color:rgba(255,149,182,.67);color:#ffb1ca; }
+@media(max-width:800px) {
+  .social-bar { padding-right:0; }
+  .social-buttons { gap:7px; }
+  .social-link { padding:7px 10px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .social-link { transition:none!important; }
+  .social-link:hover,.social-link:focus-visible { transform:none!important; }
+}
+
+
+/* Keep all three metrics side-by-side as one compact group, regardless
+   of locale. The Lite item must not absorb remaining row width. */
+.header-actions .header-stats {
+  justify-content:flex-end;
+  column-gap:clamp(3px,.42vw,7px);
+}
+.header-actions .header-stats .stat-item {
+  flex-grow:0;
+  justify-content:flex-start;
+}
+@media(max-width:700px) {
+  .header-actions .header-stats { justify-content:flex-start; }
 }

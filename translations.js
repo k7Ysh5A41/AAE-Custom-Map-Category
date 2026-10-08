@@ -70,7 +70,8 @@ window.AAE_I18N = {
       "pendingPR": "PENDING PR",
       "newMap": "NEW",
       "viewPR": "VIEW PR",
-      "openAaeLite": "OPEN AAE Lite VERSION ↗"
+      "openAaeLite": "OPEN AAE Lite VERSION ↗",
+      "communityLinks": "COMMUNITY"
     },
     "zh-CN": {
       "submitMap": "提交地图",
@@ -136,7 +137,8 @@ window.AAE_I18N = {
       "pendingPR": "PR 待审核",
       "newMap": "新",
       "viewPR": "查看 PR",
-      "openAaeLite": "打开 AAE Lite 版本 ↗"
+      "openAaeLite": "打开 AAE Lite 版本 ↗",
+      "communityLinks": "社区"
     },
     "zh-TW": {
       "submitMap": "提交地圖",
@@ -202,7 +204,8 @@ window.AAE_I18N = {
       "pendingPR": "PR 待審核",
       "newMap": "新",
       "viewPR": "檢視 PR",
-      "openAaeLite": "開啟 AAE Lite 版本 ↗"
+      "openAaeLite": "開啟 AAE Lite 版本 ↗",
+      "communityLinks": "社群"
     },
     "fr": {
       "submitMap": "PROPOSER UNE CARTE",
@@ -268,7 +271,8 @@ window.AAE_I18N = {
       "pendingPR": "PR EN ATTENTE",
       "newMap": "NOUVEAU",
       "viewPR": "VOIR LA PR",
-      "openAaeLite": "OUVRIR LA VERSION AAE Lite ↗"
+      "openAaeLite": "OUVRIR LA VERSION AAE Lite ↗",
+      "communityLinks": "COMMUNAUTÉ"
     },
     "de": {
       "submitMap": "KARTE EINREICHEN",
@@ -334,7 +338,8 @@ window.AAE_I18N = {
       "pendingPR": "PR AUSSTEHEND",
       "newMap": "NEU",
       "viewPR": "PR ANSEHEN",
-      "openAaeLite": "AAE Lite-VERSION ÖFFNEN ↗"
+      "openAaeLite": "AAE Lite-VERSION ÖFFNEN ↗",
+      "communityLinks": "COMMUNITY"
     },
     "it": {
       "submitMap": "INVIA UNA MAPPA",
@@ -400,7 +405,8 @@ window.AAE_I18N = {
       "pendingPR": "PR IN ATTESA",
       "newMap": "NUOVO",
       "viewPR": "VEDI PR",
-      "openAaeLite": "APRI LA VERSIONE AAE Lite ↗"
+      "openAaeLite": "APRI LA VERSIONE AAE Lite ↗",
+      "communityLinks": "COMMUNITÀ"
     },
     "ja": {
       "submitMap": "マップを投稿",
@@ -466,7 +472,8 @@ window.AAE_I18N = {
       "pendingPR": "PR 審査待ち",
       "newMap": "新着",
       "viewPR": "PR を表示",
-      "openAaeLite": "AAE Lite 版を開く ↗"
+      "openAaeLite": "AAE Lite 版を開く ↗",
+      "communityLinks": "コミュニティ"
     },
     "pl": {
       "submitMap": "ZGŁOŚ MAPĘ",
@@ -532,7 +539,8 @@ window.AAE_I18N = {
       "pendingPR": "PR OCZEKUJĄCY",
       "newMap": "NOWOŚĆ",
       "viewPR": "ZOBACZ PR",
-      "openAaeLite": "OTWÓRZ WERSJĘ AAE Lite ↗"
+      "openAaeLite": "OTWÓRZ WERSJĘ AAE Lite ↗",
+      "communityLinks": "SPOŁECZNOŚĆ"
     },
     "pt": {
       "submitMap": "ENVIAR MAPA",
@@ -598,7 +606,8 @@ window.AAE_I18N = {
       "pendingPR": "PR PENDENTE",
       "newMap": "NOVO",
       "viewPR": "VER PR",
-      "openAaeLite": "ABRIR VERSÃO AAE Lite ↗"
+      "openAaeLite": "ABRIR VERSÃO AAE Lite ↗",
+      "communityLinks": "COMUNIDADE"
     },
     "ru": {
       "submitMap": "ПРЕДЛОЖИТЬ КАРТУ",
@@ -664,7 +673,8 @@ window.AAE_I18N = {
       "pendingPR": "PR НА ПРОВЕРКЕ",
       "newMap": "НОВОЕ",
       "viewPR": "ОТКРЫТЬ PR",
-      "openAaeLite": "ОТКРЫТЬ ВЕРСИЮ AAE Lite ↗"
+      "openAaeLite": "ОТКРЫТЬ ВЕРСИЮ AAE Lite ↗",
+      "communityLinks": "СООБЩЕСТВО"
     },
     "es": {
       "submitMap": "ENVIAR UN MAPA",
@@ -730,7 +740,8 @@ window.AAE_I18N = {
       "pendingPR": "PR PENDIENTE",
       "newMap": "NUEVO",
       "viewPR": "VER PR",
-      "openAaeLite": "ABRIR VERSIÓN AAE Lite ↗"
+      "openAaeLite": "ABRIR VERSIÓN AAE Lite ↗",
+      "communityLinks": "COMUNIDAD"
     }
   },
   "categories": {

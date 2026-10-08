@@ -80,6 +80,11 @@ function applyUiText() {
     for (const el of document.querySelectorAll("[data-i18n-aria-label]")) {
         el.setAttribute("aria-label", t(el.dataset.i18nAriaLabel));
     }
+    // Chinese community channels follow the active UI locale, including AUTO.
+    const showChineseChannels = ["zh-CN", "zh-TW"].includes(selectedLocalization().code);
+    for (const el of document.querySelectorAll("[data-chinese-only]")) {
+        el.hidden = !showChineseChannels;
+    }
 }
 const state = {
     categories: [], maps: [], selected: null, liteOnly: false,
