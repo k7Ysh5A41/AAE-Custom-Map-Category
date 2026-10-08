@@ -2285,3 +2285,34 @@ body.submission-open .social-bar { pointer-events:none; }
   .github-guide-pr-explainer {padding:12px;}
   .github-guide-actions {flex-direction:column-reverse;align-items:stretch;}
 }
+
+/* Explain that game synchronization follows PR merge, not form submission. */
+.submission-game-sync {
+  margin:11px 0 2px;
+  padding:10px 0 10px 13px;
+  border-left:3px solid rgba(255,172,100,.9);
+  color:#f4d9ba;
+  background:linear-gradient(90deg,rgba(255,134,53,.095),transparent 90%);
+  font:600 13px/1.6 "Segoe UI",Arial,sans-serif;
+}
+.github-guide-game-sync {
+  margin:17px 0 10px;
+  padding:13px 16px;
+  border-left:3px solid rgba(255,177,95,.86);
+  background:rgba(255,141,72,.07);
+}
+.github-guide-game-sync h3 {
+  margin:0 0 7px;
+  color:#ffd49e;
+  font:800 15px/1.5 "Segoe UI",Arial,sans-serif;
+}
+.github-guide-game-sync p {
+  margin:0;
+  color:#e8d9cc;
+  font:14px/1.65 "Segoe UI",Arial,sans-serif;
+}
+@media(max-width:650px) {
+  .submission-game-sync {font-size:12px;}
+  .github-guide-game-sync {padding:11px 12px;}
+  .github-guide-game-sync p {font-size:13px;}
+}
