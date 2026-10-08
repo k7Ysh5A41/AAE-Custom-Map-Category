@@ -1,19 +1,56 @@
 "use strict";
 const DATA_URL="./custommap_cate.json";
+const LOCALIZATION_BASE="https://raw.githubusercontent.com/k7Ysh5A41/AAE-localizedstrings/main/english/localizedstrings/";
+const translations=new Map();
+
+// In a StringEd .str file, REFERENCE and LANG_ENGLISH form a pair.
+// The filename supplies the namespace: AAEP.str + ZC2_MAP = AAEP_ZC2_MAP.
+function parseStringEd(source,prefix){
+ let reference=null;
+ let count=0;
+ for(const line of source.split(/\r?\n/)){
+  const ref=line.match(/^\s*REFERENCE\s+([A-Za-z0-9_]+)/);
+  if(ref){reference=ref[1];continue;}
+  const value=line.match(/^\s*LANG_ENGLISH\s+"((?:\\.|[^"\\])*)"/);
+  if(value&&reference){
+   const text=value[1].replace(/\\([nrt"\\])/g,(_,c)=>c==="n"?"\n":c==="r"?"\r":c==="t"?"\t":c).replace(/\^[0-9]/g,"");
+   translations.set(prefix+"_"+reference,text);
+   count++;
+  }
+ }
+ return count;
+}
+async function loadLocalizations(categories){
+ const prefixes=[...new Set(categories.flatMap(category=>[category?.button,category?.description])
+  .filter(key=>typeof key==="string")
+  .map(key=>/^([A-Za-z0-9]+)_/.exec(key)?.[1])
+  .filter(Boolean))];
+ const errors=await Promise.all(prefixes.map(async prefix=>{
+  try{
+   const response=await fetch(LOCALIZATION_BASE+encodeURIComponent(prefix)+".str",{cache:"no-store"});
+   if(!response.ok)throw Error("HTTP "+response.status);
+   if(!parseStringEd(await response.text(),prefix))throw Error("No English references found");
+   return null;
+  }catch(err){return prefix+": "+err.message;}
+ }));
+ return errors.filter(Boolean);
+}
+function localized(key){return translations.get(key);}
+function categorySummary(category){return localized(category.description)||"";}
 const $=id=>document.getElementById(id);
 const escapeHtml=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const state={categories:[],maps:[],selected:null,query:"",liteOnly:false};
 function categoryName(c){
  const key=String(c.button||"");
  const m=/^AAEP_(.+?)_MAP$/i.exec(key);
- return m?m[1].replaceAll("_"," · "):(key||"Category "+c.index);
+ return localized(key)||(m?m[1].replaceAll("_"," · "):(key||"Category "+c.index));
 }
 function normalize(raw){
  if(!Array.isArray(raw))throw Error("The JSON root must be an array");
  const maps=[];
  const categories=raw.map((c,i)=>{
   if(!c||!Array.isArray(c.ugc))throw Error("Category "+(i+1)+" has no ugc array");
-  const category={...c,order:i,name:categoryName(c)};
+  const category={...c,order:i,name:categoryName(c),summary:categorySummary(c)};
   c.ugc.forEach((v,pos)=>{
    const object=typeof v==="object"&&v!==null&&!Array.isArray(v);
    const id=String(object?(v.id??""):v);
@@ -28,23 +65,24 @@ function filtered(){
  return state.maps.filter(m=>
   (state.selected===null||m.category.order===state.selected)&&
   (!state.liteOnly||m.liteOnly)&&
-  (!q||[m.id,m.category.name,m.category.index,m.category.button,m.category.description].some(v=>String(v??"").toLowerCase().includes(q)))
+  (!q||[m.id,m.category.name,m.category.summary,m.category.index,m.category.button,m.category.description].some(v=>String(v??"").toLowerCase().includes(q)))
  );
 }
 function renderNav(){
  const buttons=[{order:null,name:"All Maps",ugc:state.maps},...state.categories];
- $("categoryNav").innerHTML=buttons.map(c=>'<button class="nav-btn'+(state.selected===c.order?' active':'')+'" data-category="'+(c.order??"all")+'"><span>'+escapeHtml(c.name)+'</span><small>'+c.ugc.length+'</small></button>').join("");
+ $("categoryNav").innerHTML=buttons.map(c=>'<button class="nav-btn'+(state.selected===c.order?' active':'')+'" data-category="'+(c.order??"all")+'" title="'+escapeHtml(c.summary||"")+'"><span>'+escapeHtml(c.name)+'</span><small>'+c.ugc.length+'</small></button>').join("");
 }
 function render(){
  renderNav();
  const category=state.categories[state.selected];
  $("viewTitle").textContent=state.selected===null?"All Maps":(category?.name||"Category");
+ $("viewDescription").textContent=state.selected===null?"":(category?.summary||"");
  const matches=filtered();
  $("resultCount").textContent=matches.length.toLocaleString("en-US")+" entries";
  if(state.selected===null&&!state.query&&!state.liteOnly){
   $("catalog").innerHTML=state.categories.map(c=>{
    const liteCount=c.ugc.filter(v=>v&&typeof v==="object"&&v.lite_only===true).length;
-   return '<article tabindex="0" role="button" class="card category-card" data-open="'+c.order+'"><div class="card-head"><span class="chip">CATEGORY '+escapeHtml(c.index)+'</span><span class="meta">#'+(c.order+1)+'</span></div><h3>'+escapeHtml(c.name)+'</h3><p class="meta">'+escapeHtml(c.button??"")+'</p><div class="category-count">'+c.ugc.length+' <small>maps</small></div><span class="meta">'+(liteCount?liteCount+" Lite-only entries":"Browse maps →")+'</span></article>';
+   return '<article tabindex="0" role="button" class="card category-card" data-open="'+c.order+'"><div class="card-head"><span class="chip">CATEGORY '+escapeHtml(c.index)+'</span><span class="meta">#'+(c.order+1)+'</span></div><h3>'+escapeHtml(c.name)+'</h3><p class="category-summary">'+escapeHtml(c.summary||"")+'</p><p class="meta">'+escapeHtml(c.button??"")+'</p><div class="category-count">'+c.ugc.length+' <small>maps</small></div><span class="meta">'+(liteCount?liteCount+" Lite-only entries":"Browse maps →")+'</span></article>';
   }).join("");
   return;
  }
@@ -87,12 +125,16 @@ async function init(){
  try{
   const response=await fetch(DATA_URL,{cache:"no-store"});
   if(!response.ok)throw Error("HTTP "+response.status);
-  const data=normalize(await response.json());
+  const raw=await response.json();
+  if(!Array.isArray(raw))throw Error("The JSON root must be an array");
+  const localizationErrors=await loadLocalizations(raw);
+  const data=normalize(raw);
   state.categories=data.categories;state.maps=data.maps;
   $("groupCount").textContent=data.categories.length.toLocaleString("en-US");
   $("mapCount").textContent=data.maps.length.toLocaleString("en-US");
   $("liteCount").textContent=data.maps.filter(m=>m.liteOnly).length.toLocaleString("en-US");
   render();
+  if(localizationErrors.length){$("errorMessage").hidden=false;$("errorMessage").textContent="Could not load some localization files ("+localizationErrors.join("; ")+"). Showing available names or fallback keys."}
  }catch(e){$("catalog").innerHTML="";$("errorMessage").hidden=false;$("errorMessage").textContent="Unable to load custommap_cate.json: "+e.message;}
 }
 document.addEventListener("DOMContentLoaded",init);
