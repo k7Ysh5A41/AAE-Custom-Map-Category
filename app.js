@@ -89,6 +89,10 @@ function applyUiText() {
     for (const el of document.querySelectorAll("[data-chinese-only]")) {
         el.hidden = !showChineseChannels;
     }
+    // Keep the second-level GitHub guide translated when locale changes.
+    if ($("githubGuideOverlay") && !$("githubGuideOverlay").hidden) {
+        renderGithubGuide();
+    }
 }
 const state = {
     categories: [], maps: [], selected: null, liteOnly: false,
@@ -697,6 +701,7 @@ function bind() {
     applyUiText();
     bindLanguagePicker();
     bindChangeRequests();
+    bindGithubGuide();
     $("previewPane").addEventListener("click", event => {
         const button = event.target.closest("[data-request-change]");
         if (button) openChangeRequest(button.dataset.requestChange);
@@ -823,6 +828,7 @@ function setSubmissionPending(pending) {
 }
 function closeSubmission() {
     if ($("submitMapOverlay").hidden) return;
+    if (!$("githubGuideOverlay").hidden) closeGithubGuide();
     submissionValidationId++;
     setSubmissionPending(false);
     $("submitMapOverlay").hidden = true;
@@ -1007,6 +1013,7 @@ function openChangeRequest(id) {
 }
 function closeChangeRequest() {
     if ($("changeMapOverlay").hidden) return;
+    if (!$("githubGuideOverlay").hidden) closeGithubGuide();
     changeValidationToken++;
     setChangePending(false);
     $("changeMapOverlay").hidden = true;
@@ -1096,9 +1103,92 @@ function bindChangeRequests() {
         if (event.target === $("changeMapOverlay")) closeChangeRequest();
     });
     document.addEventListener("keydown", event => {
-        if (event.key === "Escape" && !$("changeMapOverlay").hidden) {
+        if (event.key === "Escape" && $("githubGuideOverlay").hidden && !$("changeMapOverlay").hidden) {
             event.preventDefault();
             closeChangeRequest();
+        }
+    });
+}
+
+// Second-level guide is informational only. Keep the original form and its
+// values intact while the guide is open, and return focus on dismissal.
+let githubGuideMode = null;
+let githubGuideReturnFocus = null;
+function githubGuideStepKeys() {
+    const change = githubGuideMode === "change";
+    return [
+        "githubGuideLogin",
+        change ? "githubGuideTitleChange" : "githubGuideTitleNew",
+        change ? "githubGuideBodyChange" : "githubGuideBodyNew",
+        "githubGuideKeepFields",
+        "githubGuideSubmitIssue",
+        "githubGuideIssueCreated",
+        change ? "githubGuideAutomationChange" : "githubGuideAutomationNew",
+        "githubGuidePR",
+        "githubGuideReview",
+        "githubGuideTrouble"
+    ];
+}
+function renderGithubGuide() {
+    if (!githubGuideMode) return;
+    $("githubGuideIntro").textContent =
+        t(githubGuideMode === "change" ? "githubGuideIntroChange" : "githubGuideIntroNew");
+    $("githubGuideSteps").innerHTML = githubGuideStepKeys().map(key =>
+        '<li><p>' + escapeHtml(t(key)) + '</p></li>').join("");
+}
+function openGithubGuide(mode) {
+    if (!["new","change"].includes(mode) || !$("githubGuideOverlay").hidden) return;
+    const parentId = mode === "change" ? "changeMapOverlay" : "submitMapOverlay";
+    const parent = $(parentId);
+    if (parent.hidden) return;
+    githubGuideMode = mode;
+    githubGuideReturnFocus = $(mode === "change" ? "changeGithubHelp" : "submitGithubHelp");
+    renderGithubGuide();
+    const parentDialog = parent.querySelector(".submit-dialog");
+    parentDialog.inert = true;
+    parentDialog.setAttribute("aria-hidden", "true");
+    $("githubGuideOverlay").hidden = false;
+    $("githubGuideDialog").scrollTop = 0;
+    $("githubGuideClose").focus({preventScroll:true});
+}
+function closeGithubGuide() {
+    if ($("githubGuideOverlay").hidden) return;
+    $("githubGuideOverlay").hidden = true;
+    const parent = githubGuideMode === "change" ? $("changeMapOverlay") : $("submitMapOverlay");
+    const parentDialog = parent.querySelector(".submit-dialog");
+    parentDialog.inert = false;
+    parentDialog.removeAttribute("aria-hidden");
+    const target = githubGuideReturnFocus;
+    githubGuideMode = null;
+    githubGuideReturnFocus = null;
+    if (!parent.hidden && target) target.focus({preventScroll:true});
+}
+function bindGithubGuide() {
+    $("submitGithubHelp").addEventListener("click", () => openGithubGuide("new"));
+    $("changeGithubHelp").addEventListener("click", () => openGithubGuide("change"));
+    $("githubGuideClose").addEventListener("click", closeGithubGuide);
+    $("githubGuideBack").addEventListener("click", closeGithubGuide);
+    $("githubGuideOverlay").addEventListener("click", event => {
+        if (event.target === $("githubGuideOverlay")) closeGithubGuide();
+    });
+    document.addEventListener("keydown", event => {
+        if ($("githubGuideOverlay").hidden) return;
+        if (event.key === "Escape") {
+            event.preventDefault();
+            closeGithubGuide();
+            return;
+        }
+        if (event.key !== "Tab") return;
+        // The form underneath is inert; cycle focus within the guide.
+        const focusable = [...$("githubGuideDialog").querySelectorAll(
+            "button:not([disabled]),a[href],input:not([disabled]),[tabindex]:not([tabindex='-1'])"
+        )].filter(el => !el.hidden);
+        if (!focusable.length) return;
+        const first = focusable[0], last = focusable[focusable.length-1];
+        if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault(); last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault(); first.focus();
         }
     });
 }
@@ -1111,7 +1201,7 @@ function bindMapSubmission() {
         if (event.target === $("submitMapOverlay")) closeSubmission();
     });
     document.addEventListener("keydown", event => {
-        if (event.key === "Escape" && !$("submitMapOverlay").hidden) {
+        if (event.key === "Escape" && $("githubGuideOverlay").hidden && !$("submitMapOverlay").hidden) {
             event.preventDefault();
             closeSubmission();
         }

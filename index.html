@@ -6,9 +6,9 @@
 <meta name="theme-color" content="#050507">
 <meta name="description" content="All-Around Enhancement — a Black Ops III Zombies-style catalog of public Steam Workshop maps.">
 <title>All-Around Enhancement — Map Catalog</title>
-<link rel="stylesheet" href="styles.css?v=lite-checkbox-default-and-motion-20261008d">
-<script src="translations.js?v=lite-checkbox-default-and-motion-20261008d" defer></script>
-<script src="app.js?v=lite-checkbox-default-and-motion-20261008d" defer></script>
+<link rel="stylesheet" href="styles.css?v=github-step-guide-20261008">
+<script src="translations.js?v=github-step-guide-20261008" defer></script>
+<script src="app.js?v=github-step-guide-20261008" defer></script>
 </head>
 <body>
 <div class="game-shell">
@@ -111,6 +111,7 @@
         <label for="changeReason" data-i18n="changeReason">REASON FOR REQUEST</label>
         <textarea id="changeReason" name="reason" maxlength="400" minlength="5" rows="4" required data-i18n-placeholder="changeReasonPlaceholder" placeholder="Explain why this map should be recategorized"></textarea>
         <p id="changeMapError" class="submit-error" role="alert" hidden></p>
+        <button id="changeGithubHelp" class="github-help-trigger" type="button" aria-haspopup="dialog" aria-controls="githubGuideOverlay" data-i18n="githubHelpOpen">? WHAT TO DO ON GITHUB — FULL GUIDE</button>
         <p class="submit-github-notice" data-i18n="changeGithubNotice">A GitHub login is required to confirm the request. The current map stays unchanged until a reviewer merges the PR.</p>
         <div class="submit-actions">
           <button id="changeMapCancel" type="button" data-i18n="cancel">CANCEL</button>
@@ -136,12 +137,29 @@
         <label for="submitNotes"><span data-i18n="fieldNotes">ADDITIONAL NOTES</span> <span data-i18n="optional">(OPTIONAL)</span></label>
         <textarea id="submitNotes" name="notes" rows="3" maxlength="400" placeholder="Optional information for the reviewer" data-i18n-placeholder="notesPlaceholder"></textarea>
         <p class="submit-error" id="submitMapError" role="alert" hidden></p>
+        <button id="submitGithubHelp" class="github-help-trigger" type="button" aria-haspopup="dialog" aria-controls="githubGuideOverlay" data-i18n="githubHelpOpen">? WHAT TO DO ON GITHUB — FULL GUIDE</button>
         <p class="submit-github-notice" data-i18n="confirmAccount">A GitHub account is required to confirm your submission. After confirmation, validation and PR creation run automatically.</p>
         <div class="submit-actions">
           <button type="button" id="submitMapCancel" data-i18n="cancel">CANCEL</button>
           <button type="submit" class="submit-confirm" data-i18n="continueGithub">CONTINUE TO GITHUB ↗</button>
         </div>
       </form>
+    </div>
+  </section>
+  <section class="submit-overlay github-help-overlay" id="githubGuideOverlay" hidden role="presentation">
+    <div id="githubGuideDialog" class="submit-dialog github-help-dialog" role="dialog" aria-modal="true"
+         aria-labelledby="githubGuideTitle" aria-describedby="githubGuideIntro" tabindex="-1">
+      <div class="submit-heading">
+        <h2 id="githubGuideTitle" data-i18n="githubGuideTitle">GITHUB SUBMISSION GUIDE</h2>
+        <button id="githubGuideClose" type="button" class="submit-close" aria-label="Close guide"
+                data-i18n-aria-label="githubGuideClose">×</button>
+      </div>
+      <p id="githubGuideIntro" class="github-guide-intro"></p>
+      <ol id="githubGuideSteps" class="github-guide-steps"></ol>
+      <p class="github-guide-note" data-i18n="githubGuideNote"></p>
+      <div class="submit-actions github-guide-actions">
+        <button id="githubGuideBack" type="button" class="submit-confirm" data-i18n="githubGuideBack">← BACK TO FORM</button>
+      </div>
     </div>
   </section>
 </div>
