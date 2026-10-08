@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#050507">
 <meta name="description" content="All-Around Enhancement — a Black Ops III Zombies-style catalog of public Steam Workshop maps.">
 <title>All-Around Enhancement — Map Catalog</title>
-<link rel="stylesheet" href="styles.css?v=social-community-links-20261008">
+<link rel="stylesheet" href="styles.css?v=left-center-social-readable-controls-20261008">
 <script src="translations.js?v=social-community-links-20261008" defer></script>
 <script src="app.js?v=social-community-links-20261008" defer></script>
 </head>
@@ -33,25 +33,6 @@
       </div>
     </div>
   </header>
-  <main class="game-content">
-    <aside class="sidebar">
-      <nav id="categoryNav" aria-label="Map categories"></nav>
-    </aside>
-    <section class="selection-panel" aria-label="Map selection">
-      <div class="menu-toolbar">
-        <label class="search-field">
-          <span class="sr-only" data-i18n="search">Search Steam map title or Workshop ID</span>
-          <input id="searchInput" type="search" placeholder="SEARCH TITLE OR WORKSHOP ID…" data-i18n-placeholder="searchPlaceholder" autocomplete="off" spellcheck="false" aria-label="Search Steam map title or Workshop ID" data-i18n-aria-label="search">
-        </label>
-        <label class="toggle"><input id="liteToggle" type="checkbox"><span data-i18n="liteOnly">AAE Lite Version Only</span></label>
-      </div>
-      <div id="catalog" class="catalog" aria-live="polite"><p class="empty" data-i18n="loading">VERIFYING PUBLIC WORKSHOP MAPS…</p></div>
-      <p id="errorMessage" class="error" hidden></p>
-    </section>
-    <aside id="previewPane" class="preview-pane" aria-label="Selected map information">
-      <div class="preview-empty"><p data-i18n="selectMap">SELECT A MAP</p><small data-i18n="previewHint">Choose a public Workshop map to view its details.</small></div>
-    </aside>
-  </main>
   <nav class="social-bar" aria-label="Community links" data-i18n-aria-label="communityLinks">
     <span class="social-heading" data-i18n="communityLinks">COMMUNITY</span>
     <div class="social-buttons">
@@ -72,6 +53,25 @@
       </a>
     </div>
   </nav>
+  <main class="game-content">
+    <aside class="sidebar">
+      <nav id="categoryNav" aria-label="Map categories"></nav>
+    </aside>
+    <section class="selection-panel" aria-label="Map selection">
+      <div class="menu-toolbar">
+        <label class="search-field">
+          <span class="sr-only" data-i18n="search">Search Steam map title or Workshop ID</span>
+          <input id="searchInput" type="search" placeholder="SEARCH TITLE OR WORKSHOP ID…" data-i18n-placeholder="searchPlaceholder" autocomplete="off" spellcheck="false" aria-label="Search Steam map title or Workshop ID" data-i18n-aria-label="search">
+        </label>
+        <label class="toggle"><input id="liteToggle" type="checkbox"><span data-i18n="liteOnly">AAE Lite Version Only</span></label>
+      </div>
+      <div id="catalog" class="catalog" aria-live="polite"><p class="empty" data-i18n="loading">VERIFYING PUBLIC WORKSHOP MAPS…</p></div>
+      <p id="errorMessage" class="error" hidden></p>
+    </section>
+    <aside id="previewPane" class="preview-pane" aria-label="Selected map information">
+      <div class="preview-empty"><p data-i18n="selectMap">SELECT A MAP</p><small data-i18n="previewHint">Choose a public Workshop map to view its details.</small></div>
+    </aside>
+  </main>
   <div class="language-picker" id="languagePicker">
     <button class="language-toggle" id="languageToggle" type="button" aria-haspopup="true"
       aria-controls="languageMenu" aria-expanded="false" aria-label="Change website language" data-i18n-aria-label="changeLanguage">

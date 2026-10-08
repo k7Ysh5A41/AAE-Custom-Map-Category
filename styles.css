@@ -1412,3 +1412,149 @@ html,body { max-width:100%;overflow-x:clip; }
 @media(max-width:700px) {
   .header-actions .header-stats { justify-content:flex-start; }
 }
+
+
+/* Social links: a vertically centred left-side rail. At narrower widths,
+   return to document flow so links never obscure map selectors. */
+@media(min-width:1300px) {
+  .game-shell {
+    width:min(100%,1760px);
+    padding-left:214px;
+    padding-right:34px;
+  }
+  .social-bar {
+    position:fixed;
+    z-index:40;
+    left:max(16px,calc((100vw - 1760px)/2 + 16px));
+    top:50%;
+    transform:translateY(-50%);
+    width:176px;
+    max-width:176px;
+    max-height:calc(100dvh - 40px);
+    overflow-y:auto;
+    overscroll-behavior:contain;
+    scrollbar-width:thin;
+    scrollbar-color:#875a3b transparent;
+    padding:16px 9px 16px 0;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-start;
+    align-items:stretch;
+    flex-wrap:nowrap;
+    gap:13px;
+    background:transparent;
+  }
+  .social-bar .social-heading {
+    padding-left:4px;
+    font-size:12px;
+    line-height:1.3;
+    letter-spacing:.11em;
+  }
+  .social-bar .social-buttons {
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    flex-wrap:nowrap;
+    gap:9px;
+    align-items:stretch;
+  }
+  .social-bar .social-link {
+    justify-content:flex-start;
+    width:100%;
+    min-width:0;
+    min-height:43px;
+    padding:8px 9px;
+    gap:7px;
+    font-size:12px;
+    line-height:1.3;
+  }
+  .social-bar .social-link .social-external {
+    margin-left:auto;
+  }
+}
+/* On tablets, keep buttons at the left of the content instead of
+   layering them over the category list. */
+@media(max-width:1299px) {
+  .social-bar {
+    position:relative;
+    z-index:2;
+    transform:none;
+    top:auto;
+    left:auto;
+    width:100%;
+    max-width:100%;
+    padding:15px 0 0;
+    margin:0;
+    justify-content:flex-start;
+    align-items:center;
+    gap:10px 13px;
+  }
+}
+@media(max-width:700px) {
+  .social-bar { align-items:flex-start; }
+  .social-bar .social-heading { font-size:12px; }
+  .social-bar .social-buttons { justify-content:flex-start; }
+}
+body.submission-open .social-bar { pointer-events:none; }
+
+/* Readable modal copy and form controls across all 11 languages. */
+.submit-dialog { width:min(100%,620px); }
+.submit-heading h2 { font-size:clamp(25px,2.3vw,30px); }
+.submit-description {
+  font-size:16px;
+  line-height:1.65;
+  color:#d6dce0;
+}
+.submit-dialog form > label {
+  font-size:15px;
+  line-height:1.4;
+  letter-spacing:.035em;
+}
+.submit-dialog form > label span { font-size:14px; }
+.submit-dialog input,
+.submit-dialog select,
+.submit-dialog textarea {
+  min-height:48px;
+  padding:12px 13px;
+  font-size:16px;
+  line-height:1.45;
+}
+.submit-dialog textarea { min-height:102px; }
+.submit-github-notice {
+  font-size:14px;
+  line-height:1.55;
+  color:#bfc8cc;
+}
+.submit-error { font-size:14px;line-height:1.5; }
+.submit-actions button {
+  min-height:46px;
+  padding:12px 18px;
+  font-size:15px;
+  line-height:1.35;
+}
+/* Increase language name readability without restoring the tall button. */
+.language-toggle {
+  height:39px;
+  min-height:39px;
+  padding:6px 10px;
+  gap:8px;
+}
+.language-toggle strong {
+  font-size:16px;
+  font-weight:700;
+  line-height:1.2;
+}
+.language-globe { font-size:20px; }
+.language-chevron { font-size:15px; }
+.language-option { font-size:16px; min-height:43px; }
+@media(max-width:650px) {
+  .submit-dialog { padding:20px 18px; }
+  .submit-dialog form > label { font-size:15px; }
+  .submit-description { font-size:15px; }
+  .language-toggle {
+    height:38px;
+    min-height:38px;
+    padding:5px 9px;
+  }
+  .language-toggle strong { font-size:15px; }
+}
