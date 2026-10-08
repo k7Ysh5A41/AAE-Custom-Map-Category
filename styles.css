@@ -47,7 +47,24 @@ button,input{font:inherit}a{color:#a8d8ff}
 .lite-count{display:block;font-size:11px;color:#fbd596;font-weight:400;margin-top:5px}
 .category-chevron{color:var(--accent);font-size:22px}
 .map-row{padding:12px 15px;min-height:99px}
-.map-thumbnail{width:134px;height:76px;flex-shrink:0;object-fit:cover;border-radius:7px;border:1px solid #344760;background:#0a1322}
+.map-thumbnail{
+  display:block;
+  box-sizing:border-box;
+  flex:0 0 120px;
+  width:120px;
+  min-width:120px;
+  max-width:120px;
+  height:68px;
+  min-height:68px;
+  max-height:68px;
+  aspect-ratio:30 / 17;
+  object-fit:cover;
+  object-position:center;
+  overflow:hidden;
+  border-radius:7px;
+  border:1px solid #344760;
+  background:#0a1322
+}
 .map-placeholder{display:flex;align-items:center;justify-content:center;color:#78a4c5;font-size:19px;letter-spacing:.14em;font-weight:800}
 .map-copy{flex:1;min-width:0}
 .map-copy h3{font-size:15px;line-height:1.45;font-weight:650;margin:0 0 9px;overflow-wrap:anywhere}
@@ -79,7 +96,7 @@ footer{border-top:1px solid var(--border);display:flex;justify-content:space-bet
   .shell{padding:0 12px}.content{padding:15px}
   .category-row{padding:14px;gap:12px}.category-count{min-width:70px;font-size:19px}
   .map-row{gap:11px;padding:10px}
-  .map-thumbnail{width:98px;height:67px}
+  .map-thumbnail{flex-basis:96px;width:96px;min-width:96px;max-width:96px;height:54px;min-height:54px;max-height:54px;aspect-ratio:16 / 9}
   .map-copy{min-width:0}
   .map-copy h3{font-size:14px}
   .map-actions{width:100%;margin-left:0;justify-content:flex-end}
