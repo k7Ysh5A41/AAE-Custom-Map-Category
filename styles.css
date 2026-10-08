@@ -2144,38 +2144,6 @@ body.submission-open .social-bar { pointer-events:none; }
 }
 
 
-/* Inline GitHub instructions entry in both proposal dialogs. */
-.github-help-trigger {
-  position:relative;
-  display:flex;
-  align-items:center;
-  justify-content:flex-start;
-  gap:10px;
-  width:100%;
-  min-height:50px;
-  padding:13px 16px;
-  margin:14px 0 5px;
-  background:linear-gradient(103deg,rgba(87,46,25,.86),rgba(25,22,21,.98));
-  border:1px solid rgba(255,166,95,.7);
-  border-left:4px solid #ffca87;
-  color:#ffdeb5;
-  text-align:left;
-  font:750 15px/1.4 "Segoe UI",Arial,sans-serif;
-  letter-spacing:.015em;
-  cursor:pointer;
-  transition:background-color .18s ease,box-shadow .2s ease,border-color .18s ease;
-  box-shadow:inset 0 0 15px rgba(254,128,54,.12),0 0 11px rgba(255,98,40,.2);
-}
-.github-help-trigger:hover,.github-help-trigger:focus-visible {
-  border-color:#ffe1b5;
-  color:#fff1dc;
-  outline:2px solid rgba(255,211,160,.85);
-  outline-offset:2px;
-  background:linear-gradient(100deg,rgba(146,74,29,.90),rgba(49,31,22,.98));
-  box-shadow:inset 0 0 23px rgba(255,142,74,.22),
-     0 0 16px rgba(255,133,54,.52),0 0 36px rgba(247,76,28,.25);
-}
-
 /* The instructions are a true second-level modal above either request form. */
 .submit-overlay.github-help-overlay {
   z-index:1200;
@@ -2284,7 +2252,6 @@ body.submission-open .social-bar { pointer-events:none; }
   font-weight:800;
 }
 @media(max-width:650px) {
-  .github-help-trigger {min-height:46px;font-size:14px;padding:12px;}
   .github-help-dialog {padding:17px 15px;}
   .github-guide-intro {font-size:15px;}
   .github-guide-steps li {gap:10px;padding:11px;}
@@ -2292,13 +2259,9 @@ body.submission-open .social-bar { pointer-events:none; }
   .github-guide-steps li p {font-size:14px;line-height:1.55;}
   .github-guide-actions button {width:100%;}
 }
-@media(prefers-reduced-motion:reduce) {
-  .github-help-trigger {transition:none!important;}
-}
-
 /* Submission confirmation and PR explanation. */
 .github-guide-pr-explainer {
-  margin:0 0 18px;
+  margin:18px 0 18px;
   padding:15px 17px;
   border:1px solid rgba(255,161,82,.38);
   background:linear-gradient(105deg,rgba(255,132,59,.13),rgba(26,25,24,.55));
