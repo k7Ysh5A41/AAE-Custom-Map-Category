@@ -24,7 +24,9 @@ CATEGORY_PATTERN = re.compile(r"(?m)^Category: (AAEP_[A-Z0-9_]+)\r?$")
 BRANCH_PATTERN = re.compile(r"community-maps/issue-[0-9]+")
 CHANGE_BRANCH_PATTERN = re.compile(r"community-changes/issue-[0-9]+")
 CHANGE_PR_MARKER = "<!-- aae-map-change-pr:v1 -->\n"
-ACTION_PATTERN = re.compile(r"(?m)^Action: (move|delete)\r?$")
+ACTION_PATTERN = re.compile(r"(?m)^Action: (move|update|delete)\r?$")
+LITE_PATTERN = re.compile(r"(?m)^Lite Only: (true|false)\r?$")
+CURRENT_LITE_PATTERN = re.compile(r"(?m)^Current Lite Only: (true|false)\r?$")
 ORIGINAL_PATTERN = re.compile(r"(?m)^From Category: (AAEP_[A-Z0-9_]+)\r?$")
 TARGET_PATTERN = re.compile(r"(?m)^Target Category: (AAEP_[A-Z0-9_]+|none)\r?$")
 
@@ -70,7 +72,11 @@ def parse_pending(pr, category_keys, existing):
             return None
     except ValueError:
         return None
+    lite_flags = LITE_PATTERN.findall(body)
+    if len(lite_flags) > 1:
+        return None
     return {"id": workshop_id, "category": category,
+            "lite_only": lite_flags == ["true"],
             "pr_number": number, "pr_url": url, "created_at": created_at}
 
 
@@ -96,14 +102,28 @@ def parse_pending_change(pr, category_keys, catalog):
     workshop_id, action, source, target = ids[0], actions[0], sources[0], targets[0]
     if source not in category_keys:
         return None
+    lite_flags = LITE_PATTERN.findall(body)
+    current_flags = CURRENT_LITE_PATTERN.findall(body)
+    if len(lite_flags) > 1 or len(current_flags) > 1:
+        return None
+    proposed_lite = lite_flags[0] == "true" if lite_flags else None
     if action == "move":
         if target not in category_keys or target == source:
+            return None
+    elif action == "update":
+        if target != source or proposed_lite is None or not current_flags:
             return None
     elif action != "delete" or target != "none":
         return None
     source_category = next(c for c in catalog if c["button"] == source)
-    if not any(str(i.get("id") if isinstance(i, dict) else i) == workshop_id
-               for i in source_category["ugc"]):
+    original_entry = next((i for i in source_category["ugc"]
+        if str(i.get("id") if isinstance(i, dict) else i) == workshop_id), None)
+    if original_entry is None:
+        return None
+    original_lite = isinstance(original_entry, dict) and original_entry.get("lite_only") is True
+    if current_flags and (current_flags[0] == "true") != original_lite:
+        return None
+    if action == "update" and proposed_lite == original_lite:
         return None
     number, url = pr.get("number"), pr.get("html_url")
     created_at = pr.get("created_at")
@@ -117,6 +137,7 @@ def parse_pending_change(pr, category_keys, catalog):
     except (TypeError, ValueError):
         return None
     return {"id": workshop_id, "action": action, "from": source, "target": target,
+            "lite_only": proposed_lite,
             "pr_number": number, "pr_url": url, "created_at": created_at}
 
 
