@@ -824,7 +824,7 @@ function setSubmissionPending(pending) {
     submissionValidationPending = pending;
     const button = $("submitMapForm").querySelector(".submit-confirm");
     button.disabled = pending;
-    button.textContent = t(pending ? "checking" : "continueGithub");
+    button.textContent = t(pending ? "checking" : "submitRequest");
 }
 function closeSubmission() {
     if ($("submitMapOverlay").hidden) return;
@@ -944,7 +944,7 @@ async function submitMapProposal(event) {
         const url = new URL(SUBMISSION_ISSUE_URL);
         url.searchParams.set("title", "[Map Submission] " + id);
         url.searchParams.set("body", body);
-        window.location.assign(url.toString());
+        openGithubGuide("new", url.toString());
     } catch (error) {
         if (requestId === submissionValidationId && !$("submitMapOverlay").hidden) {
             setSubmissionError(t("submissionBlocked", {detail:error.message}));
@@ -967,7 +967,7 @@ function setChangePending(pending) {
     changeValidationPending = pending;
     const btn = $("changeMapSubmit");
     btn.disabled = pending;
-    btn.textContent = t(pending ? "changeChecking" : "continueGithub");
+    btn.textContent = t(pending ? "changeChecking" : "submitRequest");
 }
 function updateChangeAction() {
     const incompatible = $("changeIncompatible").checked;
@@ -1085,7 +1085,7 @@ async function submitChangeRequest(event) {
         const url = new URL(SUBMISSION_ISSUE_URL);
         url.searchParams.set("title", "[Map Change] " + id);
         url.searchParams.set("body", body);
-        window.location.assign(url.toString());
+        openGithubGuide("change", url.toString());
     } catch (error) {
         if (token === changeValidationToken && !$("changeMapOverlay").hidden)
             setChangeError(t("submissionBlocked", {detail:error.message}));
@@ -1114,6 +1114,7 @@ function bindChangeRequests() {
 // values intact while the guide is open, and return focus on dismissal.
 let githubGuideMode = null;
 let githubGuideReturnFocus = null;
+let githubGuideDestination = null;
 function githubGuideStepKeys() {
     const change = githubGuideMode === "change";
     return [
@@ -1135,14 +1136,18 @@ function renderGithubGuide() {
         t(githubGuideMode === "change" ? "githubGuideIntroChange" : "githubGuideIntroNew");
     $("githubGuideSteps").innerHTML = githubGuideStepKeys().map(key =>
         '<li><p>' + escapeHtml(t(key)) + '</p></li>').join("");
+    $("githubGuideProceed").hidden = !githubGuideDestination;
 }
-function openGithubGuide(mode) {
+function openGithubGuide(mode, destination = null) {
     if (!["new","change"].includes(mode) || !$("githubGuideOverlay").hidden) return;
     const parentId = mode === "change" ? "changeMapOverlay" : "submitMapOverlay";
     const parent = $(parentId);
     if (parent.hidden) return;
     githubGuideMode = mode;
-    githubGuideReturnFocus = $(mode === "change" ? "changeGithubHelp" : "submitGithubHelp");
+    githubGuideDestination = destination;
+    githubGuideReturnFocus = destination
+        ? (mode === "change" ? $("changeMapSubmit") : $("submitMapForm").querySelector(".submit-confirm"))
+        : $(mode === "change" ? "changeGithubHelp" : "submitGithubHelp");
     renderGithubGuide();
     const parentDialog = parent.querySelector(".submit-dialog");
     parentDialog.inert = true;
@@ -1161,6 +1166,7 @@ function closeGithubGuide() {
     const target = githubGuideReturnFocus;
     githubGuideMode = null;
     githubGuideReturnFocus = null;
+    githubGuideDestination = null;
     if (!parent.hidden && target) target.focus({preventScroll:true});
 }
 function bindGithubGuide() {
@@ -1168,6 +1174,9 @@ function bindGithubGuide() {
     $("changeGithubHelp").addEventListener("click", () => openGithubGuide("change"));
     $("githubGuideClose").addEventListener("click", closeGithubGuide);
     $("githubGuideBack").addEventListener("click", closeGithubGuide);
+    $("githubGuideProceed").addEventListener("click", () => {
+        if (githubGuideDestination) window.location.assign(githubGuideDestination);
+    });
     $("githubGuideOverlay").addEventListener("click", event => {
         if (event.target === $("githubGuideOverlay")) closeGithubGuide();
     });
