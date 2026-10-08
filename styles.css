@@ -534,3 +534,6 @@ body.submission-open {
 #submitCategory {
   overscroll-behavior:contain;
 }
+
+/* Non-English category labels can be longer than English labels. */
+.nav-btn > span { min-width:0; overflow-wrap:anywhere; }

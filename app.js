@@ -12,8 +12,24 @@ async function fetchWithTimeout(url, options = {}) {
         clearTimeout(timer);
     }
 }
-const LOCALIZATION_BASE = "https://raw.githubusercontent.com/k7Ysh5A41/AAE-localizedstrings/main/english/localizedstrings/";
+const LOCALIZATION_BASE = "https://raw.githubusercontent.com/k7Ysh5A41/AAE-localizedstrings/main/";
 const LOCALIZATION_MIRROR = "./localization/";
+const LOCALIZATION_LANGUAGES = Object.freeze({
+    en: "english", fr: "french", de: "german", it: "italian",
+    ja: "japanese", pl: "polish", pt: "portuguese",
+    ru: "russian", es: "spanish"
+});
+function preferredLocalization() {
+    const candidates = Array.isArray(navigator.languages) && navigator.languages.length
+        ? navigator.languages : [navigator.language || "en"];
+    for (const locale of candidates) {
+        const code = String(locale || "").split(/[-_]/)[0].toLowerCase();
+        if (Object.hasOwn(LOCALIZATION_LANGUAGES, code)) {
+            return { code, folder: LOCALIZATION_LANGUAGES[code] };
+        }
+    }
+    return { code: "en", folder: "english" };
+}
 const $ = id => document.getElementById(id);
 const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, char =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]
@@ -24,52 +40,82 @@ const state = {
     activeMapId: null, query: ""
 };
 
-// StringEd .str files pair REFERENCE with LANG_ENGLISH. The file name supplies
-// the namespace (AAEP.str + REFERENCE ZC2_MAP = AAEP_ZC2_MAP).
-function parseStringEd(source, prefix) {
+// Each language folder stores translated values under LANG_ENGLISH, with
+// the original REFERENCE identifiers preserved (e.g. AAEP_ZC2_MAP).
+function parseStringEd(source, prefix, output = new Map()) {
     let reference = null;
     let count = 0;
     for (const line of source.split(/\r?\n/)) {
         const key = line.match(/^\s*REFERENCE\s+([A-Za-z0-9_]+)/);
         if (key) { reference = key[1]; continue; }
-        const english = line.match(/^\s*LANG_ENGLISH\s+"((?:\\.|[^"\\])*)"/);
-        if (!english || !reference) continue;
-        const value = english[1]
+        const translated = line.match(/^\s*LANG_ENGLISH\s+"((?:\\.|[^"\\])*)"/);
+        if (!translated || !reference) continue;
+        const value = translated[1]
             .replace(/\\([nrt"\\])/g, (_, code) =>
                 code === "n" ? "\n" : code === "r" ? "\r" : code === "t" ? "\t" : code)
             .replace(/\^[0-9]/g, "");
-        state.translations.set(prefix + "_" + reference, value);
+        output.set(prefix + "_" + reference, value);
         count++;
     }
     return count;
 }
-
-async function loadStringEd(prefix) {
+async function loadStringEd(prefix, folder) {
+    const segment = encodeURIComponent(prefix) + ".str";
     const candidates = [
-        LOCALIZATION_MIRROR + encodeURIComponent(prefix) + ".str",
-        LOCALIZATION_BASE + encodeURIComponent(prefix) + ".str"
+        LOCALIZATION_MIRROR + folder + "/" + segment,
+        LOCALIZATION_BASE + folder + "/localizedstrings/" + segment
     ];
     const errors = [];
     for (const url of candidates) {
         try {
             const response = await fetchWithTimeout(url, { cache: "no-store" });
             if (!response.ok) throw new Error("HTTP " + response.status);
-            if (!parseStringEd(await response.text(), prefix)) throw new Error("Empty StringEd data");
-            return;
+            const translations = new Map();
+            if (!parseStringEd(await response.text(), prefix, translations))
+                throw new Error("Empty StringEd data");
+            return translations;
         } catch (error) { errors.push(error.message); }
     }
-    throw new Error(prefix + ": " + errors.join("; "));
+    throw new Error(folder + "/" + prefix + ": " + errors.join("; "));
 }
-
 async function loadLocalizations(categories) {
-    state.translations.clear();
+    const locale = preferredLocalization();
     const prefixes = [...new Set(categories
         .flatMap(category => [category?.button, category?.description])
         .filter(key => typeof key === "string")
         .map(key => /^([A-Za-z0-9]+)_/.exec(key)?.[1])
         .filter(Boolean))];
-    const settled = await Promise.allSettled(prefixes.map(loadStringEd));
-    return settled.filter(result => result.status === "rejected")
+    const results = await Promise.allSettled(prefixes.map(async prefix => {
+        const requests = [loadStringEd(prefix, "english")];
+        if (locale.folder !== "english") requests.push(loadStringEd(prefix, locale.folder));
+        const settled = await Promise.allSettled(requests);
+        const translations = new Map();
+        // English supplies missing or untranslated entries for every locale.
+        if (settled[0].status === "fulfilled") {
+            for (const [key, value] of settled[0].value) translations.set(key, value);
+        }
+        let selectedLanguageLoaded = false;
+        if (settled[1]?.status === "fulfilled") {
+            for (const [key, value] of settled[1].value) {
+                if (value.trim()) translations.set(key, value);
+            }
+            selectedLanguageLoaded = true;
+        }
+        if (!translations.size) {
+            throw new Error(settled.map(result => result.status === "rejected"
+                ? result.reason.message : "").filter(Boolean).join("; "));
+        }
+        return { translations, selectedLanguageLoaded };
+    }));
+    state.translations.clear();
+    let localized = false;
+    for (const result of results) {
+        if (result.status !== "fulfilled") continue;
+        for (const [key, value] of result.value.translations) state.translations.set(key, value);
+        localized ||= result.value.selectedLanguageLoaded;
+    }
+    document.documentElement.lang = localized ? locale.code : "en";
+    return results.filter(result => result.status === "rejected")
         .map(result => result.reason.message);
 }
 
