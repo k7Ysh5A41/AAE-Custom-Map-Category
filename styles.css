@@ -742,3 +742,296 @@ body.submission-open .language-picker{
   .preview-buttons button:active,.preview-buttons a:active,
   .language-option:hover,.language-option:focus-visible { transform:none!important; }
 }
+
+
+/* Full-page cinematic luminous theme: ambient lighting, radiant panels,
+   moving light sweeps, and intensified interactive states. */
+@keyframes aaeWorldGlow {
+  0%,100% { opacity:.78; transform:translate3d(-2%,1%,0) scale(1); }
+  35% { opacity:1; transform:translate3d(3%,-2%,0) scale(1.065); }
+  70% { opacity:.85; transform:translate3d(-1%,3%,0) scale(1.035); }
+}
+@keyframes aaePageLights {
+  0%,100% { opacity:.68; transform:translate3d(0,-2%,0); }
+  50% { opacity:1; transform:translate3d(0,3%,0); }
+}
+@keyframes aaePanelBeacon {
+  0%,100% {
+    box-shadow:inset 0 0 26px rgba(252,93,42,.15),
+      inset 0 0 0 1px rgba(253,133,81,.26),
+      0 0 12px rgba(250,93,39,.31),0 0 42px rgba(244,72,25,.12);
+  }
+  50% {
+    box-shadow:inset 0 0 40px rgba(252,93,42,.25),
+      inset 0 0 0 1px rgba(255,155,95,.58),
+      0 0 24px rgba(255,111,52,.57),0 0 70px rgba(251,79,26,.29);
+  }
+}
+@keyframes aaeActiveBeacon {
+  0%,100% {
+    box-shadow:inset 0 0 14px rgba(255,222,164,.22),
+      inset 4px 0 0 #ffe0ae,0 0 15px 3px rgba(255,97,38,.66),
+      0 0 33px 7px rgba(253,76,26,.27);
+  }
+  50% {
+    box-shadow:inset 0 0 30px rgba(255,231,169,.54),
+      inset 5px 0 0 #fff3d4,0 0 23px 5px rgba(255,112,41,.9),
+      0 0 53px 11px rgba(255,70,23,.47);
+  }
+}
+@keyframes aaeLaserSweep {
+  0% { transform:translate3d(-180%,0,0) skewX(-23deg); }
+  55%,100% { transform:translate3d(440%,0,0) skewX(-23deg); }
+}
+@keyframes aaeHeadingNeon {
+  0%,100% { text-shadow:0 0 13px rgba(255,167,92,.35),0 0 35px rgba(255,91,45,.3); }
+  50% { text-shadow:0 0 12px rgba(255,225,172,.76),0 0 30px rgba(255,120,54,.73),
+    0 0 73px rgba(255,81,23,.39); }
+}
+@keyframes aaeButtonBeacon {
+  0%,100% { box-shadow:0 0 15px 3px rgba(255,98,45,.58),
+    0 0 42px 9px rgba(250,77,22,.32),inset 0 0 16px rgba(255,232,186,.33); }
+  50% { box-shadow:0 0 25px 5px rgba(255,135,64,.86),
+    0 0 70px 17px rgba(255,78,22,.52),inset 0 0 28px rgba(255,232,186,.58); }
+}
+
+/* Bright motion across the full viewport behind the catalog. */
+body::after {
+  content:"";
+  position:fixed;
+  inset:-20%;
+  z-index:0;
+  pointer-events:none;
+  background:
+    radial-gradient(ellipse 35% 34% at 13% 20%,rgba(249,84,28,.48),transparent 73%),
+    radial-gradient(ellipse 43% 39% at 89% 59%,rgba(251,94,41,.43),transparent 73%),
+    radial-gradient(ellipse 36% 27% at 57% 101%,rgba(255,110,40,.38),transparent 77%),
+    radial-gradient(ellipse 30% 28% at 73% 11%,rgba(73,128,175,.20),transparent 73%),
+    linear-gradient(120deg,transparent 35%,rgba(255,91,40,.09) 49%,transparent 66%);
+  filter:blur(32px);
+  mix-blend-mode:screen;
+  animation:aaeWorldGlow 12s ease-in-out infinite;
+}
+.game-shell { position:relative;z-index:1; }
+.game-shell::before {
+  content:"";
+  position:absolute;
+  inset:0 7%;
+  z-index:-1;
+  pointer-events:none;
+  background:
+    linear-gradient(90deg,rgba(248,90,36,.13),transparent 11%,transparent 89%,rgba(252,82,28,.13)),
+    radial-gradient(ellipse 55% 19% at 51% 24%,rgba(255,104,38,.18),transparent 75%);
+  animation:aaePageLights 9s ease-in-out infinite;
+}
+.game-header {
+  border-bottom:1px solid rgba(255,139,79,.75);
+  box-shadow:0 14px 24px -17px rgba(255,94,36,.70),
+    inset 0 -10px 15px -12px rgba(255,102,49,.66);
+}
+.game-header::before {
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:linear-gradient(115deg,rgba(255,102,44,.11),transparent 38%,rgba(248,80,22,.12));
+}
+.game-header::after {
+  width:50%;
+  height:3px;
+  background:linear-gradient(90deg,transparent,rgba(255,197,133,.35),
+    #ffd49d,#ff7032,rgba(255,127,64,.65),transparent);
+  filter:drop-shadow(0 0 9px rgba(255,121,50,.98));
+  animation:aaeTitleScan 4.2s ease-in-out .3s infinite;
+}
+.game-header h1 { animation:aaeHeadingNeon 5.2s ease-in-out infinite; }
+.game-header h1 span { color:#fff2e1; }
+.game-header .heading-description {
+  color:#eac5a9;
+  text-shadow:0 0 10px rgba(250,116,66,.5),0 0 22px rgba(248,86,39,.26);
+}
+.header-stats>span:not(.stat-separator):not(.stat-label) {
+  color:#ffddbc;
+  text-shadow:0 0 11px rgba(255,127,61,.92),0 0 26px rgba(255,82,35,.62);
+}
+
+/* All three catalog columns radiate and breathe, not only the map buttons. */
+.sidebar,.selection-panel,.preview-pane {
+  position:relative;
+  border-color:rgba(255,113,54,.41);
+  background:linear-gradient(165deg,rgba(250,89,43,.075),rgba(6,8,11,.02) 55%);
+}
+.sidebar::before,.selection-panel::before,.preview-pane::before {
+  content:"";
+  position:absolute;
+  inset:-1px;
+  pointer-events:none;
+  z-index:0;
+  border:1px solid rgba(255,119,55,.44);
+  animation:aaePanelBeacon 4.3s ease-in-out infinite;
+}
+.selection-panel::before { animation-delay:-1.2s; }
+.preview-pane::before { animation-delay:-2.4s; }
+.sidebar>*,.selection-panel>*,.preview-pane>* {
+  position:relative;
+  z-index:1;
+}
+#categoryNav,.catalog {
+  scrollbar-color:rgba(255,126,71,.78) rgba(18,10,10,.8);
+}
+.menu-toolbar {
+  box-shadow:0 12px 23px -16px rgba(255,96,40,.64);
+}
+
+/* Rich hover lighting and soft moving highlights for every selector. */
+.nav-btn,.category-row,.map-row {
+  border:1px solid rgba(255,138,80,.12);
+  background-image:linear-gradient(90deg,rgba(252,91,43,.13),transparent 80%);
+  box-shadow:inset 0 0 11px rgba(252,97,52,.075);
+}
+.nav-btn:hover,.nav-btn:focus-visible,
+.category-row:hover,.category-row:focus-visible,
+.map-row:hover,.map-row:focus-visible {
+  color:#fff;
+  border-color:rgba(255,178,105,.89);
+  background:linear-gradient(95deg,rgba(255,106,46,.52),rgba(255,86,29,.2) 70%);
+  box-shadow:inset 0 0 32px rgba(255,134,79,.3),
+    0 0 16px 3px rgba(255,118,56,.62),
+    0 0 40px 6px rgba(255,80,29,.33);
+  text-shadow:0 0 10px rgba(255,214,166,.65);
+}
+.nav-btn.active,.category-row.active,.map-row.active,.map-row[aria-selected="true"] {
+  border-color:#ffd4a2;
+  background:linear-gradient(104deg,#ffb277,#ff743d 44%,#ec5024);
+  color:#190d08;
+  text-shadow:none;
+  animation:aaeActiveBeacon 3.2s ease-in-out infinite;
+}
+.nav-btn.active:hover,.category-row.active:hover,
+.map-row.active:hover,.map-row[aria-selected="true"]:hover {
+  filter:brightness(1.14);
+}
+.nav-btn.active small,.map-row.active .map-publisher {
+  color:#412114;
+}
+.cover-square {
+  border-color:rgba(255,146,76,.56);
+  box-shadow:0 0 13px rgba(255,99,41,.28),inset 0 0 10px rgba(251,121,64,.12);
+}
+.map-row:hover .cover-square,.map-row.active .cover-square {
+  border-color:#ffe0aa;
+  box-shadow:0 0 14px 3px rgba(255,183,104,.9),
+    0 0 29px rgba(250,90,29,.62);
+}
+
+/* The map information, preview cover and action buttons also emit light. */
+.preview-cover {
+  border:1px solid rgba(255,160,93,.76);
+  box-shadow:0 0 22px 3px rgba(253,117,52,.52),
+    0 0 68px rgba(255,93,26,.25);
+}
+.preview-title-band {
+  box-shadow:0 0 18px rgba(255,117,49,.52),
+    0 0 39px rgba(255,81,22,.24);
+}
+.preview-heading {
+  color:#ffdfbe;
+  text-shadow:0 0 11px rgba(255,125,55,.75),0 0 31px rgba(255,79,21,.36);
+}
+.preview-details {
+  box-shadow:inset 2px 0 0 rgba(255,116,46,.72),-9px 0 24px -15px rgba(255,107,39,.6);
+}
+.preview-buttons button,.preview-buttons a {
+  border-color:rgba(255,163,103,.63);
+  box-shadow:0 0 12px rgba(255,116,48,.33),inset 0 0 12px rgba(255,111,43,.13);
+}
+.preview-buttons button:hover,.preview-buttons a:hover,
+.preview-buttons button:focus-visible,.preview-buttons a:focus-visible {
+  border-color:#ffdda9;
+  box-shadow:0 0 20px 3px rgba(255,121,53,.74),
+    0 0 50px rgba(255,87,24,.39),inset 0 0 22px rgba(255,133,76,.35);
+}
+
+/* Prominent CTA: strong breathing corona and a visible moving sweep. */
+.header-actions .submit-trigger {
+  isolation:isolate;
+  overflow:hidden;
+  background:linear-gradient(95deg,#ffb87c 0%,#ff7d42 42%,#f34c1d 100%);
+  border-color:#ffddaa;
+  animation:aaeButtonBeacon 3.1s ease-in-out infinite;
+}
+.header-actions .submit-trigger::after {
+  content:"";
+  position:absolute;
+  top:-65%;
+  bottom:-65%;
+  left:0;
+  width:38%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,229,.55),transparent);
+  transform:translate3d(-180%,0,0) skewX(-23deg);
+  pointer-events:none;
+  animation:aaeLaserSweep 4.8s ease-in-out .5s infinite;
+}
+.header-actions .submit-trigger:hover,.header-actions .submit-trigger:focus-visible {
+  filter:brightness(1.2);
+  box-shadow:0 0 29px 9px rgba(255,164,91,.92),
+    0 0 83px 18px rgba(255,89,27,.57),
+    inset 0 0 32px rgba(255,250,192,.52);
+}
+
+/* Form fields, dialog, and fixed language control share the light system. */
+.search-field input:focus,
+.submit-dialog input:focus,.submit-dialog select:focus,.submit-dialog textarea:focus {
+  border-color:#ffce8d;
+  box-shadow:0 0 18px 3px rgba(255,121,49,.63),
+    0 0 42px rgba(254,92,34,.23),
+    inset 2px 0 0 #ffe2b0;
+}
+.language-toggle {
+  border-color:rgba(255,164,93,.65);
+  box-shadow:0 0 15px 3px rgba(255,105,40,.44),
+    0 0 37px rgba(253,75,22,.25);
+}
+.language-toggle:hover,.language-toggle:focus-visible,
+.language-toggle[aria-expanded="true"] {
+  border-color:#ffe0a5;
+  box-shadow:0 0 22px 5px rgba(255,119,47,.77),
+    0 0 57px rgba(249,75,28,.43);
+}
+.language-menu {
+  border-color:#ffb676;
+  box-shadow:0 0 20px rgba(255,122,47,.55),0 0 58px rgba(255,78,24,.23);
+}
+.language-option.selected {
+  box-shadow:0 0 17px 4px rgba(255,141,64,.76),
+    0 0 33px rgba(255,85,35,.4);
+}
+.submit-overlay:not([hidden]) .submit-dialog {
+  border-color:#ffab6a;
+  box-shadow:0 0 25px 5px rgba(251,104,43,.49),
+    0 0 86px rgba(255,68,17,.3),inset 0 0 35px rgba(255,104,53,.13);
+}
+.submit-actions .submit-confirm {
+  box-shadow:0 0 14px 3px rgba(251,101,39,.45);
+}
+.submit-actions .submit-confirm:hover,.submit-actions .submit-confirm:focus-visible {
+  box-shadow:0 0 24px 5px rgba(255,144,65,.85),
+    0 0 48px rgba(255,83,28,.49);
+}
+
+@media(max-width:700px) {
+  body::after { filter:blur(25px);opacity:.8; }
+  .sidebar::before,.selection-panel::before,.preview-pane::before {
+    animation-duration:5.5s;
+  }
+}
+@media(prefers-reduced-motion:reduce) {
+  body::after,.game-shell::before,.game-header::after,
+  .game-header h1,.sidebar::before,.selection-panel::before,
+  .preview-pane::before,.nav-btn.active,.category-row.active,
+  .map-row.active,.map-row[aria-selected="true"],
+  .header-actions .submit-trigger,.header-actions .submit-trigger::after {
+    animation:none!important;
+  }
+  .header-actions .submit-trigger::after { display:none; }
+}
