@@ -1305,3 +1305,32 @@ html,body { max-width:100%;overflow-x:clip; }
 @media(max-width:650px) {
   .preview-details { padding-left:13px; }
 }
+
+
+/* AAE Lite-only maps link to the dedicated AAE Lite Workshop edition. */
+.preview-buttons .open-aae-lite {
+  border-color:#ffc16b;
+  background:rgba(108,59,16,.6);
+  color:#ffe7bd;
+  box-shadow:0 0 10px rgba(255,153,64,.38),inset 0 0 12px rgba(255,137,47,.18);
+}
+.preview-buttons .open-aae-lite:hover,
+.preview-buttons .open-aae-lite:focus-visible {
+  background:rgba(250,135,48,.92);
+  border-color:#ffe2ac;
+  color:#201006;
+  box-shadow:0 0 18px 3px rgba(255,173,78,.67),0 0 35px rgba(255,111,38,.30);
+}
+/* Reserve more room for the longer AAE Lite counter while preventing wrap. */
+.header-actions .header-stats .stat-item:last-child {
+  flex-grow:1;
+  justify-content:flex-end;
+}
+.header-actions .header-stats .stat-item:last-child .stat-label {
+  font-size:clamp(10px,.78vw,13px);
+}
+@media(max-width:700px) {
+  .header-actions .header-stats .stat-item:last-child .stat-label {
+    font-size:clamp(9px,2vw,12px);
+  }
+}

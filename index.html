@@ -6,9 +6,9 @@
 <meta name="theme-color" content="#050507">
 <meta name="description" content="All-Around Enhancement — a Black Ops III Zombies-style catalog of public Steam Workshop maps.">
 <title>All-Around Enhancement — Map Catalog</title>
-<link rel="stylesheet" href="styles.css?v=stats-category-motion-preview-fix-20261008">
-<script src="translations.js?v=pr-proposals-three-day-new-20261008" defer></script>
-<script src="app.js?v=pr-proposals-three-day-new-20261008" defer></script>
+<link rel="stylesheet" href="styles.css?v=aae-lite-labels-link-20261008">
+<script src="translations.js?v=aae-lite-labels-link-20261008" defer></script>
+<script src="app.js?v=aae-lite-labels-link-20261008" defer></script>
 </head>
 <body>
 <div class="game-shell">
@@ -27,9 +27,9 @@
       <div class="header-stats">
         <div class="stat-item"><span id="groupCount">—</span><span class="stat-label" data-i18n="statCategories">CATEGORIES</span></div>
         <span class="stat-separator" aria-hidden="true">/</span>
-        <div class="stat-item"><span id="mapCount">—</span><span class="stat-label" data-i18n="statMaps">PUBLIC MAPS</span></div>
+        <div class="stat-item"><span id="mapCount">—</span><span class="stat-label" data-i18n="statMaps">MAPS</span></div>
         <span class="stat-separator" aria-hidden="true">/</span>
-        <div class="stat-item"><span id="liteCount">—</span><span class="stat-label" data-i18n="statLite">LITE ONLY</span></div>
+        <div class="stat-item"><span id="liteCount">—</span><span class="stat-label" data-i18n="statLite">AAE Lite Version Only</span></div>
       </div>
     </div>
   </header>
@@ -43,7 +43,7 @@
           <span class="sr-only" data-i18n="search">Search Steam map title or Workshop ID</span>
           <input id="searchInput" type="search" placeholder="SEARCH TITLE OR WORKSHOP ID…" data-i18n-placeholder="searchPlaceholder" autocomplete="off" spellcheck="false" aria-label="Search Steam map title or Workshop ID" data-i18n-aria-label="search">
         </label>
-        <label class="toggle"><input id="liteToggle" type="checkbox"><span data-i18n="liteOnly">LITE ONLY</span></label>
+        <label class="toggle"><input id="liteToggle" type="checkbox"><span data-i18n="liteOnly">AAE Lite Version Only</span></label>
       </div>
       <div id="catalog" class="catalog" aria-live="polite"><p class="empty" data-i18n="loading">VERIFYING PUBLIC WORKSHOP MAPS…</p></div>
       <p id="errorMessage" class="error" hidden></p>
