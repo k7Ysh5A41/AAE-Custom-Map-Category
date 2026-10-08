@@ -4,6 +4,7 @@ const DATA_URL = "./custommap_cate.json";
 const STEAM_URL = "./steam_workshop.json";
 const AAE_LITE_WORKSHOP_URL = "https://steamcommunity.com/workshop/filedetails/?id=2994481309";
 const PENDING_URL = "./pending_pr_maps.json";
+const PENDING_CATEGORY = "pending";
 const NEW_PR_WINDOW_MS = 3 * 24 * 60 * 60 * 1000;
 const RESOURCE_TIMEOUT_MS = 10000;
 async function fetchWithTimeout(url, options = {}) {
@@ -379,14 +380,20 @@ function filtered() {
     const query = state.query.trim().toLocaleLowerCase();
     return publicMaps().filter(map => {
         const info = getSteamInfo(map.id);
-        return (state.selected === null || query || map.category.order === state.selected) &&
+        const categoryMatches = state.selected === null || query ||
+            (state.selected === PENDING_CATEGORY ? Boolean(map.pending) :
+             !map.pending && map.category.order === state.selected);
+        return categoryMatches &&
             (!state.liteOnly || map.liteOnly) &&
             (!query || String(info?.title || "").toLocaleLowerCase().includes(query) ||
                 map.id.includes(query));
     });
 }
 function categoryMaps(category) {
-    return publicMaps().filter(map => map.category.order === category.order);
+    return publicMaps().filter(map => !map.pending && map.category.order === category.order);
+}
+function pendingMaps() {
+    return publicMaps().filter(map => Boolean(map.pending));
 }
 function getSteamInfo(id) {
     const entry = state.workshop[id];
@@ -398,10 +405,17 @@ function renderNav() {
         state.categories.filter(category => categoryMaps(category).length > 0) :
         state.categories;
     const all = { order:null, name:t("allMaps"), visibleCount:publicMaps().length };
-    $("categoryNav").innerHTML = [all, ...visible].map(category => {
+    const pending = {
+        order:PENDING_CATEGORY, name:t("pendingCategory"),
+        summary:t("pendingCategorySummary")
+    };
+    $("categoryNav").innerHTML = [all, pending, ...visible].map(category => {
         const count = category.order === null ? category.visibleCount :
-            state.steamReady ? categoryMaps(category).length : "—";
+            category.order === PENDING_CATEGORY ?
+                (state.pendingReady && state.steamReady ? pendingMaps().length : "—") :
+                state.steamReady ? categoryMaps(category).length : "—";
         return '<button class="nav-btn' + (category.order === state.selected ? " active" : "") +
+            (category.order === PENDING_CATEGORY ? " pending-category" : "") +
             '" data-category="' + (category.order ?? "all") +
             '" title="' + escapeHtml(category.summary || "") + '">' +
             '<span>' + escapeHtml(category.name) + '</span><small>' + count +
@@ -491,7 +505,8 @@ function render() {
     renderNav();
     const category = state.selected === null ? null : state.categories[state.selected];
     $("groupCount").textContent = state.steamReady ?
-        state.categories.filter(cat => categoryMaps(cat).length).length.toLocaleString("en-US") : "—";
+        (state.categories.filter(cat => categoryMaps(cat).length).length +
+         (pendingMaps().length > 0 ? 1 : 0)).toLocaleString("en-US") : "—";
     $("mapCount").textContent = state.steamReady ?
         publicItems.length.toLocaleString("en-US") : "—";
     $("liteCount").textContent = state.steamReady ?
@@ -522,7 +537,8 @@ async function copyID(id) {
     }
 }
 function selectCategory(value) {
-    state.selected = value === "all" ? null : Number(value);
+    state.selected = value === "all" ? null :
+        value === PENDING_CATEGORY ? PENDING_CATEGORY : Number(value);
     state.query = "";
     $("searchInput").value = "";
     state.activeMapId = null;

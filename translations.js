@@ -71,7 +71,9 @@ window.AAE_I18N = {
       "newMap": "NEW",
       "viewPR": "VIEW PR",
       "openAaeLite": "OPEN AAE Lite VERSION ↗",
-      "communityLinks": "COMMUNITY"
+      "communityLinks": "COMMUNITY",
+      "pendingCategory": "PENDING REVIEW",
+      "pendingCategorySummary": "Maps submitted through open pull requests, awaiting review."
     },
     "zh-CN": {
       "submitMap": "提交地图",
@@ -138,7 +140,9 @@ window.AAE_I18N = {
       "newMap": "新",
       "viewPR": "查看 PR",
       "openAaeLite": "打开 AAE Lite 版本 ↗",
-      "communityLinks": "社区"
+      "communityLinks": "社区",
+      "pendingCategory": "待审核",
+      "pendingCategorySummary": "通过 GitHub PR 提交、尚未审核合并的地图。"
     },
     "zh-TW": {
       "submitMap": "提交地圖",
@@ -205,7 +209,9 @@ window.AAE_I18N = {
       "newMap": "新",
       "viewPR": "檢視 PR",
       "openAaeLite": "開啟 AAE Lite 版本 ↗",
-      "communityLinks": "社群"
+      "communityLinks": "社群",
+      "pendingCategory": "待審核",
+      "pendingCategorySummary": "透過 GitHub PR 提交、尚未審核合併的地圖。"
     },
     "fr": {
       "submitMap": "PROPOSER UNE CARTE",
@@ -272,7 +278,9 @@ window.AAE_I18N = {
       "newMap": "NOUVEAU",
       "viewPR": "VOIR LA PR",
       "openAaeLite": "OUVRIR LA VERSION AAE Lite ↗",
-      "communityLinks": "COMMUNAUTÉ"
+      "communityLinks": "COMMUNAUTÉ",
+      "pendingCategory": "EN ATTENTE DE VALIDATION",
+      "pendingCategorySummary": "Cartes proposées dans des pull requests en attente de validation."
     },
     "de": {
       "submitMap": "KARTE EINREICHEN",
@@ -339,7 +347,9 @@ window.AAE_I18N = {
       "newMap": "NEU",
       "viewPR": "PR ANSEHEN",
       "openAaeLite": "AAE Lite-VERSION ÖFFNEN ↗",
-      "communityLinks": "COMMUNITY"
+      "communityLinks": "COMMUNITY",
+      "pendingCategory": "AUSSTEHENDE PRÜFUNG",
+      "pendingCategorySummary": "Über offene Pull Requests eingereichte Karten, die noch geprüft werden."
     },
     "it": {
       "submitMap": "INVIA UNA MAPPA",
@@ -406,7 +416,9 @@ window.AAE_I18N = {
       "newMap": "NUOVO",
       "viewPR": "VEDI PR",
       "openAaeLite": "APRI LA VERSIONE AAE Lite ↗",
-      "communityLinks": "COMMUNITÀ"
+      "communityLinks": "COMMUNITÀ",
+      "pendingCategory": "IN ATTESA DI REVISIONE",
+      "pendingCategorySummary": "Mappe proposte tramite pull request in attesa di revisione."
     },
     "ja": {
       "submitMap": "マップを投稿",
@@ -473,7 +485,9 @@ window.AAE_I18N = {
       "newMap": "新着",
       "viewPR": "PR を表示",
       "openAaeLite": "AAE Lite 版を開く ↗",
-      "communityLinks": "コミュニティ"
+      "communityLinks": "コミュニティ",
+      "pendingCategory": "審査待ち",
+      "pendingCategorySummary": "未承認のプルリクエストで投稿されたマップ。"
     },
     "pl": {
       "submitMap": "ZGŁOŚ MAPĘ",
@@ -540,7 +554,9 @@ window.AAE_I18N = {
       "newMap": "NOWOŚĆ",
       "viewPR": "ZOBACZ PR",
       "openAaeLite": "OTWÓRZ WERSJĘ AAE Lite ↗",
-      "communityLinks": "SPOŁECZNOŚĆ"
+      "communityLinks": "SPOŁECZNOŚĆ",
+      "pendingCategory": "OCZEKUJĄCE NA OCENĘ",
+      "pendingCategorySummary": "Mapy zgłoszone w otwartych pull requestach, oczekujące na ocenę."
     },
     "pt": {
       "submitMap": "ENVIAR MAPA",
@@ -607,7 +623,9 @@ window.AAE_I18N = {
       "newMap": "NOVO",
       "viewPR": "VER PR",
       "openAaeLite": "ABRIR VERSÃO AAE Lite ↗",
-      "communityLinks": "COMUNIDADE"
+      "communityLinks": "COMUNIDADE",
+      "pendingCategory": "AGUARDANDO ANÁLISE",
+      "pendingCategorySummary": "Mapas enviados por pull requests abertos que aguardam revisão."
     },
     "ru": {
       "submitMap": "ПРЕДЛОЖИТЬ КАРТУ",
@@ -674,7 +692,9 @@ window.AAE_I18N = {
       "newMap": "НОВОЕ",
       "viewPR": "ОТКРЫТЬ PR",
       "openAaeLite": "ОТКРЫТЬ ВЕРСИЮ AAE Lite ↗",
-      "communityLinks": "СООБЩЕСТВО"
+      "communityLinks": "СООБЩЕСТВО",
+      "pendingCategory": "НА ПРОВЕРКЕ",
+      "pendingCategorySummary": "Карты из открытых запросов на изменения, ожидающие проверки."
     },
     "es": {
       "submitMap": "ENVIAR UN MAPA",
@@ -741,7 +761,9 @@ window.AAE_I18N = {
       "newMap": "NUEVO",
       "viewPR": "VER PR",
       "openAaeLite": "ABRIR VERSIÓN AAE Lite ↗",
-      "communityLinks": "COMUNIDAD"
+      "communityLinks": "COMUNIDAD",
+      "pendingCategory": "PENDIENTES DE REVISIÓN",
+      "pendingCategorySummary": "Mapas propuestos mediante pull requests abiertos, pendientes de revisión."
     }
   },
   "categories": {

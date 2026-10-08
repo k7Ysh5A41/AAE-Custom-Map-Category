@@ -1558,3 +1558,26 @@ body.submission-open .social-bar { pointer-events:none; }
   }
   .language-toggle strong { font-size:15px; }
 }
+
+
+/* Virtual Pending Review category: separated from approved-map categories. */
+#categoryNav .nav-btn.pending-category {
+  border-left:3px solid #e7af68;
+  background:linear-gradient(90deg,rgba(255,154,53,.18),rgba(119,71,24,.08));
+  color:#ffd9a4;
+}
+#categoryNav .nav-btn.pending-category small { color:#e9b980; }
+#categoryNav .nav-btn.pending-category:hover,
+#categoryNav .nav-btn.pending-category:focus-visible {
+  border-left-color:#ffe0ac;
+  background:linear-gradient(90deg,rgba(255,166,79,.42),rgba(244,90,35,.18));
+  box-shadow:inset 0 0 18px rgba(255,173,80,.21),0 0 16px rgba(255,136,57,.27);
+  color:#fff5e7;
+}
+#categoryNav .nav-btn.pending-category.active {
+  background:linear-gradient(95deg,#ffcb85,#fa8844 68%,#ef622e);
+  border-left-color:#fff2d1;
+  color:#241306;
+  box-shadow:0 0 16px 2px rgba(255,155,65,.48);
+}
+#categoryNav .nav-btn.pending-category.active small { color:#36210f; }
