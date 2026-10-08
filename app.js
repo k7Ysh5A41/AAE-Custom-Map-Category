@@ -1138,16 +1138,15 @@ function renderGithubGuide() {
         '<li><p>' + escapeHtml(t(key)) + '</p></li>').join("");
     $("githubGuideProceed").hidden = !githubGuideDestination;
 }
-function openGithubGuide(mode, destination = null) {
-    if (!["new","change"].includes(mode) || !$("githubGuideOverlay").hidden) return;
+function openGithubGuide(mode, destination) {
+    if (!["new","change"].includes(mode) || !destination || !$("githubGuideOverlay").hidden) return;
     const parentId = mode === "change" ? "changeMapOverlay" : "submitMapOverlay";
     const parent = $(parentId);
     if (parent.hidden) return;
     githubGuideMode = mode;
     githubGuideDestination = destination;
-    githubGuideReturnFocus = destination
-        ? (mode === "change" ? $("changeMapSubmit") : $("submitMapForm").querySelector(".submit-confirm"))
-        : $(mode === "change" ? "changeGithubHelp" : "submitGithubHelp");
+    githubGuideReturnFocus = mode === "change"
+        ? $("changeMapSubmit") : $("submitMapForm").querySelector(".submit-confirm");
     renderGithubGuide();
     const parentDialog = parent.querySelector(".submit-dialog");
     parentDialog.inert = true;
@@ -1170,8 +1169,6 @@ function closeGithubGuide() {
     if (!parent.hidden && target) target.focus({preventScroll:true});
 }
 function bindGithubGuide() {
-    $("submitGithubHelp").addEventListener("click", () => openGithubGuide("new"));
-    $("changeGithubHelp").addEventListener("click", () => openGithubGuide("change"));
     $("githubGuideClose").addEventListener("click", closeGithubGuide);
     $("githubGuideBack").addEventListener("click", closeGithubGuide);
     $("githubGuideProceed").addEventListener("click", () => {
