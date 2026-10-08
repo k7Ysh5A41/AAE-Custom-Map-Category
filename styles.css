@@ -1809,7 +1809,7 @@ body.submission-open .social-bar { pointer-events:none; }
   .game-header .header-actions {grid-column:4;grid-row:1;display:flex;flex-direction:column;align-items:stretch;}
   .header-actions .submit-trigger {width:100%;flex:0 0 auto;}
   .game-content {
-    grid-template-columns:minmax(225px,265px) minmax(470px,600px) minmax(0,1fr);
+    grid-template-columns:minmax(281.25px,331.25px) minmax(400px,1fr) minmax(470px,clamp(470px,35vw,600px));
     gap:clamp(13px,1.3vw,26px);
   }
 }
@@ -1825,7 +1825,7 @@ body.submission-open .social-bar { pointer-events:none; }
   .game-header .header-actions {grid-column:4;grid-row:1;display:flex;flex-direction:column;align-items:stretch;}
   .header-actions .submit-trigger {width:100%;flex:0 0 auto;}
   .game-content {
-    grid-template-columns:minmax(190px,245px) minmax(390px,540px) minmax(0,1fr);
+    grid-template-columns:minmax(237.5px,306.25px) minmax(320px,1fr) minmax(305px,clamp(305px,30vw,420px));
     gap:clamp(11px,1vw,18px);
   }
 }
@@ -1987,7 +1987,7 @@ body.submission-open .social-bar { pointer-events:none; }
   }
   .header-actions .submit-trigger {flex:0 1 350px;min-width:220px;width:auto;}
   .header-actions .header-stats {flex:1 1 310px;}
-  .game-content {grid-template-columns:minmax(175px,235px) minmax(0,1fr);gap:18px;}
+  .game-content {grid-template-columns:minmax(218.75px,293.75px) minmax(0,1fr);gap:18px;}
   .game-content .selection-panel {grid-column:2;}
   .game-content .preview-pane {grid-column:2;}
 }
