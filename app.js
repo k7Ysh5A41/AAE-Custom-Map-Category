@@ -1179,7 +1179,7 @@ function bindGithubGuide() {
     $("githubGuideClose").addEventListener("click", closeGithubGuide);
     $("githubGuideBack").addEventListener("click", closeGithubGuide);
     $("githubGuideProceed").addEventListener("click", () => {
-        if (githubGuideDestination) window.location.assign(githubGuideDestination);
+        if (githubGuideDestination) window.open(githubGuideDestination, "_blank", "noopener,noreferrer");
     });
     $("githubGuideOverlay").addEventListener("click", event => {
         if (event.target === $("githubGuideOverlay")) closeGithubGuide();
