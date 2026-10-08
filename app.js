@@ -76,7 +76,14 @@ function t(key, variables = {}) {
 function applyUiText() {
     document.title = "All-Around Enhancement — " + t("mapCatalog");
     for (const el of document.querySelectorAll("[data-i18n]")) {
-        el.textContent = t(el.dataset.i18n);
+        // When an older translations.js is cached, preserve the readable
+        // HTML fallback instead of displaying raw keys like submissionGameSync.
+        if (!el.hasAttribute("data-i18n-fallback")) {
+            el.setAttribute("data-i18n-fallback", el.textContent);
+        }
+        const localized = t(el.dataset.i18n);
+        el.textContent = localized === el.dataset.i18n
+            ? el.getAttribute("data-i18n-fallback") : localized;
     }
     for (const el of document.querySelectorAll("[data-i18n-placeholder]")) {
         el.placeholder = t(el.dataset.i18nPlaceholder);
