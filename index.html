@@ -6,9 +6,9 @@
 <meta name="theme-color" content="#050507">
 <meta name="description" content="All-Around Enhancement — a Black Ops III Zombies-style catalog of public Steam Workshop maps.">
 <title>All-Around Enhancement — Map Catalog</title>
-<link rel="stylesheet" href="styles.css?v=wide-header-lite-community-scroll-20261008">
-<script src="translations.js?v=review-category-exclusive-20261008" defer></script>
-<script src="app.js?v=wide-header-lite-community-scroll-20261008" defer></script>
+<link rel="stylesheet" href="styles.css?v=expanded-map-category-incompatible-20261008b">
+<script src="translations.js?v=expanded-map-category-incompatible-20261008b" defer></script>
+<script src="app.js?v=expanded-map-category-incompatible-20261008b" defer></script>
 </head>
 <body>
 <div class="game-shell">
@@ -96,18 +96,18 @@
         <h2 id="changeMapTitle" data-i18n="requestChange">REQUEST MAP CHANGE</h2>
         <button id="changeMapClose" class="submit-close" type="button" data-i18n-aria-label="close" aria-label="Close form">×</button>
       </div>
-      <p class="submit-description" data-i18n="changeDescription">Suggest removing this map or moving it to another approved category. A pull request will be created for review.</p>
+      <p class="submit-description" data-i18n="changeDescription">Suggest moving this map to another category or submitting it to the incompatible category. A pull request will be created for review.</p>
       <p class="change-map-title" id="changeMapName"></p>
       <form id="changeMapForm">
         <label data-i18n="changeAction">REQUEST TYPE</label>
         <div class="change-types" role="group" aria-label="Request type">
           <label><input id="changeMove" type="radio" name="changeAction" value="move" checked><span data-i18n="changeMove">MOVE TO ANOTHER CATEGORY</span></label>
-          <label><input id="changeDelete" type="radio" name="changeAction" value="delete"><span data-i18n="changeDelete">REQUEST REMOVAL</span></label>
+          <label><input id="changeIncompatible" type="radio" name="changeAction" value="incompatible"><span data-i18n="changeIncompatible">SUBMIT TO INCOMPATIBLE CATEGORY</span></label>
         </div>
         <label for="changeTargetCategory" id="changeTargetLabel" data-i18n="changeTarget">NEW CATEGORY</label>
         <select id="changeTargetCategory" name="category" required></select>
         <label for="changeReason" data-i18n="changeReason">REASON FOR REQUEST</label>
-        <textarea id="changeReason" name="reason" maxlength="400" minlength="5" rows="4" required data-i18n-placeholder="changeReasonPlaceholder" placeholder="Explain why this map should be moved or removed"></textarea>
+        <textarea id="changeReason" name="reason" maxlength="400" minlength="5" rows="4" required data-i18n-placeholder="changeReasonPlaceholder" placeholder="Explain why this map should be recategorized"></textarea>
         <p id="changeMapError" class="submit-error" role="alert" hidden></p>
         <p class="submit-github-notice" data-i18n="changeGithubNotice">A GitHub login is required to confirm the request. The current map stays unchanged until a reviewer merges the PR.</p>
         <div class="submit-actions">
