@@ -365,11 +365,19 @@ function setSubmissionError(message) {
     $("submitMapError").textContent = message || "";
     $("submitMapError").hidden = !message;
 }
+let submissionScrollY = 0;
+let submissionPreviousTop = "";
 function closeSubmission() {
+    if ($("submitMapOverlay").hidden) return;
     $("submitMapOverlay").hidden = true;
-    $("submitMapOpen").focus();
+    document.documentElement.classList.remove("submission-open");
+    document.body.classList.remove("submission-open");
+    document.body.style.top = submissionPreviousTop;
+    window.scrollTo(0, submissionScrollY);
+    $("submitMapOpen").focus({ preventScroll: true });
 }
 function openSubmission() {
+    if (!$("submitMapOverlay").hidden) return;
     if (!state.categories.length) {
         setSubmissionError("The catalog is still loading.");
         return;
@@ -383,8 +391,13 @@ function openSubmission() {
         select.value = state.categories[state.selected].button;
     }
     setSubmissionError("");
+    submissionScrollY = window.scrollY || window.pageYOffset || 0;
+    submissionPreviousTop = document.body.style.top;
+    document.body.style.top = -submissionScrollY + "px";
+    document.documentElement.classList.add("submission-open");
+    document.body.classList.add("submission-open");
     $("submitMapOverlay").hidden = false;
-    $("submitWorkshopId").focus();
+    $("submitWorkshopId").focus({ preventScroll: true });
 }
 function submitMapProposal(event) {
     event.preventDefault();

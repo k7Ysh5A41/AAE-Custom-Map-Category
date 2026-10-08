@@ -507,3 +507,30 @@ a{color:inherit}
   .header-actions .submit-trigger{transition:none!important}
   .header-actions .submit-trigger:hover,.header-actions .submit-trigger:focus-visible{transform:none}
 }
+
+
+/* Freeze the underlying catalog while the submission dialog is visible.
+   The dialog (and the native category selector) keep their own scrolling. */
+html.submission-open {
+  overflow:hidden!important;
+  overscroll-behavior:none;
+}
+body.submission-open {
+  position:fixed!important;
+  left:0;
+  right:0;
+  width:100%;
+  overflow:hidden!important;
+  overscroll-behavior:none;
+}
+.submit-overlay {
+  overflow:hidden;
+  overscroll-behavior:none;
+}
+.submit-dialog {
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+}
+#submitCategory {
+  overscroll-behavior:contain;
+}
