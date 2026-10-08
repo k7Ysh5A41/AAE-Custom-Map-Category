@@ -18,6 +18,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Fetch external English localization
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p localization
+          curl --fail --location --retry 3 --silent --show-error \
+            "https://raw.githubusercontent.com/k7Ysh5A41/AAE-localizedstrings/main/english/localizedstrings/AAEP.str" \
+            --output localization/AAEP.str
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
