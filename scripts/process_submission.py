@@ -76,11 +76,13 @@ def parse_proposal(issue: dict):
         r"<!-- aae-map-submission:v1 -->\n"
         r"Workshop ID: ([0-9]{7,20})\n"
         r"Category: (AAEP_[A-Z0-9_]+)\n"
+        r"(?:Lite Only: (true|false)\n)?"
         r"Notes:\n([\s\S]{1,400})\s*", body,
     )
     if not match or title != "[Map Submission] " + match.group(1):
         raise ValueError("Invalid map submission. Please use the website submission form.")
-    return match.group(1), match.group(2), match.group(3).strip()
+    return (match.group(1), match.group(2), match.group(4).strip(),
+            match.group(3) == "true")
 
 
 def map_ids(catalog: list):
@@ -88,8 +90,13 @@ def map_ids(catalog: list):
             for category in catalog for item in category["ugc"]}
 
 
-def updated_catalog(source: str, category_key: str, workshop_id: str) -> str:
-    """Insert exactly one string entry, preserving the entire existing JSON layout."""
+def updated_catalog(source: str, category_key: str, workshop_id: str,
+                    lite_only: bool = False) -> str:
+    """Insert a verified map entry and preserve the original JSON layout."""
+    if type(lite_only) is not bool:
+        raise ValueError("Lite Only must be a boolean.")
+    new_entry = {"id": workshop_id, "lite_only": True} if lite_only else workshop_id
+    entry_json = json.dumps(new_entry, ensure_ascii=False)
     parsed = json.loads(source)
     positions = [i for i, category in enumerate(parsed)
                  if category.get("button") == category_key]
@@ -130,16 +137,16 @@ def updated_catalog(source: str, category_key: str, workshop_id: str) -> str:
     closing_indent = "        "
     if interior.strip():
         new_interior = (interior.rstrip() + ",\n" + item_indent +
-                        json.dumps(workshop_id) + "\n" + closing_indent)
+                        entry_json + "\n" + closing_indent)
     else:
-        new_interior = "\n" + item_indent + json.dumps(workshop_id) + "\n" + closing_indent
+        new_interior = "\n" + item_indent + entry_json + "\n" + closing_indent
     result = source[:open_index + 1] + new_interior + source[close_index:]
     updated = json.loads(result)
     if len(updated) != len(parsed):
         raise RuntimeError("The resulting catalog has changed category count.")
     for i, (before, after) in enumerate(zip(parsed, updated)):
         if i == positions[0]:
-            expected = {**before, "ugc": before["ugc"] + [workshop_id]}
+            expected = {**before, "ugc": before["ugc"] + [new_entry]}
             if after != expected:
                 raise RuntimeError("The generated map entry failed verification.")
         elif before != after:
@@ -179,7 +186,7 @@ def main():
     if issue.get("pull_request"):
         return
     try:
-        workshop_id, category_key, notes = parse_proposal(issue)
+        workshop_id, category_key, notes, lite_only = parse_proposal(issue)
         current = github("GET", "/contents/custommap_cate.json?ref=main")
         original = base64.b64decode(current["content"]).decode("utf-8")
         catalog = json.loads(original)
@@ -204,7 +211,7 @@ def main():
             issue_comment(number, "A review pull request already exists: " + existing)
             return
         title = re.sub(r"[\r\n\t]+", " ", str(item["title"])).strip()[:95]
-        changed = updated_catalog(original, category_key, workshop_id)
+        changed = updated_catalog(original, category_key, workshop_id, lite_only)
         branch = f"community-maps/issue-{number}"
         branch_ref = quote(branch, safe="/")
         branch_obj = github("GET", f"/git/ref/heads/{branch_ref}", not_found_ok=True)
@@ -229,16 +236,18 @@ def main():
                 base64.b64decode(existing_file["content"]).decode("utf-8"))
             branch_cat = next((c for c in branch_catalog
                                if c.get("button") == category_key), None)
-            if branch_cat is None or workshop_id not in {
-                str(x.get("id") if isinstance(x, dict) else x)
+            if branch_cat is None or not any(
+                str(x.get("id") if isinstance(x, dict) else x) == workshop_id and
+                bool(x.get("lite_only", False) if isinstance(x, dict) else False) == lite_only
                 for x in branch_cat["ugc"]
-            }:
+            ):
                 raise RuntimeError("The existing issue branch needs manual review.")
         safe_notes = notes.replace("@", "&#64;").replace("<", "&lt;")[:400]
         pr_body = (
             "<!-- aae-map-pr:v1 -->\n"
             f"Workshop ID: {workshop_id}\n"
             f"Category: {category_key}\n"
+            f"Lite Only: {str(lite_only).lower()}\n"
             f"Steam: https://steamcommunity.com/sharedfiles/filedetails/?id={workshop_id}\n\n"
             "Steam public visibility and BO3 app ownership verified before creating this PR.\n\n"
             "Submission notes:\n" +
