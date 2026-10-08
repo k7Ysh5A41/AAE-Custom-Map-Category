@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#050507">
 <meta name="description" content="All-Around Enhancement — a Black Ops III Zombies-style catalog of public Steam Workshop maps.">
 <title>All-Around Enhancement — Map Catalog</title>
-<link rel="stylesheet" href="styles.css?v=bo3-community-submit-20261008">
+<link rel="stylesheet" href="styles.css?v=bo3-hero-submit-20261008">
 <script src="app.js?v=bo3-community-submit-20261008" defer></script>
 </head>
 <body>
@@ -16,7 +16,14 @@
     <div class="heading">
       <h1>ALL-AROUND ENHANCEMENT <span>MAP CATALOG</span></h1>
     </div>
-    <div class="header-stats"><span id="groupCount">—</span> CATEGORIES <span class="stat-separator">/</span> <span id="mapCount">—</span> PUBLIC MAPS <span class="stat-separator">/</span> <span id="liteCount">—</span> LITE ONLY</div>
+    <div class="header-actions">
+      <button id="submitMapOpen" class="submit-trigger" type="button" aria-haspopup="dialog" aria-controls="submitMapOverlay">
+        <span class="submit-trigger-icon" aria-hidden="true">+</span>
+        <span class="submit-trigger-copy"><strong>SUBMIT A MAP</strong><small>SUGGEST A WORKSHOP MAP</small></span>
+        <span class="submit-trigger-chevron" aria-hidden="true">›</span>
+      </button>
+      <div class="header-stats"><span id="groupCount">—</span> CATEGORIES <span class="stat-separator">/</span> <span id="mapCount">—</span> PUBLIC MAPS <span class="stat-separator">/</span> <span id="liteCount">—</span> LITE ONLY</div>
+    </div>
   </header>
   <main class="game-content">
     <aside class="sidebar">
@@ -29,7 +36,6 @@
           <input id="searchInput" type="search" placeholder="SEARCH TITLE OR WORKSHOP ID…" autocomplete="off" spellcheck="false" aria-label="Search Steam map title or Workshop ID">
         </label>
         <label class="toggle"><input id="liteToggle" type="checkbox"><span>LITE ONLY</span></label>
-        <button id="submitMapOpen" class="submit-trigger" type="button">+ SUBMIT MAP</button>
       </div>
       <div id="catalog" class="catalog" aria-live="polite"><p class="empty">VERIFYING PUBLIC WORKSHOP MAPS…</p></div>
       <p id="errorMessage" class="error" hidden></p>
