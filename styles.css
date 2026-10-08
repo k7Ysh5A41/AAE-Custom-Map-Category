@@ -2066,6 +2066,74 @@ body.submission-open .social-bar { pointer-events:none; }
   border-color:rgba(255,190,114,.86);
   background:rgba(249,115,53,.19);
 }
+/* Animated native checkbox replacement: the control still remains a real,
+   keyboard-focusable input, including when it was prechecked from map data. */
+@keyframes aaeLiteOptionSelect {
+  0% {transform:scale(.86);box-shadow:0 0 0 0 rgba(255,142,65,.05);}
+  45% {transform:scale(1.14);box-shadow:0 0 0 7px rgba(255,142,65,.20);}
+  100% {transform:scale(1);box-shadow:0 0 0 0 rgba(255,142,65,0);}
+}
+@keyframes aaeLiteOptionGlow {
+  0% {box-shadow:inset 0 0 0 rgba(255,135,65,0);}
+  45% {box-shadow:inset 0 0 17px rgba(255,154,70,.17),0 0 17px rgba(255,116,46,.22);}
+  100% {box-shadow:inset 0 0 0 rgba(255,135,65,0);}
+}
+.submit-dialog form > label.lite-form-option {
+  transition:border-color .23s ease,background-color .23s ease,box-shadow .23s ease;
+}
+.submit-dialog .lite-form-option input[type="checkbox"] {
+  appearance:none;
+  -webkit-appearance:none;
+  position:relative;
+  display:inline-block;
+  border:1.5px solid rgba(252,162,106,.78);
+  border-radius:5px;
+  background:#171518;
+  box-shadow:inset 0 1px 4px rgba(0,0,0,.45);
+  transition:background-color .18s ease,border-color .18s ease,box-shadow .25s ease;
+}
+.submit-dialog .lite-form-option input[type="checkbox"]::after {
+  content:"";
+  position:absolute;
+  left:6px;
+  top:2px;
+  width:6px;
+  height:11px;
+  border-right:3px solid #211005;
+  border-bottom:3px solid #211005;
+  opacity:0;
+  transform:rotate(45deg) scale(.38);
+  transition:transform .24s cubic-bezier(.2,1.65,.45,1),opacity .15s ease;
+}
+.submit-dialog .lite-form-option input[type="checkbox"]:checked {
+  background:linear-gradient(135deg,#ffe0a0,#fa8d44);
+  border-color:#fff0c4;
+  box-shadow:0 0 10px rgba(255,143,69,.36);
+  animation:aaeLiteOptionSelect .35s ease-out both;
+}
+.submit-dialog .lite-form-option input[type="checkbox"]:checked::after {
+  opacity:1;
+  transform:rotate(45deg) scale(1);
+}
+.submit-dialog .lite-form-option:has(input:checked) {
+  animation:aaeLiteOptionGlow .55s ease-out both;
+}
+.submit-dialog .lite-form-option:hover {
+  border-color:rgba(255,194,129,.88);
+  background:rgba(255,129,60,.13);
+}
+.submit-dialog .lite-form-option input[type="checkbox"]:focus-visible {
+  outline:2px solid #ffe3b4;
+  outline-offset:3px;
+}
+@media(prefers-reduced-motion:reduce) {
+  .submit-dialog .lite-form-option,
+  .submit-dialog .lite-form-option input[type="checkbox"],
+  .submit-dialog .lite-form-option input[type="checkbox"]::after {
+    animation:none!important;
+    transition:none!important;
+  }
+}
 .lite-current-status {
   padding:10px 14px;
   margin:12px 0 0;
