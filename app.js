@@ -1,6 +1,7 @@
 "use strict";
 const DATA_URL="./custommap_cate.json";
 const LOCALIZATION_BASE="https://raw.githubusercontent.com/k7Ysh5A41/AAE-localizedstrings/main/english/localizedstrings/";
+const LOCALIZATION_MIRROR="./localization/";
 const translations=new Map();
 
 // In a StringEd .str file, REFERENCE and LANG_ENGLISH form a pair.
@@ -20,20 +21,35 @@ function parseStringEd(source,prefix){
  }
  return count;
 }
+// Use the localization copy generated at Pages build time first.
+// Fall back to reading the upstream repository directly. Neither translation
+// values nor category-specific mappings are maintained in this repository.
+async function loadStringEd(prefix){
+ const sources=[
+  LOCALIZATION_MIRROR+encodeURIComponent(prefix)+".str",
+  LOCALIZATION_BASE+encodeURIComponent(prefix)+".str"
+ ];
+ const failures=[];
+ for(const source of sources){
+  try{
+   const response=await fetch(source,{cache:"no-store"});
+   if(!response.ok)throw Error("HTTP "+response.status);
+   const content=await response.text();
+   const matches=parseStringEd(content,prefix);
+   if(!matches)throw Error("No English references in StringEd file");
+   return;
+  }catch(error){failures.push(error.message);}
+ }
+ throw Error(prefix+": "+failures.join("; "));
+}
 async function loadLocalizations(categories){
+ translations.clear();
  const prefixes=[...new Set(categories.flatMap(category=>[category?.button,category?.description])
   .filter(key=>typeof key==="string")
   .map(key=>/^([A-Za-z0-9]+)_/.exec(key)?.[1])
   .filter(Boolean))];
- const errors=await Promise.all(prefixes.map(async prefix=>{
-  try{
-   const response=await fetch(LOCALIZATION_BASE+encodeURIComponent(prefix)+".str",{cache:"no-store"});
-   if(!response.ok)throw Error("HTTP "+response.status);
-   if(!parseStringEd(await response.text(),prefix))throw Error("No English references found");
-   return null;
-  }catch(err){return prefix+": "+err.message;}
- }));
- return errors.filter(Boolean);
+ const results=await Promise.allSettled(prefixes.map(loadStringEd));
+ return results.filter(item=>item.status==="rejected").map(item=>item.reason.message);
 }
 function localized(key){return translations.get(key);}
 function categorySummary(category){return localized(category.description)||"";}
@@ -82,7 +98,7 @@ function render(){
  if(state.selected===null&&!state.query&&!state.liteOnly){
   $("catalog").innerHTML=state.categories.map(c=>{
    const liteCount=c.ugc.filter(v=>v&&typeof v==="object"&&v.lite_only===true).length;
-   return '<article tabindex="0" role="button" class="card category-card" data-open="'+c.order+'"><div class="card-head"><span class="chip">CATEGORY '+escapeHtml(c.index)+'</span><span class="meta">#'+(c.order+1)+'</span></div><h3>'+escapeHtml(c.name)+'</h3><p class="category-summary">'+escapeHtml(c.summary||"")+'</p><p class="meta">'+escapeHtml(c.button??"")+'</p><div class="category-count">'+c.ugc.length+' <small>maps</small></div><span class="meta">'+(liteCount?liteCount+" Lite-only entries":"Browse maps →")+'</span></article>';
+   return '<article tabindex="0" role="button" class="card category-card" data-open="'+c.order+'"><div class="card-head"><span class="chip">CATEGORY '+escapeHtml(c.index)+'</span><span class="meta">#'+(c.order+1)+'</span></div><h3>'+escapeHtml(c.name)+'</h3><p class="category-summary">'+escapeHtml(c.summary||"")+'</p><div class="category-count">'+c.ugc.length+' <small>maps</small></div><span class="meta">'+(liteCount?liteCount+" Lite-only entries":"Browse maps →")+'</span></article>';
   }).join("");
   return;
  }
@@ -134,7 +150,7 @@ async function init(){
   $("mapCount").textContent=data.maps.length.toLocaleString("en-US");
   $("liteCount").textContent=data.maps.filter(m=>m.liteOnly).length.toLocaleString("en-US");
   render();
-  if(localizationErrors.length){$("errorMessage").hidden=false;$("errorMessage").textContent="Could not load some localization files ("+localizationErrors.join("; ")+"). Showing available names or fallback keys."}
+  if(localizationErrors.length){$("errorMessage").hidden=false;$("errorMessage").textContent="Localization unavailable: "+localizationErrors.join("; ");}else{$("errorMessage").hidden=true;}
  }catch(e){$("catalog").innerHTML="";$("errorMessage").hidden=false;$("errorMessage").textContent="Unable to load custommap_cate.json: "+e.message;}
 }
 document.addEventListener("DOMContentLoaded",init);
