@@ -3,44 +3,48 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#08090b">
-<meta name="description" content="All-Around Enhancement: a Black Ops III Zombies-inspired catalog of publicly listed Steam Workshop maps.">
+<meta name="theme-color" content="#050507">
+<meta name="description" content="All-Around Enhancement — a Black Ops III Zombies-style catalog of public Steam Workshop maps.">
 <title>All-Around Enhancement — Map Catalog</title>
-<link rel="stylesheet" href="styles.css?v=20261008-bo3">
-<script src="app.js?v=20261008-public-creators" defer></script>
+<link rel="stylesheet" href="styles.css?v=bo3-map-menu-20261008">
+<script src="app.js?v=bo3-map-menu-20261008" defer></script>
 </head>
 <body>
-<div class="ambient-noise" aria-hidden="true"></div>
-<div class="screen">
-  <header class="intro">
-    <p class="eyebrow">ZOMBIES <span class="slash">//</span> COMMUNITY WORKSHOP</p>
-    <h1>ALL-AROUND ENHANCEMENT <span>MAP CATALOG</span></h1>
-    <p class="intro-desc">Custom Zombies maps compatible with All-Around Enhancement.</p>
-    <div class="stats" aria-label="Verified public map statistics">
-      <div><strong id="groupCount">—</strong><span>CATEGORIES</span></div>
-      <div><strong id="mapCount">—</strong><span>PUBLIC MAPS</span></div>
-      <div><strong id="liteCount">—</strong><span>LITE ONLY</span></div>
+<div class="game-shell">
+  <header class="game-header">
+    <span class="header-bars" aria-hidden="true"></span>
+    <div class="heading">
+      <h1>ALL-AROUND ENHANCEMENT <span>MAP CATALOG</span></h1>
+      <p>BLACK OPS III <span> / </span> ZOMBIES <span> / </span> COMMUNITY MAPS</p>
     </div>
+    <div class="header-stats"><span id="groupCount">—</span> CATEGORIES <span class="stat-separator">/</span> <span id="mapCount">—</span> PUBLIC MAPS <span class="stat-separator">/</span> <span id="liteCount">—</span> LITE ONLY</div>
   </header>
-  <main class="shell">
+  <main class="game-content">
     <aside class="sidebar">
-      <h2>SELECT CATEGORY</h2>
+      <div class="panel-label">CATEGORIES</div>
       <nav id="categoryNav" aria-label="Map categories"></nav>
     </aside>
-    <section class="content">
-      <div class="toolbar">
-        <label class="toggle"><input id="liteToggle" type="checkbox"><span>LITE ONLY</span></label>
-        <button id="exportCsv" type="button">EXPORT LIST <span aria-hidden="true">↗</span></button>
-      </div>
-      <div class="section-heading">
-        <div><h2 id="viewTitle">MAP CATEGORIES</h2><p id="viewDescription" class="category-description"></p></div>
+    <section class="selection-panel" aria-label="Map selection">
+      <div class="selection-top">
+        <h2 id="viewTitle">MAPS</h2>
         <span id="resultCount">VERIFYING STEAM</span>
       </div>
-      <div id="catalog" class="catalog" aria-live="polite"><p class="empty">VERIFYING PUBLIC STEAM WORKSHOP LISTINGS…</p></div>
+      <p id="viewDescription" class="category-description"></p>
+      <div class="menu-toolbar">
+        <label class="toggle"><input id="liteToggle" type="checkbox"><span>LITE ONLY</span></label>
+        <button id="exportCsv" type="button">EXPORT CSV</button>
+      </div>
+      <div id="catalog" class="catalog" aria-live="polite"><p class="empty">VERIFYING PUBLIC WORKSHOP MAPS…</p></div>
       <p id="errorMessage" class="error" hidden></p>
     </section>
+    <aside id="previewPane" class="preview-pane" aria-label="Selected map information">
+      <div class="preview-empty"><p>SELECT A MAP</p><small>Choose a public Workshop map to view its details.</small></div>
+    </aside>
   </main>
-  <footer><span>ALL-AROUND ENHANCEMENT <b>//</b> MAP CATALOG</span><span>STEAM WORKSHOP DATA · PUBLIC LISTINGS ONLY</span></footer>
+  <footer class="game-footer">
+    <div><span class="key x">X</span> SELECT <span class="key o">O</span> BACK <span class="key t">△</span> STEAM WORKSHOP</div>
+    <div>ALL-AROUND ENHANCEMENT <span class="foot-slash"> / </span> PUBLIC WORKSHOP MAPS</div>
+  </footer>
 </div>
 </body>
 </html>
