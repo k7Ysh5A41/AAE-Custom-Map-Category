@@ -6,9 +6,9 @@
 <meta name="theme-color" content="#050507">
 <meta name="description" content="All-Around Enhancement — a Black Ops III Zombies-style catalog of public Steam Workshop maps.">
 <title>All-Around Enhancement — Map Catalog</title>
-<link rel="stylesheet" href="styles.css?v=expanded-map-category-incompatible-20261008b">
-<script src="translations.js?v=expanded-map-category-incompatible-20261008b" defer></script>
-<script src="app.js?v=expanded-map-category-incompatible-20261008b" defer></script>
+<link rel="stylesheet" href="styles.css?v=lite-status-form-center-20261008c">
+<script src="translations.js?v=lite-status-form-center-20261008c" defer></script>
+<script src="app.js?v=lite-status-form-center-20261008c" defer></script>
 </head>
 <body>
 <div class="game-shell">
@@ -106,6 +106,8 @@
         </div>
         <label for="changeTargetCategory" id="changeTargetLabel" data-i18n="changeTarget">NEW CATEGORY</label>
         <select id="changeTargetCategory" name="category" required></select>
+        <p id="changeCurrentLite" class="lite-current-status" aria-live="polite"></p>
+        <label class="lite-form-option" for="changeLiteOnly"><input id="changeLiteOnly" name="liteOnly" type="checkbox"><span data-i18n="liteSubmissionLabel">AAE Lite Version Only</span></label>
         <label for="changeReason" data-i18n="changeReason">REASON FOR REQUEST</label>
         <textarea id="changeReason" name="reason" maxlength="400" minlength="5" rows="4" required data-i18n-placeholder="changeReasonPlaceholder" placeholder="Explain why this map should be recategorized"></textarea>
         <p id="changeMapError" class="submit-error" role="alert" hidden></p>
@@ -130,6 +132,7 @@
           placeholder="https://steamcommunity.com/sharedfiles/filedetails/?id=…" maxlength="250">
         <label for="submitCategory" data-i18n="fieldCategory">MAP CATEGORY</label>
         <select id="submitCategory" name="category" required><option value="" data-i18n="selectCategory">SELECT CATEGORY</option></select>
+        <label class="lite-form-option" for="submitLiteOnly"><input id="submitLiteOnly" name="liteOnly" type="checkbox"><span data-i18n="liteSubmissionLabel">AAE Lite Version Only</span></label>
         <label for="submitNotes"><span data-i18n="fieldNotes">ADDITIONAL NOTES</span> <span data-i18n="optional">(OPTIONAL)</span></label>
         <textarea id="submitNotes" name="notes" rows="3" maxlength="400" placeholder="Optional information for the reviewer" data-i18n-placeholder="notesPlaceholder"></textarea>
         <p class="submit-error" id="submitMapError" role="alert" hidden></p>
