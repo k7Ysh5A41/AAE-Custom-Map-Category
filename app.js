@@ -20,7 +20,7 @@ const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, char =>
 );
 const state = {
     categories: [], maps: [], selected: null, liteOnly: false,
-    translations: new Map(), workshop: {}
+    translations: new Map(), workshop: {}, steamReady: false, steamFailed: false
 };
 
 // StringEd .str files pair REFERENCE with LANG_ENGLISH. The file name supplies
@@ -77,16 +77,23 @@ async function loadSteamMetadata() {
         const response = await fetchWithTimeout(STEAM_URL, { cache: "no-store" });
         if (!response.ok) throw new Error("HTTP " + response.status);
         const json = await response.json();
-        if (!json || typeof json.items !== "object" || !json.items)
-            throw new Error("Invalid Steam metadata");
-        state.workshop = json.items;
+        if (json?.public_only !== true || !json.items ||
+            typeof json.items !== "object" || Array.isArray(json.items))
+            throw new Error("Public-only Steam verification data is missing");
+        // Never expose unverified, private, friends-only or unlisted maps.
+        state.workshop = Object.fromEntries(Object.entries(json.items).filter(([id, entry]) =>
+            /^\d+$/.test(id) && entry && Number(entry.visibility) === 0 &&
+            typeof entry.title === "string" && entry.title.trim().length > 0));
+        state.steamReady = true;
+        state.steamFailed = false;
         return null;
     } catch (error) {
         state.workshop = {};
+        state.steamReady = false;
+        state.steamFailed = true;
         return error.message;
     }
 }
-
 function localize(key) { return state.translations.get(key); }
 function categoryName(category) {
     const key = String(category.button || "");
@@ -116,66 +123,108 @@ function normalize(raw) {
     });
     return { categories, maps };
 }
+function publicMaps() {
+    if (!state.steamReady) return [];
+    return state.maps.filter(map => Boolean(getSteamInfo(map.id)));
+}
 function filtered() {
-    return state.maps.filter(map =>
+    return publicMaps().filter(map =>
         (state.selected === null || map.category.order === state.selected) &&
         (!state.liteOnly || map.liteOnly));
 }
+function categoryMaps(category) {
+    return publicMaps().filter(map => map.category.order === category.order);
+}
 function getSteamInfo(id) {
     const entry = state.workshop[id];
-    return entry && typeof entry.title === "string" && entry.title.trim() ? entry : null;
+    return state.steamReady && entry && Number(entry.visibility) === 0 &&
+        typeof entry.title === "string" && entry.title.trim() ? entry : null;
 }
 function renderNav() {
-    const all = { order: null, name: "All Maps", ugc: state.maps };
-    $("categoryNav").innerHTML = [all, ...state.categories].map(category =>
-        '<button class="nav-btn' + (category.order === state.selected ? " active" : "") +
-        '" data-category="' + (category.order ?? "all") +
-        '" title="' + escapeHtml(category.summary || "") + '"><span>' +
-        escapeHtml(category.name) + '</span><small>' + category.ugc.length +
-        "</small></button>").join("");
+    const visible = state.steamReady ?
+        state.categories.filter(category => categoryMaps(category).length > 0) :
+        state.categories;
+    const all = { order: null, name: "ALL MAPS",
+        visibleCount: publicMaps().length };
+    $("categoryNav").innerHTML = [all, ...visible].map(category => {
+        const count = category.order === null ? category.visibleCount :
+            (state.steamReady ? categoryMaps(category).length : "—");
+        return '<button class="nav-btn' +
+            (category.order === state.selected ? " active" : "") +
+            '" data-category="' + (category.order ?? "all") +
+            '" title="' + escapeHtml(category.summary || "") +
+            '"><span>' + escapeHtml(category.name) +
+            '</span><small>' + count + "</small></button>";
+    }).join("");
 }
 function categoryRow(category) {
-    const liteCount = category.ugc.filter(item =>
-        item && typeof item === "object" && item.lite_only === true).length;
+    const maps = categoryMaps(category);
+    const liteCount = maps.filter(map => map.liteOnly).length;
     return '<article class="category-row" tabindex="0" role="button" data-open="' +
         category.order + '"><div class="category-copy"><div class="category-kicker">CATEGORY ' +
         escapeHtml(category.index) + '</div><h3>' + escapeHtml(category.name) +
         '</h3><p>' + escapeHtml(category.summary) + '</p></div><div class="category-count">' +
-        category.ugc.length + '<small> maps</small>' +
-        (liteCount ? '<span class="lite-count">' + liteCount + ' Lite-only</span>' : '') +
-        '</div><span class="category-chevron" aria-hidden="true">→</span></article>';
+        maps.length + '<small> MAPS</small>' +
+        (liteCount ? '<span class="lite-count">' + liteCount + ' LITE ONLY</span>' : '') +
+        '</div><span class="category-chevron" aria-hidden="true">›</span></article>';
 }
 function mapRow(map) {
     const info = getSteamInfo(map.id);
-    const title = info ? info.title : map.id;
-    const preview = info?.preview_url;
+    if (!info) return "";
+    const title = info.title;
+    const preview = info.preview_url;
     const thumbnail = typeof preview === "string" && /^https:\/\//.test(preview) ?
         '<img class="map-thumbnail" src="' + escapeHtml(preview) +
-        '" alt="" loading="lazy" referrerpolicy="no-referrer">' :
-        '<div class="map-thumbnail map-placeholder" aria-hidden="true">AAE</div>';
+        '" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">' :
+        '<div class="map-thumbnail map-placeholder" aria-hidden="true">III</div>';
     const url = "https://steamcommunity.com/sharedfiles/filedetails/?id=" +
         encodeURIComponent(map.id);
-    return '<article class="map-row">' + thumbnail +
+    const creator = /^\d+$/.test(String(info.creator_id || "")) ?
+        String(info.creator_id) : "";
+    const publisher = creator ?
+        '<a class="publisher-link" href="https://steamcommunity.com/profiles/' +
+        creator + '/" target="_blank" rel="noopener noreferrer">' +
+        escapeHtml(info.creator_name || ("STEAM " + creator)) + '</a>' :
+        '<span>UNAVAILABLE</span>';
+    return '<article class="map-row"><span class="map-accent" aria-hidden="true"></span>' +
+        thumbnail +
         '<div class="map-copy"><h3 title="' + escapeHtml(title) + '">' +
-        escapeHtml(title) + '</h3><div class="map-id">Workshop ID: ' +
+        escapeHtml(title) + '</h3><div class="map-publisher">CREATED BY ' +
+        publisher + '</div><div class="map-id">WORKSHOP ID: ' +
         escapeHtml(map.id) + '</div></div>' +
         (map.liteOnly ? '<span class="chip lite">LITE ONLY</span>' : '') +
         '<div class="map-actions"><button type="button" data-copy="' +
-        escapeHtml(map.id) + '">Copy ID</button><a target="_blank" rel="noopener noreferrer" href="' +
-        url + '">Steam Workshop ↗</a></div></article>';
+        escapeHtml(map.id) + '">COPY ID</button><a target="_blank" rel="noopener noreferrer" href="' +
+        url + '">WORKSHOP ↗</a></div></article>';
 }
 function render() {
+    const valid = publicMaps();
+    const activeCategories = state.categories.filter(category =>
+        valid.some(map => map.category.order === category.order));
     renderNav();
     const category = state.selected === null ? null : state.categories[state.selected];
-    $("viewTitle").textContent = category?.name || (state.liteOnly ? "Lite-only Maps" : "Categories");
+    $("viewTitle").textContent = category?.name ||
+        (state.liteOnly ? "LITE-ONLY MAPS" : "MAP CATEGORIES");
     $("viewDescription").textContent = category?.summary || "";
+    $("groupCount").textContent = state.steamReady ? activeCategories.length.toLocaleString("en-US") : "—";
+    $("mapCount").textContent = state.steamReady ? valid.length.toLocaleString("en-US") : "—";
+    $("liteCount").textContent = state.steamReady ?
+        valid.filter(map => map.liteOnly).length.toLocaleString("en-US") : "—";
     const matches = filtered();
-    $("resultCount").textContent = matches.length.toLocaleString("en-US") + " maps";
-    if (state.selected === null && !state.liteOnly) {
-        $("catalog").innerHTML = state.categories.map(categoryRow).join("");
+    $("resultCount").textContent = state.steamReady ?
+        matches.length.toLocaleString("en-US") + " PUBLIC MAPS" : "VERIFYING STEAM";
+    if (!state.steamReady) {
+        $("catalog").innerHTML = '<p class="empty">' +
+            (state.steamFailed ?
+            "PUBLIC WORKSHOP VERIFICATION UNAVAILABLE. MAPS ARE HIDDEN." :
+            "VERIFYING PUBLIC STEAM WORKSHOP LISTINGS…") + '</p>';
+    } else if (state.selected === null && !state.liteOnly) {
+        $("catalog").innerHTML = activeCategories.length ?
+            activeCategories.map(categoryRow).join("") :
+            '<p class="empty">NO PUBLIC MAPS AVAILABLE.</p>';
     } else {
         $("catalog").innerHTML = matches.length ? matches.map(mapRow).join("") :
-            '<p class="empty">No maps in this category.</p>';
+            '<p class="empty">NO PUBLIC MAPS IN THIS CATEGORY.</p>';
     }
 }
 async function copyID(id) {
@@ -193,10 +242,12 @@ async function copyID(id) {
 function csvEscape(value) { return '"' + String(value ?? "").replaceAll('"', '""') + '"'; }
 function exportCsv() {
     const rows = [["category_index", "category_key", "category_description", "category_name",
-        "steam_title", "ugc_id", "lite_only"],
+        "steam_title", "publisher", "publisher_steamid", "ugc_id", "lite_only"],
         ...filtered().map(map => [
             map.category.index, map.category.button, map.category.description,
-            map.category.name, getSteamInfo(map.id)?.title || "", map.id, map.liteOnly
+            map.category.name, getSteamInfo(map.id)?.title || "",
+            getSteamInfo(map.id)?.creator_name || "",
+            getSteamInfo(map.id)?.creator_id || "", map.id, map.liteOnly
         ])];
     const csv = "\ufeff" + rows.map(row => row.map(csvEscape).join(",")).join("\r\n");
     const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
@@ -267,9 +318,6 @@ async function init() {
         const data = normalize(raw);
         state.categories = data.categories;
         state.maps = data.maps;
-        $("groupCount").textContent = data.categories.length.toLocaleString("en-US");
-        $("mapCount").textContent = data.maps.length.toLocaleString("en-US");
-        $("liteCount").textContent = data.maps.filter(map => map.liteOnly).length.toLocaleString("en-US");
         render();
 
         // Enrich the already visible map list as each optional source finishes.
@@ -289,10 +337,10 @@ async function init() {
         loadSteamMetadata().then(error => {
             render();
             reportResourceError("steam", error
-                ? "Steam metadata unavailable (" + error + "). Showing Workshop IDs."
+                ? "Public Steam verification unavailable (" + error + "). Maps are hidden."
                 : null);
         }).catch(error => {
-            reportResourceError("steam", "Steam metadata unavailable: " + error.message);
+            reportResourceError("steam", "Public Steam verification unavailable: " + error.message);
         });
     } catch (error) {
         $("catalog").innerHTML = "";
