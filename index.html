@@ -6,9 +6,9 @@
 <meta name="theme-color" content="#050507">
 <meta name="description" content="All-Around Enhancement — a Black Ops III Zombies-style catalog of public Steam Workshop maps.">
 <title>All-Around Enhancement — Map Catalog</title>
-<link rel="stylesheet" href="styles.css?v=github-submit-confirm-20261008">
-<script src="translations.js?v=github-submit-confirm-20261008" defer></script>
-<script src="app.js?v=github-submit-confirm-20261008" defer></script>
+<link rel="stylesheet" href="styles.css?v=github-guide-footer-20261008">
+<script src="translations.js?v=github-guide-footer-20261008" defer></script>
+<script src="app.js?v=github-guide-footer-20261008" defer></script>
 </head>
 <body>
 <div class="game-shell">
@@ -111,7 +111,6 @@
         <label for="changeReason" data-i18n="changeReason">REASON FOR REQUEST</label>
         <textarea id="changeReason" name="reason" maxlength="400" minlength="5" rows="4" required data-i18n-placeholder="changeReasonPlaceholder" placeholder="Explain why this map should be recategorized"></textarea>
         <p id="changeMapError" class="submit-error" role="alert" hidden></p>
-        <button id="changeGithubHelp" class="github-help-trigger" type="button" aria-haspopup="dialog" aria-controls="githubGuideOverlay" data-i18n="githubHelpOpen">? WHAT TO DO ON GITHUB — FULL GUIDE</button>
         <p class="submit-github-notice" data-i18n="changeGithubNotice">A GitHub login is required to confirm the request. The current map stays unchanged until a reviewer merges the PR.</p>
         <div class="submit-actions">
           <button id="changeMapCancel" type="button" data-i18n="cancel">CANCEL</button>
@@ -137,7 +136,6 @@
         <label for="submitNotes"><span data-i18n="fieldNotes">ADDITIONAL NOTES</span> <span data-i18n="optional">(OPTIONAL)</span></label>
         <textarea id="submitNotes" name="notes" rows="3" maxlength="400" placeholder="Optional information for the reviewer" data-i18n-placeholder="notesPlaceholder"></textarea>
         <p class="submit-error" id="submitMapError" role="alert" hidden></p>
-        <button id="submitGithubHelp" class="github-help-trigger" type="button" aria-haspopup="dialog" aria-controls="githubGuideOverlay" data-i18n="githubHelpOpen">? WHAT TO DO ON GITHUB — FULL GUIDE</button>
         <p class="submit-github-notice" data-i18n="confirmAccount">A GitHub account is required to confirm your submission. After confirmation, validation and PR creation run automatically.</p>
         <div class="submit-actions">
           <button type="button" id="submitMapCancel" data-i18n="cancel">CANCEL</button>
@@ -155,12 +153,13 @@
                 data-i18n-aria-label="githubGuideClose">×</button>
       </div>
       <p id="githubGuideIntro" class="github-guide-intro"></p>
-       <section class="github-guide-pr-explainer" aria-labelledby="githubGuidePRWhatTitle">
+       
+      <ol id="githubGuideSteps" class="github-guide-steps"></ol>
+      <p class="github-guide-note" data-i18n="githubGuideNote"></p>
+      <section class="github-guide-pr-explainer" aria-labelledby="githubGuidePRWhatTitle">
          <h3 id="githubGuidePRWhatTitle" data-i18n="githubGuidePRWhatTitle">WHAT IS A PR (PULL REQUEST)?</h3>
          <p data-i18n="githubGuidePRWhatBody">A PR proposes a change to the map catalog. A GitHub Issue starts the request; automation prepares the PR for review.</p>
        </section>
-      <ol id="githubGuideSteps" class="github-guide-steps"></ol>
-      <p class="github-guide-note" data-i18n="githubGuideNote"></p>
       <div class="submit-actions github-guide-actions">
         <button id="githubGuideBack" type="button" data-i18n="githubGuideBack">← BACK TO FORM</button>
          <button id="githubGuideProceed" type="button" class="submit-confirm" data-i18n="githubGuideProceed" hidden>I UNDERSTAND, CONTINUE TO GITHUB ↗</button>
