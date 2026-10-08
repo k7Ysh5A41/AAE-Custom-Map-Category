@@ -3,6 +3,8 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  schedule:
+    - cron: "17 3 * * *"
 permissions:
   contents: read
   pages: write
@@ -26,6 +28,8 @@ jobs:
           curl --fail --location --retry 3 --silent --show-error \
             "https://raw.githubusercontent.com/k7Ysh5A41/AAE-localizedstrings/main/english/localizedstrings/AAEP.str" \
             --output localization/AAEP.str
+      - name: Fetch Steam Workshop metadata
+        run: python3 scripts/fetch_steam.py
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
