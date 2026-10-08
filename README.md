@@ -24,10 +24,10 @@ The [Steam metadata fetcher](./scripts/fetch_steam.py) reads UGC IDs from `custo
 
 - The generated `steam_workshop.json` is included in the **deployed website**, not committed to this repository.
 - Steam metadata is refreshed with each deployment and via the daily scheduled workflow.
-- Only Workshop items independently verified as **public** (`visibility == 0`) are displayed. Friends-only, private, unlisted, deleted, and unverified items are excluded from the map list and CSV export.
+- Only Workshop items independently verified as **public** (`visibility == 0`) are displayed. Friends-only, private, unlisted, deleted, and unverified items are excluded from the map list and search results.
 - If the deployed verification data cannot load, the site hides all map entries rather than exposing potentially non-public items.
 - Steam Workshop uploader IDs come from the item's `creator` field. The build fetches publicly available Steam profile display names when possible, and displays their names as **non-clickable, small text**, without linking to Steam profiles.
-- Cover images are placed inside strictly square 1:1 clipping containers, with fixed HTML dimensions and CSS `object-fit:cover` (47 × 47 for list thumbnails and up to 350 × 350 for the selected preview).
+- Steam Workshop images use their native 1:1 shape. List artwork is shown in 54 × 54 pixel frames and the selected preview at up to 240 × 240 pixels (220 × 220 on narrow screens), without cropping.
 - Titles and cover images originate from Steam Workshop, with direct links to the Workshop pages.
 - No Steam API key is needed for the public published-file-details endpoint.
 
@@ -35,12 +35,12 @@ The [Steam metadata fetcher](./scripts/fetch_steam.py) reads UGC IDs from `custo
 
 - A BO3 Zombies map-selection-inspired layout, using nearly black backgrounds, slate-blue horizontal separators, condensed white typography, and full-row red-orange highlights.
 - No separate top navigation bar. Main heading: **ALL-AROUND ENHANCEMENT MAP CATALOG**.
-- Three sections: left category navigation, compact map-selection list in the middle, and the selected map's large preview and Workshop information on the right.
+- Three sections: slightly larger category choices on the left, larger map selection rows in the middle, and a smaller square preview with Workshop information on the right.
 - Verified public Steam Workshop map titles, non-clickable uploader names, UGC IDs, square cover images, and Workshop-sourced mission briefing excerpts when available.
-- Keyboard navigable map list, Lite-only filter, Copy ID button in the preview, direct Steam Workshop link, and CSV export.
+- Keyboard navigable map list, live case-insensitive search by Steam Workshop map title or UGC ID across all public maps, Lite-only filter, Copy ID button in the preview, and direct Steam Workshop link.
 - Responsive desktop/mobile layout.
 
-There is no search field or View JSON button.
+There is no View JSON button or CSV export. The search bar matches verified public Steam titles and UGC IDs.
 
 ## GitHub Pages
 

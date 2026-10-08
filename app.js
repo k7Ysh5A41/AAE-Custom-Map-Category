@@ -21,7 +21,7 @@ const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, char =>
 const state = {
     categories: [], maps: [], selected: null, liteOnly: false,
     translations: new Map(), workshop: {}, steamReady: false, steamFailed: false,
-    activeMapId: null
+    activeMapId: null, query: ""
 };
 
 // StringEd .str files pair REFERENCE with LANG_ENGLISH. The file name supplies
@@ -129,9 +129,14 @@ function publicMaps() {
     return state.maps.filter(map => Boolean(getSteamInfo(map.id)));
 }
 function filtered() {
-    return publicMaps().filter(map =>
-        (state.selected === null || map.category.order === state.selected) &&
-        (!state.liteOnly || map.liteOnly));
+    const query = state.query.trim().toLocaleLowerCase();
+    return publicMaps().filter(map => {
+        const info = getSteamInfo(map.id);
+        return (state.selected === null || query || map.category.order === state.selected) &&
+            (!state.liteOnly || map.liteOnly) &&
+            (!query || String(info?.title || "").toLocaleLowerCase().includes(query) ||
+                map.id.includes(query));
+    });
 }
 function categoryMaps(category) {
     return publicMaps().filter(map => map.category.order === category.order);
@@ -168,13 +173,13 @@ function categoryRow(category) {
         '</div><span class="category-chevron" aria-hidden="true">›</span></article>';
 }
 function squareCover(url, large = false) {
-    const size = large ? 350 : 47;
+    const size = large ? 240 : 54;
     const isHttps = typeof url === "string" && /^https:\/\//i.test(url);
     return '<span class="' + (large ? "preview-cover" : "cover-square") + '">' +
         (isHttps ?
             '<img src="' + escapeHtml(url) + '" width="' + size +
             '" height="' + size + '" alt="" loading="' + (large ? "eager" : "lazy") +
-            '" decoding="async" referrerpolicy="no-referrer" style="object-fit:cover;aspect-ratio:1/1">' :
+            '" decoding="async" referrerpolicy="no-referrer" style="object-fit:contain;aspect-ratio:1/1">' :
             '<span class="cover-fallback">III</span>') + "</span>";
 }
 function publisherName(info) {
@@ -227,8 +232,8 @@ function render() {
     const publicItems = publicMaps();
     renderNav();
     const category = state.selected === null ? null : state.categories[state.selected];
-    $("viewTitle").textContent = category?.name || (state.liteOnly ? "LITE-ONLY MAPS" : "MAPS");
-    $("viewDescription").textContent = category?.summary || "";
+    $("viewTitle").textContent = state.query.trim() ? "SEARCH RESULTS" : (category?.name || (state.liteOnly ? "LITE-ONLY MAPS" : "MAPS"));
+    $("viewDescription").textContent = state.query.trim() ? "" : (category?.summary || "");
     $("groupCount").textContent = state.steamReady ?
         state.categories.filter(cat => categoryMaps(cat).length).length.toLocaleString("en-US") : "—";
     $("mapCount").textContent = state.steamReady ?
@@ -262,28 +267,10 @@ async function copyID(id) {
         field.remove();
     }
 }
-function csvEscape(value) { return '"' + String(value ?? "").replaceAll('"', '""') + '"'; }
-function exportCsv() {
-    const rows = [["category_index", "category_key", "category_description", "category_name",
-        "steam_title", "publisher", "publisher_steamid", "ugc_id", "lite_only"],
-        ...filtered().map(map => [
-            map.category.index, map.category.button, map.category.description,
-            map.category.name, getSteamInfo(map.id)?.title || "",
-            getSteamInfo(map.id)?.creator_name || "",
-            getSteamInfo(map.id)?.creator_id || "", map.id, map.liteOnly
-        ])];
-    const csv = "\ufeff" + rows.map(row => row.map(csvEscape).join(",")).join("\r\n");
-    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = "aae-custom-maps.csv";
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
 function selectCategory(value) {
     state.selected = value === "all" ? null : Number(value);
+    state.query = "";
+    $("searchInput").value = "";
     state.activeMapId = null;
     render();
 }
@@ -352,7 +339,12 @@ function bind() {
         state.activeMapId = null;
         render();
     });
-    $("exportCsv").addEventListener("click", exportCsv);
+    $("searchInput").addEventListener("input", event => {
+        state.query = event.target.value;
+        if (state.query.trim()) state.selected = null;
+        state.activeMapId = null;
+        render();
+    });
 }
 
 // Rendering is independent of Steam / localization network requests.
@@ -390,7 +382,7 @@ async function init() {
         });
 
         loadSteamMetadata().then(error => {
-            if (!error && state.selected === null && !state.liteOnly) {
+            if (!error && state.selected === null && !state.liteOnly && !state.query.trim()) {
                 const first = state.categories.find(category => categoryMaps(category).length > 0);
                 if (first) state.selected = first.order;
             }
