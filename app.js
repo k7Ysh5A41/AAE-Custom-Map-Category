@@ -550,6 +550,7 @@ function renderNav() {
                 state.steamReady ? categoryMaps(category).length : "—";
         return '<button class="nav-btn' + (category.order === state.selected ? " active" : "") +
             (category.order === RECENT_CATEGORY ? " recent-category" : "") +
+            (category.button === INCOMPATIBLE_CATEGORY ? " incompatible-category" : "") +
             (category.order === PENDING_CATEGORY ? " pending-category" : "") +
             (category.order === PENDING_CHANGES ? " pending-change-category" : "") +
             (category.order === PENDING_DELETION ? " pending-delete-category" : "") +
@@ -594,12 +595,14 @@ function reviewCategoryHtml(map, preview = false) {
         '<span class="map-category-tag ' + kind + '"' +
         (title ? ' title="' + escapeHtml(title) + '"' : '') +
         '>' + escapeHtml(name) + '</span>';
-    const sourceKind = map.pending ? "category-proposed" : "category-current";
+    const sourceKind = map.category.button === INCOMPATIBLE_CATEGORY ? "category-incompatible" :
+        (map.pending ? "category-proposed" : "category-current");
     const source = tag(map.category.name, sourceKind,
         map.pending ? t("reviewProposedCategory") : "");
     const move = requested ?
         '<span class="map-category-arrow" aria-hidden="true">→</span>' +
-        tag(requested.name, "category-target", t("reviewMoveToCategory")) : "";
+        tag(requested.name, requested.button === INCOMPATIBLE_CATEGORY ?
+            "category-incompatible" : "category-target", t("reviewMoveToCategory")) : "";
     return '<div class="' + cls + '">' + source + move + '</div>';
 }
 
@@ -609,6 +612,7 @@ function mapRow(map) {
     const chosen = state.activeMapId === map.id;
     return '<div class="map-row' + (chosen ? ' active' : '') +
         (map.pending ? ' pending-proposal' : '') +
+        (map.category.button === INCOMPATIBLE_CATEGORY ? ' incompatible-map' : '') +
         '" role="option" aria-selected="' + (chosen ? "true" : "false") +
         '" tabindex="0" data-map-id="' + escapeHtml(map.id) + '">' +
         squareCover(info.preview_url) +
