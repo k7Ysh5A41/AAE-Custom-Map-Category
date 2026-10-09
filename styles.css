@@ -2316,3 +2316,52 @@ body.submission-open .social-bar { pointer-events:none; }
   .github-guide-game-sync {padding:11px 12px;}
   .github-guide-game-sync p {font-size:13px;}
 }
+
+
+/* Virtual recent-approved updates: filtered view, never a catalog category. */
+#categoryNav .nav-btn.recent-category {
+  border-left:3px solid #9cebbe;
+  background:linear-gradient(90deg,rgba(48,158,98,.20),rgba(37,109,88,.06));
+  color:#d8ffe8;
+}
+#categoryNav .nav-btn.recent-category small {color:#bbebd2;}
+#categoryNav .nav-btn.recent-category:hover,
+#categoryNav .nav-btn.recent-category:focus-visible {
+  border-left-color:#c5ffdc;
+  background:linear-gradient(90deg,rgba(75,183,118,.33),rgba(64,152,112,.12));
+  box-shadow:inset 0 0 16px rgba(80,205,140,.17),0 0 12px rgba(75,174,126,.18);
+}
+#categoryNav .nav-btn.recent-category.active {
+  background:linear-gradient(90deg,#b4f0ca,#64d59b);
+  color:#10291b;
+  border-left-color:#ebfff0;
+}
+#categoryNav .nav-btn.recent-category.active small {color:#173e29;}
+.map-row .chip.recently-new,
+.preview-new-tag .chip.recently-new {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 auto;
+  min-height:27px;
+  padding:4px 9px;
+  color:#133b29;
+  background:#8eedba;
+  border:1px solid #c5ffda;
+  border-radius:3px;
+  font:850 12px/1.2 "Segoe UI",Arial,sans-serif;
+  letter-spacing:.055em;
+  box-shadow:0 0 11px rgba(123,246,161,.32);
+}
+.map-row.active .chip.recently-new,
+.map-row[aria-selected="true"] .chip.recently-new {
+  color:#153a26;
+  background:#e5ffe6;
+}
+.preview-new-tag .chip.recently-new {
+  min-height:29px;
+  font-size:13px;
+}
+@media(max-width:650px) {
+  .map-row .chip.recently-new {min-height:24px;padding:4px 7px;font-size:11px;}
+}
