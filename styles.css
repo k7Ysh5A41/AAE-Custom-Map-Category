@@ -2372,3 +2372,57 @@ body.submission-open .social-bar { pointer-events:none; }
 @media(max-width:650px) {
   .map-row .chip.recently-new {min-height:24px;padding:4px 7px;font-size:11px;}
 }
+
+
+/* Incompatible maps are a neutral classification, not an error/danger state. */
+#categoryNav .nav-btn.incompatible-category {
+  color:#cbd4dc;
+  border-left:3px solid #8898a7;
+  border-color:rgba(151,168,183,.32);
+  background:linear-gradient(90deg,rgba(106,126,146,.18),rgba(64,74,84,.08));
+  box-shadow:inset 0 0 12px rgba(134,154,175,.09);
+}
+#categoryNav .nav-btn.incompatible-category small {color:#aab7c4;}
+#categoryNav .nav-btn.incompatible-category:hover,
+#categoryNav .nav-btn.incompatible-category:focus-visible {
+  color:#f3f6fa;
+  border-color:#a2b1bf;
+  background:linear-gradient(90deg,rgba(116,139,159,.29),rgba(74,89,102,.15));
+  box-shadow:inset 0 0 16px rgba(128,150,170,.16),0 0 14px rgba(129,151,172,.19);
+}
+#categoryNav .nav-btn.incompatible-category.active,
+#categoryNav .nav-btn.incompatible-category.active:hover,
+#categoryNav .nav-btn.incompatible-category.active:focus-visible {
+  color:#17222b;
+  border-color:#d7e0e6;
+  background:linear-gradient(95deg,#ced8df,#96aaba);
+  box-shadow:0 0 15px rgba(146,166,182,.27);
+  text-shadow:none;
+  animation:none;
+  filter:none;
+}
+#categoryNav .nav-btn.incompatible-category.active small {color:#334655;}
+.map-category-tag.category-incompatible {
+  color:#d5dde5;
+  background:rgba(83,100,118,.32);
+  border-color:rgba(151,169,183,.6);
+}
+.map-row.incompatible-map.active,
+.map-row.incompatible-map[aria-selected="true"],
+.map-row.incompatible-map.active:hover,
+.map-row.incompatible-map[aria-selected="true"]:hover {
+  color:#17222b;
+  border-color:#c0cfdb;
+  background:linear-gradient(105deg,#c9d6df,#91a7b8);
+  box-shadow:0 0 15px rgba(135,154,174,.27);
+  text-shadow:none;
+  animation:none;
+  filter:none;
+}
+.map-row.incompatible-map.active .map-publisher,
+.map-row.incompatible-map[aria-selected="true"] .map-publisher {color:#304657;}
+.map-row.incompatible-map:hover .cover-square,
+.map-row.incompatible-map.active .cover-square {
+  border-color:#cfdae3;
+  box-shadow:0 0 13px rgba(125,147,164,.28);
+}
