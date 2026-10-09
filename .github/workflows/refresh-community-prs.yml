@@ -1,0 +1,55 @@
+name: Refresh conflicting community PRs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - custommap_cate.json
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: read
+  issues: read
+
+concurrency:
+  group: refresh-community-prs
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    if: github.repository == 'k7Ysh5A41/AAE-Custom-Map-Category'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate refresh script
+        run: |
+          python3 -m py_compile scripts/process_submission.py scripts/process_change_request.py scripts/refresh_community_prs.py
+          python3 - <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+          sys.path.insert(0, 'scripts')
+          from process_change_request import updated_change_catalog
+          from refresh_community_prs import preserve_catalog_format
+          original = Path('custommap_cate.json').read_text(encoding='utf-8')
+          categories = json.loads(original)
+          a = next(c for c in categories if c['ugc'])
+          b = next(c for c in categories if c['button'] != a['button'])
+          item = a['ugc'][0]
+          workshop_id = str(item['id'] if isinstance(item, dict) else item)
+          changed = updated_change_catalog(original, workshop_id,
+              'move', a['button'], b['button'])
+          formatted = preserve_catalog_format(original, changed)
+          result = json.loads(formatted)
+          assert result == json.loads(changed)
+          assert sum(len(c['ugc']) for c in result) == sum(len(c['ugc']) for c in categories)
+          assert all(result[i] == categories[i] for i in range(len(categories))
+                     if categories[i]['button'] not in (a['button'], b['button']))
+          print('Safe catalog PR refresh validation passed.')
+          PY
+      - name: Refresh verified PR branches against current main
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 scripts/refresh_community_prs.py
