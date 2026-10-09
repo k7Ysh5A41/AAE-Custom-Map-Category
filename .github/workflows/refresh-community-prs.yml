@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - custommap_cate.json
+      - scripts/refresh_community_prs.py
+      - .github/workflows/refresh-community-prs.yml
   workflow_dispatch:
 
 permissions:
