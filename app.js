@@ -583,33 +583,24 @@ function squareCover(url, large = false) {
 function publisherName(info) {
     return String(info.creator_name || (info.creator_id ? "Steam " + info.creator_id : t("unknownPublisher")));
 }
-function reviewCategoryInfo(map) {
-    if (map.pending) {
-        return {label:t("reviewProposedCategory"), name:map.category.name, kind:"new"};
-    }
-    if (map.changeRequest?.action === "update") {
-        return {label:t("reviewCurrentCategory"), name:map.category.name, kind:"move"};
-    }
-    if (map.changeRequest?.action === "move") {
-        const target = state.categories.find(c => c.button === map.changeRequest.target);
-        return target ? {label:t("reviewMoveToCategory"), name:target.name, kind:"move"} : null;
-    }
-    if (map.changeRequest?.action === "delete") {
-        return {label:t("reviewCurrentCategory"), name:map.category.name, kind:"delete"};
-    }
-    return {label:t("reviewCurrentCategory"), name:map.category.name, kind:"move"};
-}
 function reviewCategoryHtml(map, preview = false) {
-    const info = reviewCategoryInfo(map);
-    if (!info) return "";
-    const cls = (preview ? "review-category-banner" : "review-category-line");
-    const current = map.changeRequest?.action === "move" ?
-        '<div class="' + cls + ' review-move">' +
-        '<span>' + escapeHtml(t("reviewCurrentCategory")) + '</span>' +
-        '<strong>' + escapeHtml(map.category.name) + '</strong></div>' : "";
-    return current + '<div class="' + cls + ' review-' + info.kind + '">' +
-        '<span>' + escapeHtml(info.label) + '</span>' +
-        '<strong>' + escapeHtml(info.name) + '</strong></div>';
+    // Category attribution is a compact tag, not a textual status line.
+    // Keep the current and requested destinations distinct for move requests.
+    const cls = preview ? "map-category-tags map-category-tags-preview" : "map-category-tags";
+    const requested = map.changeRequest?.action === "move"
+        ? state.categories.find(category => category.button === map.changeRequest.target)
+        : null;
+    const tag = (name, kind, title = "") =>
+        '<span class="map-category-tag ' + kind + '"' +
+        (title ? ' title="' + escapeHtml(title) + '"' : '') +
+        '>' + escapeHtml(name) + '</span>';
+    const sourceKind = map.pending ? "category-proposed" : "category-current";
+    const source = tag(map.category.name, sourceKind,
+        map.pending ? t("reviewProposedCategory") : "");
+    const move = requested ?
+        '<span class="map-category-arrow" aria-hidden="true">→</span>' +
+        tag(requested.name, "category-target", t("reviewMoveToCategory")) : "";
+    return '<div class="' + cls + '">' + source + move + '</div>';
 }
 
 function mapRow(map) {
