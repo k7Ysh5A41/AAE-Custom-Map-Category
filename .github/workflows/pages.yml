@@ -216,8 +216,8 @@ jobs:
             "head": {"repo": {"full_name": "k7Ysh5A41/AAE-Custom-Map-Category"},
                      "ref": "community-maps/issue-41"},
             "base": {"ref": "main"},
-            "body": "<!-- aae-map-pr:v1 -->\\nWorkshop ID: " + workshop_id +
-                    "\\nCategory: " + category["button"] + "\\n",
+            "body": "<!-- aae-map-pr:v1 -->\nWorkshop ID: " + workshop_id +
+                    "\nCategory: " + category["button"] + "\n",
           }
           assert parse_recent(pr, {workshop_id: category["button"]}, now)["id"] == workshop_id
           assert parse_recent(dict(pr, merged_at=(now - timedelta(days=8)).isoformat()),
