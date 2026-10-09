@@ -4,6 +4,9 @@ const DATA_URL = "./custommap_cate.json";
 const STEAM_URL = "./steam_workshop.json";
 const AAE_LITE_WORKSHOP_URL = "https://steamcommunity.com/workshop/filedetails/?id=2994481309";
 const PENDING_URL = "./pending_pr_maps.json";
+const RECENT_URL = "./recent_maps.json";
+const RECENT_CATEGORY = "recently-updated";
+const RECENT_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 const PENDING_CATEGORY = "pending";
 const PENDING_CHANGES = "pending-changes";
 const PENDING_DELETION = "pending-deletion";
@@ -105,7 +108,7 @@ const state = {
     categories: [], maps: [], selected: null, liteOnly: false,
     translations: new Map(), workshop: {}, steamReady: false, steamFailed: false,
     activeMapId: null, query: "", pendingReady: false,
-    changeRequests: [], languageChoice: savedLanguageChoice()
+    changeRequests: [], recentReady:false, languageChoice: savedLanguageChoice()
 };
 let localizationRequestId = 0;
 const localizationCache = new Map();
@@ -404,6 +407,36 @@ async function loadPendingPRMaps() {
     state.pendingReady = true;
     render();
 }
+async function loadRecentMaps() {
+    // This optional published feed contains only merged community changes.
+    const response = await fetchWithTimeout(RECENT_URL, { cache: "no-store" });
+    if (!response.ok) throw new Error("Recent approved maps HTTP " + response.status);
+    const payload = await response.json();
+    if (payload?.window_days !== 7 || !Array.isArray(payload?.items))
+        throw new Error("Invalid recent-map index");
+    const approved = new Map(state.maps.filter(map => !map.pending).map(map => [map.id, map]));
+    const seen = new Set();
+    for (const entry of payload.items) {
+        const id = String(entry?.id || "");
+        const map = approved.get(id);
+        const timestamp = Date.parse(entry?.merged_at);
+        const elapsed = Date.now() - timestamp;
+        const prNumber = entry?.pr_number;
+        if (!map || seen.has(id) || !/^\d{7,20}$/.test(id) ||
+            !["added", "changed"].includes(entry?.kind) ||
+            !Number.isFinite(timestamp) || elapsed < 0 || elapsed > RECENT_WINDOW_MS ||
+            !Number.isSafeInteger(prNumber) || prNumber < 1) continue;
+        map.recent = { kind:entry.kind, mergedAt:entry.merged_at, number:prNumber };
+        seen.add(id);
+    }
+    state.recentReady = true;
+    render();
+}
+function isRecentApproved(map) {
+    if (!map.recent) return false;
+    const elapsed = Date.now() - Date.parse(map.recent.mergedAt);
+    return Number.isFinite(elapsed) && elapsed >= 0 && elapsed <= RECENT_WINDOW_MS;
+}
 function isNewPR(map) {
     if (!map.pending) return false;
     const elapsed = Date.now() - Date.parse(map.pending.createdAt);
@@ -416,19 +449,32 @@ function pendingTags(map) {
         '<span class="chip pending-pr-chip" title="PR #' + map.pending.number + '">' +
         escapeHtml(t("pendingPR")) + '</span></span>';
 }
+function newMapTag(map) {
+    const pendingChange = map.changeRequest;
+    const changeAge = pendingChange ? Date.now() - Date.parse(pendingChange.createdAt) : Infinity;
+    if (!isRecentApproved(map) &&
+        !(pendingChange && changeAge >= 0 && changeAge < NEW_PR_WINDOW_MS)) return "";
+    return '<span class="chip recently-new" title="' +
+        escapeHtml(t("recentCategorySummary")) + '">' +
+        escapeHtml(t("newMap")) + '</span>';
+}
+function recentMaps() {
+    return publicMaps().filter(map => !map.pending && !map.changeRequest &&
+        isRecentApproved(map) && (!state.liteOnly || map.liteOnly));
+}
 function publicMaps() {
     if (!state.steamReady) return [];
     return state.maps.filter(map => Boolean(getSteamInfo(map.id)));
 }
 function filtered() {
     const query = state.query.trim().toLocaleLowerCase();
-    return publicMaps().filter(map => {
+    const matches = publicMaps().filter(map => {
         const info = getSteamInfo(map.id);
-        // Each public map belongs to exactly one displayed category:
-        // a pending queue or its approved category, never both.
         const categoryMatches = state.selected === PENDING_CATEGORY ? Boolean(map.pending) :
             state.selected === PENDING_CHANGES ? ["move","update"].includes(map.changeRequest?.action) :
             state.selected === PENDING_DELETION ? map.changeRequest?.action === "delete" :
+            state.selected === RECENT_CATEGORY ?
+                !map.pending && !map.changeRequest && isRecentApproved(map) :
             !map.pending && !map.changeRequest &&
                 (state.selected === null || map.category.order === state.selected);
         return categoryMatches &&
@@ -436,6 +482,9 @@ function filtered() {
             (!query || String(info?.title || "").toLocaleLowerCase().includes(query) ||
                 map.id.includes(query));
     });
+    if (state.selected === RECENT_CATEGORY)
+        matches.sort((a, b) => Date.parse(b.recent.mergedAt) - Date.parse(a.recent.mergedAt));
+    return matches;
 }
 function categoryMaps(category) {
     return publicMaps().filter(map =>
@@ -457,6 +506,7 @@ function changeMaps(action) {
 }
 function categoryCount() {
     return state.categories.filter(cat => categoryMaps(cat).length).length +
+        (recentMaps().length ? 1 : 0) +
         (pendingMaps().length ? 1 : 0) +
         (changeMaps("move").length ? 1 : 0) +
         (changeMaps("delete").length ? 1 : 0);
@@ -471,6 +521,8 @@ function renderNav() {
         state.categories.filter(category => categoryMaps(category).length > 0) :
         state.categories;
     const all = { order:null, name:t("allMaps"), visibleCount:approvedMaps().filter(map => !state.liteOnly || map.liteOnly).length };
+    const recent = {order:RECENT_CATEGORY, name:t("recentCategory"),
+        summary:t("recentCategorySummary")};
     const pending = {
         order:PENDING_CATEGORY, name:t("pendingCategory"),
         summary:t("pendingCategorySummary")
@@ -485,8 +537,10 @@ function renderNav() {
         ...(changeMaps("move").length ? [pendingChanges] : []),
         ...(changeMaps("delete").length ? [pendingDeletion] : [])
     ] : [];
-    $("categoryNav").innerHTML = [all, ...reviewCategories, ...visible].map(category => {
+    const recentCategories = state.recentReady && state.steamReady && recentMaps().length ? [recent] : [];
+    $("categoryNav").innerHTML = [all, ...recentCategories, ...reviewCategories, ...visible].map(category => {
         const count = category.order === null ? category.visibleCount :
+            category.order === RECENT_CATEGORY ? recentMaps().length :
             category.order === PENDING_CATEGORY ?
                 (state.pendingReady && state.steamReady ? pendingMaps().length : "—") :
             category.order === PENDING_CHANGES ?
@@ -495,6 +549,7 @@ function renderNav() {
                 (state.pendingReady && state.steamReady ? changeMaps("delete").length : "—") :
                 state.steamReady ? categoryMaps(category).length : "—";
         return '<button class="nav-btn' + (category.order === state.selected ? " active" : "") +
+            (category.order === RECENT_CATEGORY ? " recent-category" : "") +
             (category.order === PENDING_CATEGORY ? " pending-category" : "") +
             (category.order === PENDING_CHANGES ? " pending-change-category" : "") +
             (category.order === PENDING_DELETION ? " pending-delete-category" : "") +
@@ -542,13 +597,17 @@ function reviewCategoryInfo(map) {
     if (map.changeRequest?.action === "delete") {
         return {label:t("reviewCurrentCategory"), name:map.category.name, kind:"delete"};
     }
-    return null;
+    return {label:t("reviewCurrentCategory"), name:map.category.name, kind:"move"};
 }
 function reviewCategoryHtml(map, preview = false) {
     const info = reviewCategoryInfo(map);
     if (!info) return "";
-    return '<div class="' + (preview ? "review-category-banner" : "review-category-line") +
-        ' review-' + info.kind + '">' +
+    const cls = (preview ? "review-category-banner" : "review-category-line");
+    const current = map.changeRequest?.action === "move" ?
+        '<div class="' + cls + ' review-move">' +
+        '<span>' + escapeHtml(t("reviewCurrentCategory")) + '</span>' +
+        '<strong>' + escapeHtml(map.category.name) + '</strong></div>' : "";
+    return current + '<div class="' + cls + ' review-' + info.kind + '">' +
         '<span>' + escapeHtml(info.label) + '</span>' +
         '<strong>' + escapeHtml(info.name) + '</strong></div>';
 }
@@ -567,7 +626,7 @@ function mapRow(map) {
         escapeHtml(publisherName(info)) + '</div>' +
         reviewCategoryHtml(map) + '</div>' +
         (map.liteOnly ? '<span class="chip lite">' + escapeHtml(t("lite")) + '</span>' : '') +
-        pendingTags(map) +
+        pendingTags(map) + newMapTag(map) +
         (map.changeRequest ? '<span class="chip change-chip">' +
             escapeHtml(t(map.changeRequest.action === "delete" ?
                 "changePendingDelete" : map.changeRequest.action === "update" ? "changePendingUpdate" : "changePendingMove")) + '</span>' : '') +
@@ -592,6 +651,9 @@ function renderPreview() {
         '<div class="preview-topline"></div>' + squareCover(info.preview_url, true) +
         '<div class="preview-title-band">' + escapeHtml(info.title) + '</div>' +
         reviewCategoryHtml(map, true) +
+        (isRecentApproved(map) || (map.changeRequest && newMapTag(map)) ?
+            '<div class="preview-pr-status"><span class="preview-new-tag">' +
+            newMapTag(map) + '</span></div>' : '') +
         (map.pending ? '<div class="preview-pr-status">' + pendingTags(map) +
             ' <span>#' + map.pending.number + '</span></div>' : '') +
         (map.changeRequest ?
@@ -691,7 +753,7 @@ function animateCategoryList(previousScroll) {
     }
 }
 function selectCategory(value) {
-    const virtual = [PENDING_CATEGORY, PENDING_CHANGES, PENDING_DELETION];
+    const virtual = [RECENT_CATEGORY, PENDING_CATEGORY, PENDING_CHANGES, PENDING_DELETION];
     const next = value === "all" ? null :
         virtual.includes(value) ? value : Number(value);
     // A repeat click does nothing: preserve the current scroll and map.
@@ -777,7 +839,8 @@ function bind() {
         // Never leave an active category selected when the Lite-only filter
         // has removed every map from that category.
         const selected = state.selected;
-        const count = selected === PENDING_CATEGORY ? pendingMaps().length :
+        const count = selected === RECENT_CATEGORY ? recentMaps().length :
+            selected === PENDING_CATEGORY ? pendingMaps().length :
             selected === PENDING_CHANGES ? changeMaps("move").length :
             selected === PENDING_DELETION ? changeMaps("delete").length :
             selected === null ? approvedMaps().filter(map => !state.liteOnly || map.liteOnly).length :
@@ -785,6 +848,7 @@ function bind() {
         if (selected !== null && count === 0) {
             const first = state.categories.find(category => categoryMaps(category).length > 0);
             state.selected = first ? first.order :
+                recentMaps().length ? RECENT_CATEGORY :
                 pendingMaps().length ? PENDING_CATEGORY :
                 changeMaps("move").length ? PENDING_CHANGES :
                 changeMaps("delete").length ? PENDING_DELETION : null;
@@ -1244,6 +1308,11 @@ async function init() {
 
         // Enrich the already visible map list as each optional source finishes.
         refreshLocalization();
+        loadRecentMaps().catch(error => {
+            state.recentReady = true;
+            render(); // The approved catalog still works when the optional recent feed fails.
+            console.warn("Recent approved map feed unavailable:", error);
+        });
         loadPendingPRMaps().catch(error => {
             // Approved catalog remains fully usable if the optional PR feed fails.
             console.warn("Pending PR map feed unavailable:", error);
