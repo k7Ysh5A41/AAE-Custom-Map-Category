@@ -1737,61 +1737,68 @@ body.submission-open .social-bar { pointer-events:none; }
 }
 
 
-/* Display the review destination inside pending map rows and the large preview. */
-.review-category-line {
+/* Compact, category-only tags in approved, recent and pending map lists. */
+.map-category-tags {
   display:flex;
   flex-wrap:wrap;
-  gap:4px 7px;
-  align-items:baseline;
+  align-items:center;
+  gap:6px;
   min-width:0;
   margin-top:7px;
-  color:#ffc58a;
-  font:600 13px/1.35 "Segoe UI",Arial,sans-serif;
 }
-.review-category-line span {flex:0 0 auto}
-.review-category-line strong {
-  min-width:0;
-  color:#fff2cd;
-  font-size:14px;
-  font-weight:750;
-  overflow-wrap:anywhere;
-}
-.review-category-line.review-delete {color:#ffa39d}
-.review-category-line.review-delete strong {color:#ffd5cb}
-.map-row.active .review-category-line,
-.map-row[aria-selected="true"] .review-category-line {color:#3c2113}
-.map-row.active .review-category-line strong,
-.map-row[aria-selected="true"] .review-category-line strong {color:#21130c}
-.review-category-banner {
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px 12px;
+.map-category-tag {
+  display:inline-flex;
   align-items:center;
-  min-width:0;
-  padding:13px 15px;
-  margin:13px 0;
-  border-left:4px solid #ffc381;
-  background:linear-gradient(90deg,rgba(254,151,58,.21),rgba(255,119,44,.04));
-  box-shadow:inset 0 0 16px rgba(252,100,34,.11);
-  color:#ffc78f;
-  font:700 14px/1.4 "Segoe UI",Arial,sans-serif;
-}
-.review-category-banner strong {
-  color:#fff1d5;
-  font-size:17px;
-  font-weight:780;
+  justify-content:center;
+  box-sizing:border-box;
+  max-width:100%;
+  min-height:26px;
+  padding:4px 9px;
+  border:1px solid rgba(190,198,206,.38);
+  border-radius:4px;
+  background:rgba(64,71,82,.39);
+  color:#e0e5ea;
+  font:750 12px/1.2 "Segoe UI",Arial,sans-serif;
+  letter-spacing:.015em;
   overflow-wrap:anywhere;
+  text-align:center;
 }
-.review-category-banner.review-delete {
-  border-left-color:#f27979;
-  color:#ffb4a8;
-  background:linear-gradient(90deg,rgba(196,58,62,.24),rgba(179,36,34,.03));
+.map-category-tag.category-proposed {
+  color:#ffe1ae;
+  border-color:rgba(249,186,100,.78);
+  background:rgba(116,72,30,.37);
 }
-.review-category-banner.review-delete strong {color:#ffd7cf}
+.map-category-tag.category-target {
+  color:#c8f4e4;
+  border-color:rgba(115,222,177,.65);
+  background:rgba(28,107,75,.36);
+}
+.map-category-arrow {
+  flex:0 0 auto;
+  color:#e4d9ca;
+  font:750 16px/1 "Segoe UI",Arial,sans-serif;
+}
+.map-row.active .map-category-tag,
+.map-row[aria-selected="true"] .map-category-tag {
+  color:#f7f7f5;
+  background:rgba(43,35,30,.83);
+  border-color:rgba(52,35,20,.8);
+}
+.map-row.active .map-category-arrow,
+.map-row[aria-selected="true"] .map-category-arrow {color:#3c2113;}
+.map-category-tags-preview {
+  gap:9px;
+  margin:13px 0;
+}
+.map-category-tags-preview .map-category-tag {
+  min-height:34px;
+  padding:7px 13px;
+  font-size:15px;
+  border-radius:5px;
+}
 @media(max-width:650px) {
-  .review-category-line {font-size:12px}
-  .review-category-line strong {font-size:13px}
-  .review-category-banner strong {font-size:16px}
+  .map-category-tag {font-size:11px;padding:4px 7px;}
+  .map-category-tags-preview .map-category-tag {font-size:14px;}
 }
 
 
