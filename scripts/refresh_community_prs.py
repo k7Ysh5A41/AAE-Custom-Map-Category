@@ -218,7 +218,8 @@ def main():
             # Merge main into the existing PR history; never force-push.
             "parents": [current_head, base_sha],
         })
-        github("PATCH", ref_path, {"sha": commit["sha"], "force": False})
+        update_path = "/git/refs/heads/" + quote(branch, safe="/")
+        github("PATCH", update_path, {"sha": commit["sha"], "force": False})
         refreshed += 1
         print(f"PR #{pr['number']}: preserved map {workshop_id}; main merged into {branch}")
     print(f"Safely refreshed {refreshed} community PR branch(es).")
