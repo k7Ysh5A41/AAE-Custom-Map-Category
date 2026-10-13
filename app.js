@@ -1238,7 +1238,16 @@ function bindGithubGuide() {
     $("githubGuideClose").addEventListener("click", closeGithubGuide);
     $("githubGuideBack").addEventListener("click", closeGithubGuide);
     $("githubGuideProceed").addEventListener("click", () => {
-        if (githubGuideDestination) window.open(githubGuideDestination, "_blank", "noopener,noreferrer");
+        if (!githubGuideDestination) return;
+        const destination = githubGuideDestination;
+        const mode = githubGuideMode;
+        window.open(destination, "_blank", "noopener,noreferrer");
+        closeGithubGuide();
+        if (mode === "change") {
+            closeChangeRequest();
+        } else {
+            closeSubmission();
+        }
     });
     $("githubGuideOverlay").addEventListener("click", event => {
         if (event.target === $("githubGuideOverlay")) closeGithubGuide();
