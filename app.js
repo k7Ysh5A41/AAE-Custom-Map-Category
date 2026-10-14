@@ -895,6 +895,10 @@ function renderPreview() {
 }
 function render() {
     applyUiText();
+    const autoStatus = $("subscriptionAutoStatus");
+    if (autoStatus.dataset.state === "unavailable") {
+        autoStatus.textContent = t("subscriptionAutoMissing");
+    }
     const subscriptionCount = $("subscriptionCount");
     subscriptionCount.hidden = subscribedIds.size === 0;
     subscriptionCount.textContent = subscribedIds.size ? String(subscribedIds.size) : "";
