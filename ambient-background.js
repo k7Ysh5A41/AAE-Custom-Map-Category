@@ -10,12 +10,10 @@
 
     const motionPreference=window.matchMedia("(prefers-reduced-motion: reduce)");
     const compact=window.matchMedia("(max-width: 700px)");
+    // Source video 6s–25s: rose-grey atmosphere and ivory/gold particle stream.
     const COLORS=[
-        [250,86,48],   // AAE orange
-        [236,80,36],   // ember orange
-        [255,178,119], // AAE active-category highlight
-        [255,223,184], // soft ivory
-        [247,197,148]  // subtle golden dust
+        [250,115,68], [205,144,121], [242,187,145],
+        [255,235,208], [190,165,160]
     ];
     const FRAME_MS=1000/30;
     let width=1,height=1,backingScale=1;
@@ -79,25 +77,26 @@
 
     // Seeded particles remain stable while scrolling, changing maps and
     // resizing the browser. Their motion is tied only to elapsed time.
-    const streams=Array.from({length:560},(_,i)=>{
+    const streams=Array.from({length:710},(_,i)=>{
         const depth=rand();
-        const bokeh=rand()<.115;
-        const sharp=!bokeh && rand()<.48;
+        const bokeh=rand()<.15;
+        const sharp=!bokeh && rand()<.56;
         return {
             u:rand(),
+            initialY:rand(),
             lane:rand()<.36?-1:rand()<.52?0:1,
-            scatter:normal()*(.027+depth*.029),
-            drift:between(.006,.019)*(1+depth*.4),
-            bob:between(.001,.009),
+            scatter:normal()*(.032+depth*.036),
+            drift:between(.007,.017)*(1+depth*.45),
+            bob:between(.001,.009),.009),
             phase:between(0,Math.PI*2),
             blink:between(.17,.71),
-            color:rand()<.17?0:rand()<.35?1:rand()<.60?2:rand()<.65?3:4,
+            color:(()=>{const v=rand();return v<.035?0:v<.16?1:v<.49?2:v<.79?3:4;})(),
             kind:bokeh?"blur":sharp?"sharp":"mist",
-            radius:bokeh?between(3.8,8.5):sharp?between(.8,2.2):between(1.2,4.1),
-            alpha:bokeh?between(.17,.60):sharp?between(.17,.69):between(.07,.34)
+            radius:bokeh?between(3.2,10.4):sharp?between(.58,1.80):between(1,3.5),
+            alpha:bokeh?between(.12,.51):sharp?between(.25,.75):between(.055,.30)
         };
     });
-    const floaters=Array.from({length:110},()=>({
+    const floaters=Array.from({length:150},()=>({
         x:rand(),y:rand(),depth:rand(),
         drift:between(.0004,.0022),
         color:rand()<.55?3:2,
@@ -135,59 +134,48 @@
     }
 
     function paintSpotlight(time){
-        // Wide upper-left diffuse ceiling light, matching the video framing.
-        const x=width*(.12+Math.sin(time*.067)*.014);
-        const bloom=[234,198,184];
-        ellipticalGlow(x,-height*.12,width*.47,height*.72,bloom,.24);
-        ellipticalGlow(x,height*.04,width*.24,height*.48,[218,178,164],.093);
+        // A gentle cone entering from the ceiling at the reference's sixth second.
+        const intro=Math.min(1,Math.max(0,time/2.8));
+        const x=width*(.225-.105*intro+Math.sin(time*.052)*.009);
+        ellipticalGlow(x,-height*.18,width*.56,height*.90,[237,215,208],.13+.15*intro);
+        ellipticalGlow(x-width*.06,-height*.06,width*.34,height*.77,
+            [219,190,190],.055+.06*intro);
+        ellipticalGlow(x+width*.08,height*.24,width*.35,height*.68,
+            [194,177,177],.024+.021*intro);
         ctx.save();
         ctx.beginPath();
-        ctx.moveTo(x-width*.11,-height*.13);
-        ctx.lineTo(x+width*.09,-height*.13);
-        ctx.lineTo(x+width*.42,height*.85);
-        ctx.lineTo(x-width*.28,height*.83);
+        ctx.moveTo(x-width*.135,-height*.16);
+        ctx.lineTo(x+width*.19,-height*.16);
+        ctx.lineTo(x+width*.405,height*.81);
+        ctx.lineTo(x-width*.315,height*.82);
         ctx.closePath();
-        const shaft=ctx.createLinearGradient(x,0,x,height*.85);
-        shaft.addColorStop(0,"rgba(235,191,168,.12)");
-        shaft.addColorStop(.37,"rgba(214,168,147,.036)");
-        shaft.addColorStop(1,"rgba(214,168,147,0)");
+        const shaft=ctx.createLinearGradient(x,-height*.1,x+width*.08,height*.84);
+        shaft.addColorStop(0,"rgba(239,214,203,"+(.067*intro)+")");
+        shaft.addColorStop(.22,"rgba(227,203,198,"+(.040*intro)+")");
+        shaft.addColorStop(.62,"rgba(204,182,184,"+(.011*intro)+")");
+        shaft.addColorStop(1,"rgba(192,179,185,0)");
         ctx.fillStyle=shaft;
         ctx.fill();
         ctx.restore();
     }
 
     function paintMist(time){
-        // A low, drifting milky cloud anchors the flow below the map UI.
-        const move=Math.sin(time*.11)*width*.022;
-        ellipticalGlow(width*.13+move,height*.86,width*.46,height*.23,
-            [184,172,162],.155);
-        ellipticalGlow(width*.36-move*.55,height*.93,width*.49,height*.18,
-            [123,118,124],.086);
-        ellipticalGlow(width*.71+move*.25,height*.76,width*.50,height*.27,
-            [115,101,96],.032);
-
-        // The "ribbon" is atmospheric, not a solid sheet: a few exceptionally
-        // soft, wide arcs beneath the flowing particles.
-        ctx.save();
-        for(let i=0;i<3;i++){
-            const g=ctx.createLinearGradient(-width*.1,0,width*1.1,0);
-            g.addColorStop(0,"rgba(200,162,144,0)");
-            g.addColorStop(.24,"rgba(200,162,144,.012)");
-            g.addColorStop(.52,"rgba(235,182,147,.023)");
-            g.addColorStop(.75,"rgba(250,117,65,.013)");
-            g.addColorStop(1,"rgba(250,117,65,0)");
-            ctx.beginPath();
-            for(let j=0;j<=35;j++){
-                const u=j/35;
-                const px=width*(u*1.24-.12);
-                const py=height*(streamY(u,time*.48,i-1)+.025);
-                if(j===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);
-            }
-            ctx.strokeStyle=g;
-            ctx.lineWidth=height*(.05+i*.038);
-            ctx.stroke();
+        const reveal=Math.min(1,.35+time/7);
+        const move=Math.sin(time*.12)*width*.025;
+        ellipticalGlow(width*.14+move,height*.84,width*.48,height*.25,
+            [169,166,175],.11*reveal);
+        ellipticalGlow(width*.36-move*.5,height*.91,width*.48,height*.21,
+            [139,135,151],.064*reveal);
+        ellipticalGlow(width*.68+move*.24,height*.71,width*.46,height*.24,
+            [128,115,130],.017*reveal);
+        // No hard-edged silk bands: seven translucent clouds trace the curve.
+        for(let i=0;i<7;i++){
+            const u=(i+.35)/7;
+            const px=width*(u*1.28-.12);
+            const py=height*(streamY(u,time*.32,0)+.045);
+            ellipticalGlow(px,py,width*.145,height*.085,
+                [176,151,155],(.013+.005*Math.sin(time*.17+i))*reveal);
         }
-        ctx.restore();
     }
 
     function pointSprite(x,y,radius,alpha,color,kind){
@@ -200,28 +188,32 @@
     }
 
     function paintRiver(time){
-        const count=compact.matches?240:streams.length;
+        const count=compact.matches?275:streams.length;
         for(let i=0;i<count;i++){
             const p=streams[i];
             // Positive drift across the river; particles recycle beyond view.
             const u=(p.u+time*p.drift)%1;
             const x=width*(u*1.29-.145);
-            const y=height*(streamY(u,time,p.lane)+p.scatter+
-                Math.sin(time*.27+p.phase)*p.bob);
+            const formed=Math.max(0,Math.min(1,(time-.2)/5));
+            const ease=formed*formed*(3-2*formed);
+            const waveY=streamY(u,time,p.lane)+p.scatter+
+                Math.sin(time*.27+p.phase)*p.bob;
+            const y=height*(p.initialY*(1-ease)+waveY*ease);
             if(x<-18||x>width+18||y<-18||y>height+18)continue;
             const edge=Math.pow(Math.max(0,Math.sin(Math.PI*u)),.42);
-            const twinkle=.77+.23*Math.sin(time*(.65+p.blink)+p.phase);
-            const alpha=p.alpha*edge*twinkle;
+            const glint=Math.pow(Math.max(0,Math.sin(time*(.28+p.blink)+p.phase)),9);
+            const twinkle=.57+.31*Math.sin(time*(.26+p.blink)+p.phase)+.30*glint;
+            const alpha=p.alpha*(.55+.45*ease)*edge*Math.max(.17,twinkle);
             pointSprite(x,y,p.radius,alpha,p.color,p.kind);
             // Occasional tiny sharp centers on the brightest defocused motes.
-            if(p.kind==="blur" && i%8===0)
-                pointSprite(x,y,1.1,alpha*.44,3,"sharp");
+            if(p.kind==="blur" && i%7===0)
+                pointSprite(x,y,1.0,alpha*.49,3,"sharp");
         }
         ctx.globalAlpha=1;
     }
 
     function paintSparseDust(time){
-        const count=compact.matches?45:floaters.length;
+        const count=compact.matches?55:floaters.length;
         for(let i=0;i<count;i++){
             const p=floaters[i];
             const x=width*((p.x+time*p.drift)%1);
