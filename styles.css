@@ -2441,7 +2441,8 @@ body.submission-open .social-bar { pointer-events:none; }
 }
 
 
-/* PS5-login-inspired atmosphere: a passive layer behind the catalog. */
+/* PS5 login-reference atmosphere behind the AAE map UI.
+   No solid silk bands: the river silhouette is formed by particles and fog. */
 .ambient-background {
   position:fixed;
   inset:0;
@@ -2452,40 +2453,104 @@ body.submission-open .social-bar { pointer-events:none; }
   pointer-events:none;
   user-select:none;
   background:
-    radial-gradient(ellipse 83% 63% at 17% 83%,rgba(105,35,17,.17),transparent 76%),
-    radial-gradient(ellipse 91% 65% at 85% 64%,rgba(119,43,19,.13),transparent 74%),
-    radial-gradient(ellipse 85% 54% at 52% 96%,rgba(150,72,32,.075),transparent 78%),
-    linear-gradient(155deg,#050405 0%,#0a0809 47%,#080504 80%,#040305 100%);
+    radial-gradient(ellipse 73% 92% at 13% 16%,rgba(92,72,70,.19),transparent 80%),
+    radial-gradient(ellipse 78% 36% at 22% 90%,rgba(91,84,79,.17),transparent 80%),
+    linear-gradient(110deg,#161318 0%,#17131a 36%,#111018 69%,#0f0d17 100%);
 }
 .game-shell {position:relative;z-index:1;}
 
-/* An origin-category beacon appears only when the selected map belongs to
-   a different real, approved category. Review and recent views are not targets. */
-@keyframes aaeMapOriginPulse {
+/* Map-category origin signal: stronger dual-wave pulse and traveling flash.
+   One approved source category at a time; its DOM node survives map changes. */
+@keyframes aaeOriginPulse {
   0%,100% {
-    background:linear-gradient(100deg,rgba(251,107,55,.10),rgba(244,133,82,.045));
-    border-color:rgba(255,149,96,.23);
-    box-shadow:inset 3px 0 0 rgba(255,163,109,.32),0 0 0 transparent;
-    color:#d8d9dc;
+    border-color:rgba(255,145,75,.37);
+    box-shadow:inset 3px 0 0 rgba(254,152,80,.64),
+      0 0 6px rgba(248,89,37,.17);
   }
-  50% {
-    background:linear-gradient(100deg,rgba(255,163,91,.41),rgba(255,123,63,.12));
-    border-color:rgba(255,197,130,.87);
-    box-shadow:inset 4px 0 0 #ffba79,0 0 17px rgba(255,130,66,.42);
-    color:#fff6eb;
+  37% {
+    border-color:rgba(255,211,157,.98);
+    box-shadow:inset 4px 0 0 #ffe2b2,
+      0 0 14px 2px rgba(255,135,56,.66),
+      0 0 31px rgba(255,78,31,.35);
   }
+  57% {
+    border-color:rgba(255,166,104,.55);
+    box-shadow:inset 3px 0 0 #ff9755,
+      0 0 10px 1px rgba(255,123,54,.29);
+  }
+  72% {
+    border-color:rgba(255,207,151,.93);
+    box-shadow:inset 4px 0 0 #ffcd97,
+      0 0 17px 2px rgba(255,120,52,.49);
+  }
+}
+@keyframes aaeOriginInnerGlow {
+  0%,100% {opacity:.19}
+  37% {opacity:.90}
+  57% {opacity:.33}
+  72% {opacity:.78}
+}
+@keyframes aaeOriginLightSweep {
+  0%,18% {transform:translateX(-180%) skewX(-18deg);opacity:0}
+  25% {opacity:.75}
+  46% {transform:translateX(430%) skewX(-18deg);opacity:0}
+  100% {transform:translateX(430%) skewX(-18deg);opacity:0}
 }
 #categoryNav .nav-btn.map-origin-pulse:not(.active):not(.incompatible-category) {
-  animation:aaeMapOriginPulse 2.25s ease-in-out infinite;
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  color:#ffe4cb;
+  border:1px solid rgba(255,155,89,.65);
+  background:linear-gradient(95deg,rgba(253,107,51,.29),rgba(243,85,31,.085) 75%);
+  text-shadow:0 0 9px rgba(255,192,129,.29);
+  animation:aaeOriginPulse 2.8s ease-in-out infinite;
 }
-#categoryNav .nav-btn.map-origin-pulse small {
-  color:#edc5a6;
+#categoryNav .nav-btn.map-origin-pulse:not(.active)::before,
+#categoryNav .nav-btn.map-origin-pulse:not(.active)::after {
+  content:"";
+  position:absolute;
+  pointer-events:none;
+  z-index:0;
+}
+#categoryNav .nav-btn.map-origin-pulse:not(.active)::before {
+  inset:0;
+  background:linear-gradient(90deg,rgba(255,123,58,.46) 0%,
+    rgba(255,160,86,.19) 50%,rgba(255,147,58,.025) 100%);
+  animation:aaeOriginInnerGlow 2.8s ease-in-out infinite;
+}
+#categoryNav .nav-btn.map-origin-pulse:not(.active)::after {
+  top:-40%;
+  left:0;
+  bottom:-40%;
+  width:28%;
+  opacity:0;
+  background:linear-gradient(90deg,transparent,rgba(255,227,186,.51),transparent);
+  transform:translateX(-180%) skewX(-18deg);
+  animation:aaeOriginLightSweep 2.8s ease-in-out infinite;
+}
+#categoryNav .nav-btn.map-origin-pulse:not(.active)>span,
+#categoryNav .nav-btn.map-origin-pulse:not(.active)>small {
+  position:relative;
+  z-index:1;
+}
+#categoryNav .nav-btn.map-origin-pulse:not(.active)>small {
+  color:#ffe0bd;
+  text-shadow:0 0 10px rgba(255,183,114,.48);
 }
 @media(prefers-reduced-motion:reduce) {
   #categoryNav .nav-btn.map-origin-pulse:not(.active) {
     animation:none!important;
-    border-color:rgba(255,185,111,.68);
-    background:linear-gradient(90deg,rgba(250,127,63,.28),rgba(250,127,63,.06));
-    box-shadow:inset 3px 0 0 rgba(255,177,105,.84);
+    border-color:rgba(255,193,121,.81);
+    background:linear-gradient(90deg,rgba(255,115,51,.39),rgba(255,124,61,.09));
+    box-shadow:inset 4px 0 0 #ffc184,0 0 12px rgba(255,111,53,.22);
+  }
+  #categoryNav .nav-btn.map-origin-pulse:not(.active)::before {
+    animation:none!important;
+    opacity:.45;
+  }
+  #categoryNav .nav-btn.map-origin-pulse:not(.active)::after {
+    animation:none!important;
+    opacity:0;
   }
 }
