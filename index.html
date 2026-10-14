@@ -6,10 +6,10 @@
 <meta name="theme-color" content="#050507">
 <meta name="description" content="All-Around Enhancement — a Black Ops III Zombies-style catalog of public Steam Workshop maps.">
 <title>All-Around Enhancement — Map Catalog</title>
-<link rel="stylesheet" href="styles.css?v=aae-search-scroll-rays-v6-20261015">
+<link rel="stylesheet" href="styles.css?v=aae-modal-origin-grid-v8-20261015">
 <script src="translations.js?v=5d480e9eeb3fa6f8ed56e48832f6be01cf080774" defer></script>
 <script src="ambient-background.js?v=aae-chromatic-volumetric-rays-v7-20261015" defer></script>
-<script src="app.js?v=aae-animated-search-v6-20261015" defer></script>
+<script src="app.js?v=aae-modal-origin-grid-v8-20261015" defer></script>
 </head>
 <body>
 <canvas id="ambientBackground" class="ambient-background" aria-hidden="true"></canvas>
@@ -189,6 +189,7 @@
        
       <ol id="githubGuideSteps" class="github-guide-steps"></ol>
       <p class="github-guide-note" data-i18n="githubGuideNote"></p>
+      <div class="github-guide-details">
       <section class="github-guide-game-sync" aria-labelledby="githubGuideGameSyncTitle">
         <h3 id="githubGuideGameSyncTitle" data-i18n="githubGuideGameSyncTitle">WHEN WILL IT APPEAR IN THE GAME?</h3>
         <p data-i18n="githubGuideGameSyncBody">Submit an Issue on GitHub. The system creates a PR for review. Once the maintainer merges it, the change automatically syncs to the game when it next loads the updated map list. You do not need to update AAE.</p>
@@ -197,6 +198,7 @@
          <h3 id="githubGuidePRWhatTitle" data-i18n="githubGuidePRWhatTitle">WHAT IS A PR (PULL REQUEST)?</h3>
          <p data-i18n="githubGuidePRWhatBody">A PR (Pull Request) is a proposed change for the maintainer to review. You submit an Issue; the system creates the PR automatically. Only merged PRs become official.</p>
        </section>
+      </div>
       <div class="submit-actions github-guide-actions">
         <button id="githubGuideBack" type="button" data-i18n="githubGuideBack">← BACK TO FORM</button>
          <button id="githubGuideProceed" type="button" class="submit-confirm" data-i18n="githubGuideProceed" hidden>I UNDERSTAND, CONTINUE TO GITHUB ↗</button>

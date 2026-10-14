@@ -834,7 +834,7 @@ function bind() {
     bindGithubGuide();
     $("previewPane").addEventListener("click", event => {
         const button = event.target.closest("[data-request-change]");
-        if (button) openChangeRequest(button.dataset.requestChange);
+        if (button) openChangeRequest(button.dataset.requestChange,button);
     });
     $("categoryNav").addEventListener("click", event => {
         const button = event.target.closest("[data-category]");
@@ -990,17 +990,97 @@ function setSubmissionPending(pending) {
     button.disabled = pending;
     button.textContent = t(pending ? "checking" : "submitRequest");
 }
+const modalMotions = new WeakMap();
+const modalOrigins = new WeakMap();
+function rememberModalOrigin(overlay, trigger) {
+    if (!trigger || !trigger.isConnected) return;
+    const rect = trigger.getBoundingClientRect();
+    modalOrigins.set(overlay, {
+        x:rect.left+rect.width/2, y:rect.top+rect.height/2,
+        width:Math.max(1,rect.width), height:Math.max(1,rect.height)
+    });
+}
+function stopModalMotion(overlay) {
+    const previous = modalMotions.get(overlay);
+    if (!previous) return;
+    modalMotions.delete(overlay);
+    for (const animation of previous) animation.cancel();
+    delete overlay.dataset.motion;
+}
+function runModalMotion(overlay, opening, onComplete = () => {}) {
+    stopModalMotion(overlay);
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const dialog = overlay.querySelector(".submit-dialog");
+    if (!dialog || reducedMotion || typeof dialog.animate !== "function") {
+        onComplete();
+        return;
+    }
+    const viewportRect = dialog.getBoundingClientRect();
+    const origin = modalOrigins.get(overlay) || {
+        x:window.innerWidth/2, y:window.innerHeight/2,width:72,height:44
+    };
+    const dx = origin.x-(viewportRect.left+viewportRect.width/2);
+    const dy = origin.y-(viewportRect.top+viewportRect.height/2);
+    const sx = Math.max(.08,Math.min(.40,origin.width/Math.max(1,viewportRect.width)));
+    const sy = Math.max(.07,Math.min(.38,origin.height/Math.max(1,viewportRect.height)));
+    const compact = {
+        opacity:.10, filter:"blur(7px) brightness(1.65)",
+        transform:`translate3d(${dx}px,${dy}px,0) scale(${sx},${sy})`
+    };
+    const expanded = {
+        opacity:1,filter:"blur(0px) brightness(1)",
+        transform:"translate3d(0px,0px,0px) scale(1,1)"
+    };
+    const overshoot = {
+        opacity:1,filter:"blur(0px) brightness(1.07)",
+        transform:"translate3d(0px,-5px,0px) scale(1.034,1.014)"
+    };
+    const enter = [
+        {...compact,offset:0},
+        {...overshoot,offset:.76},
+        {...expanded,offset:1}
+    ];
+    const exit = [
+        {...expanded,offset:0},
+        {opacity:.92,filter:"blur(0px) brightness(1.13)",
+            transform:`translate3d(${dx*.11}px,${dy*.11}px,0) scale(.97,.97)`,offset:.22},
+        {...compact,opacity:0,offset:1}
+    ];
+    const duration = opening ? 600 : 410;
+    overlay.dataset.motion = opening ? "enter" : "exit";
+    overlay.style.setProperty("--modal-origin-x",origin.x+"px");
+    overlay.style.setProperty("--modal-origin-y",origin.y+"px");
+    const panelAnimation = dialog.animate(opening?enter:exit,{
+        duration,fill:"both",
+        easing:opening?"cubic-bezier(.16,.81,.2,1)":"cubic-bezier(.55,.02,.8,.42)"
+    });
+    const veilAnimation = overlay.animate(
+        opening?[{opacity:0},{opacity:1}]:[{opacity:1},{opacity:0}],{
+            duration:opening?340:350,fill:"both",
+            easing:"ease-in-out"
+        });
+    const group=[panelAnimation,veilAnimation];
+    modalMotions.set(overlay,group);
+    panelAnimation.finished.then(() => {
+        if (modalMotions.get(overlay)!==group) return;
+        stopModalMotion(overlay);
+        onComplete();
+    },() => {});
+}
 function closeSubmission() {
-    if ($("submitMapOverlay").hidden) return;
-    if (!$("githubGuideOverlay").hidden) closeGithubGuide();
+    const overlay=$("submitMapOverlay");
+    if (overlay.hidden || overlay.dataset.motion==="exit") return;
+    if (!$("githubGuideOverlay").hidden) closeGithubGuide(true,false);
     submissionValidationId++;
     setSubmissionPending(false);
-    $("submitMapOverlay").hidden = true;
-    document.documentElement.classList.remove("submission-open");
-    document.body.classList.remove("submission-open");
-    document.body.style.top = submissionPreviousTop;
-    window.scrollTo(0, submissionScrollY);
-    $("submitMapOpen").focus({ preventScroll: true });
+    runModalMotion(overlay,false,() => {
+        overlay.hidden=true;
+        document.documentElement.classList.remove("submission-open");
+        document.body.classList.remove("submission-open");
+        document.body.style.top=submissionPreviousTop;
+        window.scrollTo(0,submissionScrollY);
+        $("submitMapOpen").focus({preventScroll:true});
+    });
 }
 function openSubmission() {
     if (!$("submitMapOverlay").hidden) return;
@@ -1025,8 +1105,11 @@ function openSubmission() {
     document.body.style.top = -submissionScrollY + "px";
     document.documentElement.classList.add("submission-open");
     document.body.classList.add("submission-open");
-    $("submitMapOverlay").hidden = false;
-    $("submitWorkshopId").focus({ preventScroll: true });
+    const overlay=$("submitMapOverlay");
+    rememberModalOrigin(overlay,$("submitMapOpen"));
+    overlay.hidden=false;
+    runModalMotion(overlay,true);
+    $("submitWorkshopId").focus({preventScroll:true});
 }
 // Recheck current public main, not just the catalog snapshot loaded with this page.
 async function isWorkshopIdInMain(workshopId) {
@@ -1139,7 +1222,7 @@ function updateChangeAction() {
     $("changeTargetCategory").hidden = incompatible;
     $("changeTargetCategory").required = !incompatible;
 }
-function openChangeRequest(id) {
+function openChangeRequest(id,trigger) {
     if (!$("changeMapOverlay").hidden || !$("submitMapOverlay").hidden) return;
     const map = state.maps.find(item => item.id === id);
     if (!map || map.pending || map.changeRequest || !getSteamInfo(map.id)) return;
@@ -1168,22 +1251,28 @@ function openChangeRequest(id) {
     document.body.style.top = -changeScrollY + "px";
     document.documentElement.classList.add("submission-open");
     document.body.classList.add("submission-open");
-    $("changeMapOverlay").hidden = false;
+    const overlay=$("changeMapOverlay");
+    rememberModalOrigin(overlay,trigger);
+    overlay.hidden=false;
+    runModalMotion(overlay,true);
     $("changeReason").focus({preventScroll:true});
 }
 function closeChangeRequest() {
-    if ($("changeMapOverlay").hidden) return;
-    if (!$("githubGuideOverlay").hidden) closeGithubGuide();
+    const overlay=$("changeMapOverlay");
+    if (overlay.hidden || overlay.dataset.motion==="exit") return;
+    if (!$("githubGuideOverlay").hidden) closeGithubGuide(true,false);
     changeValidationToken++;
     setChangePending(false);
-    $("changeMapOverlay").hidden = true;
-    document.documentElement.classList.remove("submission-open");
-    document.body.classList.remove("submission-open");
-    document.body.style.top = changePreviousTop;
-    window.scrollTo(0, changeScrollY);
-    const actionButton = $("previewPane").querySelector("[data-request-change]");
-    if (actionButton) actionButton.focus({preventScroll:true});
-    changeRequestMapId = null;
+    runModalMotion(overlay,false,() => {
+        overlay.hidden=true;
+        document.documentElement.classList.remove("submission-open");
+        document.body.classList.remove("submission-open");
+        document.body.style.top=changePreviousTop;
+        window.scrollTo(0,changeScrollY);
+        const actionButton=$("previewPane").querySelector("[data-request-change]");
+        if (actionButton) actionButton.focus({preventScroll:true});
+        changeRequestMapId=null;
+    });
 }
 async function findMapCategoryInMain(workshopId) {
     const response = await fetchWithTimeout(
@@ -1294,8 +1383,11 @@ function renderGithubGuide() {
     if (!githubGuideMode) return;
     $("githubGuideIntro").textContent =
         t(githubGuideMode === "change" ? "githubGuideIntroChange" : "githubGuideIntroNew");
-    $("githubGuideSteps").innerHTML = githubGuideStepKeys().map(key =>
-        '<li><p>' + escapeHtml(t(key)) + '</p></li>').join("");
+    $("githubGuideSteps").innerHTML = githubGuideStepKeys().map((key,index) =>
+        '<li class="github-guide-tile" style="--step-index:' + index + '">' +
+        '<span class="github-guide-tile-kicker" aria-hidden="true">GITHUB · ' +
+        String(index+1).padStart(2,"0") + '</span><p>' +
+        escapeHtml(t(key)) + '</p></li>').join("");
     $("githubGuideProceed").hidden = !githubGuideDestination;
 }
 function openGithubGuide(mode, destination) {
@@ -1311,32 +1403,44 @@ function openGithubGuide(mode, destination) {
     const parentDialog = parent.querySelector(".submit-dialog");
     parentDialog.inert = true;
     parentDialog.setAttribute("aria-hidden", "true");
-    $("githubGuideOverlay").hidden = false;
-    $("githubGuideDialog").scrollTop = 0;
+    const overlay=$("githubGuideOverlay");
+    rememberModalOrigin(overlay,githubGuideReturnFocus);
+    overlay.hidden=false;
+    $("githubGuideDialog").scrollTop=0;
+    runModalMotion(overlay,true);
     $("githubGuideClose").focus({preventScroll:true});
 }
-function closeGithubGuide() {
-    if ($("githubGuideOverlay").hidden) return;
-    $("githubGuideOverlay").hidden = true;
-    const parent = githubGuideMode === "change" ? $("changeMapOverlay") : $("submitMapOverlay");
-    const parentDialog = parent.querySelector(".submit-dialog");
-    parentDialog.inert = false;
-    parentDialog.removeAttribute("aria-hidden");
-    const target = githubGuideReturnFocus;
-    githubGuideMode = null;
-    githubGuideReturnFocus = null;
-    githubGuideDestination = null;
-    if (!parent.hidden && target) target.focus({preventScroll:true});
+function closeGithubGuide(instant=false,restoreFocus=true) {
+    const overlay=$("githubGuideOverlay");
+    if (overlay.hidden || (!instant && overlay.dataset.motion==="exit")) return;
+    const parent=githubGuideMode==="change" ? $("changeMapOverlay") : $("submitMapOverlay");
+    const target=githubGuideReturnFocus;
+    const finalize=() => {
+        overlay.hidden=true;
+        const parentDialog=parent.querySelector(".submit-dialog");
+        parentDialog.inert=false;
+        parentDialog.removeAttribute("aria-hidden");
+        githubGuideMode=null;
+        githubGuideReturnFocus=null;
+        githubGuideDestination=null;
+        if (restoreFocus && !parent.hidden && target) target.focus({preventScroll:true});
+    };
+    if (instant) {
+        stopModalMotion(overlay);
+        finalize();
+    } else {
+        runModalMotion(overlay,false,finalize);
+    }
 }
 function bindGithubGuide() {
-    $("githubGuideClose").addEventListener("click", closeGithubGuide);
-    $("githubGuideBack").addEventListener("click", closeGithubGuide);
+    $("githubGuideClose").addEventListener("click", () => closeGithubGuide());
+    $("githubGuideBack").addEventListener("click", () => closeGithubGuide());
     $("githubGuideProceed").addEventListener("click", () => {
         if (!githubGuideDestination) return;
         const destination = githubGuideDestination;
         const mode = githubGuideMode;
         window.open(destination, "_blank", "noopener,noreferrer");
-        closeGithubGuide();
+        closeGithubGuide(true,false);
         if (mode === "change") {
             closeChangeRequest();
         } else {

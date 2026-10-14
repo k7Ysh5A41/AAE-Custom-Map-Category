@@ -3195,3 +3195,248 @@ html,body {
   .search-module .search-field::before{opacity:.34;}
   .search-module .search-field::after{opacity:.70;}
 }
+
+
+/* AAE energy-origin dialogs: origin is the clicked submit/change button,
+   or the form action button for the GitHub follow-through guide. */
+.submit-overlay:not([hidden]) {
+  isolation:isolate;
+  perspective:1200px;
+}
+.submit-overlay:not([hidden])::before{
+  content:"";
+  position:absolute;
+  z-index:0;
+  inset:0;
+  pointer-events:none;
+  background:radial-gradient(circle at var(--modal-origin-x,50%) var(--modal-origin-y,50%),
+    rgba(255,174,92,.18) 0%,rgba(251,90,42,.07) 14%,transparent 48%);
+  opacity:.21;
+}
+.submit-overlay[data-motion="enter"]::before{
+  animation:aaeModalOriginShock .72s cubic-bezier(.18,.75,.35,1) both;
+}
+.submit-overlay[data-motion="exit"]::before{
+  animation:aaeModalOriginReturn .40s ease-in both;
+}
+.submit-overlay > .submit-dialog{
+  position:relative;
+  isolation:isolate;
+  z-index:1;
+  border:1px solid rgba(255,177,117,.74);
+  border-top:2px solid rgba(255,201,139,.93);
+  background:linear-gradient(153deg,#241a19 0%,#161315 37%,#0b0c10 100%);
+  box-shadow:
+    0 12px 54px rgba(0,0,0,.78),
+    0 0 28px rgba(252,116,47,.19),
+    0 0 78px rgba(251,86,34,.09),
+    inset 0 1px 0 rgba(255,206,145,.21);
+  transform-origin:50% 50%;
+}
+.submit-overlay > .submit-dialog::after{
+  content:"";
+  position:absolute;
+  z-index:0;
+  top:0;left:0;right:0;
+  height:3px;
+  pointer-events:none;
+  background:linear-gradient(90deg,transparent 7%,rgba(255,147,75,.21) 23%,
+    #ffedbb 48%,rgba(255,116,54,.72) 58%,transparent 90%);
+  background-size:240% 100%;
+  background-position:100% 0;
+  opacity:.66;
+}
+.submit-overlay[data-motion="enter"] > .submit-dialog::after {
+  animation:aaeModalEdgeIgnite .66s ease-out both;
+}
+.submit-overlay[data-motion="exit"] > .submit-dialog::after{
+  animation:aaeModalEdgeRetract .37s ease-in both;
+}
+.submit-overlay > .submit-dialog > *{position:relative;z-index:1;}
+.submit-overlay > .submit-dialog .submit-heading{
+  border-bottom-color:rgba(255,145,87,.56);
+}
+.submit-overlay > .submit-dialog .submit-heading h2{
+  text-shadow:0 0 13px rgba(255,132,58,.23);
+}
+.submit-overlay > .submit-dialog .submit-close{
+  transition:color .18s ease,transform .25s ease,text-shadow .22s ease;
+}
+.submit-overlay > .submit-dialog .submit-close:hover{
+  transform:rotate(90deg);
+  color:#ffe2af;
+  text-shadow:0 0 14px rgba(255,140,63,.64);
+}
+@keyframes aaeModalOriginShock{
+  0%{opacity:0;filter:blur(12px);}
+  25%{opacity:1;filter:blur(1px);}
+  100%{opacity:.21;filter:blur(0);}
+}
+@keyframes aaeModalOriginReturn{
+  0%{opacity:.21;}
+  55%{opacity:.72;}
+  100%{opacity:0;}
+}
+@keyframes aaeModalEdgeIgnite{
+  0%{opacity:0;background-position:100% 0;}
+  38%{opacity:1;}
+  100%{opacity:.70;background-position:0% 0;}
+}
+@keyframes aaeModalEdgeRetract{
+  0%{opacity:.7;background-position:0% 0;}
+  100%{opacity:0;background-position:100% 0;}
+}
+
+/* Rectangular GitHub workflow cards: 10 existing localized actions retained.
+   Cards read top-to-bottom in DOM and left-to-right in CSS grid. */
+.submit-overlay.github-help-overlay > .github-help-dialog{
+  width:min(100%,990px);
+  max-height:min(93vh,920px);
+  max-height:min(93dvh,920px);
+  padding:clamp(18px,2.5vw,30px);
+  scrollbar-gutter:stable;
+}
+.github-guide-steps{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  align-items:stretch;
+  gap:12px;
+  padding:4px 0 0;
+  margin:0;
+  counter-reset:github-guide-step;
+}
+.github-guide-steps .github-guide-tile{
+  position:relative;
+  counter-increment:github-guide-step;
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  justify-content:flex-start;
+  gap:9px;
+  min-width:0;
+  min-height:126px;
+  padding:17px 18px 18px;
+  overflow:hidden;
+  border:1px solid rgba(250,147,82,.32);
+  border-left:3px solid rgba(255,164,88,.75);
+  background:
+    linear-gradient(145deg,rgba(255,135,63,.12),rgba(28,22,22,.94) 48%,rgba(13,15,18,.96)),
+    #151214;
+  box-shadow:inset 0 1px 0 rgba(255,202,141,.09),0 4px 20px rgba(0,0,0,.26);
+  transition:background-color .25s ease,border-color .23s ease,
+    box-shadow .25s ease,transform .28s cubic-bezier(.2,.8,.2,1);
+}
+.github-guide-steps .github-guide-tile::before{
+  content:none;
+}
+.github-guide-steps .github-guide-tile::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  background:linear-gradient(108deg,transparent 27%,
+    rgba(255,197,131,.105) 50%,transparent 73%);
+  background-size:220% 100%;
+  background-position:120% 0;
+  opacity:0;
+  transition:opacity .22s ease;
+}
+.github-guide-steps .github-guide-tile:hover{
+  transform:translateY(-3px);
+  border-color:rgba(255,200,143,.83);
+  box-shadow:inset 0 1px 0 rgba(255,211,149,.18),
+    0 0 22px rgba(255,116,51,.18),
+    0 8px 24px rgba(0,0,0,.28);
+}
+.github-guide-steps .github-guide-tile:hover::after{
+  opacity:1;
+  animation:aaeGuideTileLight .9s ease-out both;
+}
+.github-guide-tile .github-guide-tile-kicker{
+  position:relative;
+  z-index:1;
+  color:#ffbb80;
+  font:850 11px/1.2 "Segoe UI",Arial,sans-serif;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+}
+.github-guide-steps .github-guide-tile p{
+  position:relative;
+  z-index:1;
+  margin:0;
+  color:#f2e5d9;
+  font:550 14px/1.6 "Segoe UI",Arial,sans-serif;
+  overflow-wrap:anywhere;
+}
+.github-guide-steps .github-guide-tile:nth-child(5),
+.github-guide-steps .github-guide-tile:nth-child(7),
+.github-guide-steps .github-guide-tile:nth-child(9){
+  border-left-color:#ffd39b;
+  border-color:rgba(255,183,103,.61);
+  background:linear-gradient(140deg,rgba(246,128,56,.19),rgba(23,19,19,.95) 66%);
+}
+.github-guide-steps .github-guide-tile:nth-child(5) .github-guide-tile-kicker,
+.github-guide-steps .github-guide-tile:nth-child(7) .github-guide-tile-kicker,
+.github-guide-steps .github-guide-tile:nth-child(9) .github-guide-tile-kicker {
+  color:#ffdfb0;
+}
+.github-help-overlay[data-motion="enter"] .github-guide-tile{
+  animation:aaeGuideTileReveal .48s cubic-bezier(.2,.78,.2,1) both;
+  animation-delay:calc(100ms + var(--step-index,0) * 34ms);
+}
+.github-guide-details{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  align-items:stretch;
+  gap:12px;
+  margin:15px 0 0;
+}
+.github-guide-details .github-guide-game-sync,
+.github-guide-details .github-guide-pr-explainer{
+  min-width:0;
+  margin:0;
+  padding:16px 18px;
+  border:1px solid rgba(255,175,105,.39);
+  border-left:3px solid #ffa767;
+  background:linear-gradient(125deg,rgba(243,116,51,.11),rgba(17,17,20,.72));
+}
+.github-guide-note{
+  margin:15px 0;
+  background:linear-gradient(110deg,rgba(255,167,86,.12),rgba(27,23,20,.5));
+}
+.github-guide-actions{
+  margin-top:8px;
+}
+@keyframes aaeGuideTileLight{
+  0%{background-position:120% 0;}
+  100%{background-position:-50% 0;}
+}
+@keyframes aaeGuideTileReveal{
+  0%{opacity:0;transform:translateY(13px) scale(.975);}
+  100%{opacity:1;transform:translateY(0) scale(1);}
+}
+@media(max-width:740px){
+  .github-guide-steps{
+    grid-template-columns:minmax(0,1fr);
+    gap:9px;
+  }
+  .github-guide-steps .github-guide-tile{
+    min-height:0;
+    padding:13px 15px;
+    gap:6px;
+  }
+  .github-guide-steps .github-guide-tile p{font-size:14px;line-height:1.5;}
+  .github-guide-details{grid-template-columns:minmax(0,1fr);}
+  .github-help-dialog{padding:17px 15px;}
+}
+@media(prefers-reduced-motion:reduce){
+  .submit-overlay::before,
+  .submit-overlay > .submit-dialog::after,
+  .github-help-overlay .github-guide-tile{
+    animation:none!important;
+    transition:none!important;
+    transform:none!important;
+  }
+  .github-help-overlay .github-guide-tile::after{animation:none!important;}
+}
