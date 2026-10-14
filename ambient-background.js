@@ -11,11 +11,12 @@
 
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const compact = window.matchMedia("(max-width: 700px)");
+    // The AAE UI uses #fa5630 for accents and #ffb277 / #ec5024 on active rows.
     const palette = {
-        orange:"255,105,52",
-        ember:"246,78,43",
-        amber:"255,185,112",
-        pearl:"255,231,207"
+        orange:"250,86,48",
+        ember:"236,80,36",
+        amber:"255,178,119",
+        pearl:"255,233,211"
     };
     const ribbons = [
         {y:.63,slope:-.16,arch:.075,wave:.052,width:.116,
@@ -31,7 +32,6 @@
     let frame=0;
     let lastFrame=-Infinity;
     let startTime=null;
-    let resizeObserver;
     let seed=3721608;
     const random=()=>{
         seed=(1664525*seed+1013904223)>>>0;
