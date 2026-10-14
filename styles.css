@@ -2426,3 +2426,46 @@ body.submission-open .social-bar { pointer-events:none; }
   border-color:#cfdae3;
   box-shadow:0 0 13px rgba(125,147,164,.28);
 }
+
+/* Steam subscription markers from a visitor-imported local list. */
+.subscription-trigger{
+  flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  min-height:44px;padding:9px 12px;border:1px solid rgba(133,182,169,.53);
+  color:#c5ebe0;background:rgba(24,42,39,.48);font:700 12px/1.2 "Segoe UI",Arial,sans-serif;
+  letter-spacing:.025em;cursor:pointer;white-space:nowrap;
+}
+.subscription-trigger:hover,.subscription-trigger:focus-visible{
+  outline:2px solid rgba(149,220,189,.55);outline-offset:2px;background:rgba(47,78,64,.85)
+}
+.subscription-counter{min-width:19px;padding:2px 4px;text-align:center;border-radius:10px;background:#b0dfc8;color:#10251e;font-size:11px}
+.subscription-counter[hidden]{display:none!important}
+.map-subscribed{
+  flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;
+  min-width:31px;height:31px;padding:4px 7px;border:1px solid rgba(150,227,192,.55);
+  background:rgba(35,87,67,.29);color:#a2efc5;border-radius:2px;
+  font:bold 22px/1 "Segoe UI",Arial,sans-serif;
+}
+.map-row.active .map-subscribed,.map-row[aria-selected="true"] .map-subscribed{
+  color:#165b39;background:#e0ffec;border-color:#165b39
+}
+.preview-subscribed{margin:13px 0 7px}
+.preview-subscribed .map-subscribed{font-size:14px;gap:7px;padding:5px 10px}
+.subscription-dialog{width:min(100%,650px)}
+.subscription-dialog .subscription-label{
+  display:block;margin:16px 0 7px;color:#d7dddf;font-size:13px;line-height:1.55;letter-spacing:.03em
+}
+.subscription-dialog input[type=file],.subscription-dialog textarea{
+  width:100%;border:1px solid #56636b;background:#0b0d0e;color:#e1e7e7;padding:11px
+}
+.subscription-dialog textarea{resize:vertical;min-height:110px;font:14px/1.5 Consolas,"Segoe UI",monospace}
+.subscription-steam-link{display:inline-flex;margin:2px 0 9px;padding:11px 13px;color:#f2dfd0;border:1px solid #9e654e;background:rgba(61,31,24,.48);text-decoration:none}
+.subscription-steam-link:hover,.subscription-steam-link:focus-visible{color:#111;background:#ff9876}
+.subscription-privacy{font:13px/1.6 "Segoe UI",Arial,sans-serif;color:#9cabb2}
+.subscription-status{margin:10px 0;color:#bfdfd0;font:14px/1.55 "Segoe UI",Arial,sans-serif;overflow-wrap:anywhere}
+.subscription-status.error{color:#ffb7ae}
+.subscription-actions{flex-wrap:wrap}
+@media(max-width:650px){
+ .menu-toolbar .subscription-trigger{flex:1 1 135px;font-size:11px}
+ .subscription-dialog{padding:18px 16px}
+ .subscription-actions button{flex:1 1 100%;min-width:0}
+}
