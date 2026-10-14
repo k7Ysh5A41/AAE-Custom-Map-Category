@@ -2650,3 +2650,186 @@ body.submission-open .social-bar { pointer-events:none; }
 .catalog .map-row:not(.active):not([aria-selected="true"]) .map-publisher {
   text-shadow:0 1px 2px rgba(0,0,0,.36);
 }
+
+/* Header: remove the left decorative stripe and align the alpha-image logo
+   to the same leading edge as the catalog content. */
+.game-header .heading {
+  min-width:0;
+  align-items:flex-start;
+}
+.game-header .header-bars {display:none!important;}
+@media(min-width:1101px) {
+  .game-header {
+    grid-template-columns:minmax(0,1fr) minmax(290px,480px);
+  }
+  .game-header .heading {grid-column:1;grid-row:1;}
+  .game-header .header-actions {grid-column:2;grid-row:1;}
+}
+@media(max-width:1100px) {
+  .game-header {grid-template-columns:minmax(0,1fr);}
+  .game-header .heading {grid-column:1;grid-row:1;}
+  .game-header .header-actions {grid-column:1;grid-row:2;}
+}
+
+/* Animated ~1-pixel outline follows the actual PNG alpha, not its rectangle.
+   Both outline layers inherit the original logo's exact intrinsic aspect ratio. */
+.game-header .brand-logo-filter-defs {
+  position:absolute;
+  overflow:hidden;
+  pointer-events:none;
+}
+.game-header .brand-logo-frame {
+  display:block;
+  position:relative;
+  isolation:isolate;
+  width:min(100%,520px);
+  max-width:100%;
+  line-height:0;
+  transform-origin:38% 54%;
+  animation:aaeReferenceLogoHover 6.2s ease-in-out infinite;
+}
+.game-header .brand-logo-frame .brand-logo {
+  display:block;
+  width:100%;
+  height:auto;
+  max-height:none;
+  object-fit:contain;
+  object-position:left center;
+}
+.game-header .brand-logo-frame .brand-logo-art {
+  position:relative;
+  z-index:1;
+  animation:aaeReferenceLogoGlow 4.4s ease-in-out infinite;
+  transform:none;
+  will-change:filter;
+}
+.game-header .brand-logo-frame .brand-logo-contour,
+.game-header .brand-logo-frame .brand-logo-contour-glint {
+  position:absolute;
+  inset:0;
+  z-index:2;
+  width:100%;
+  height:100%;
+  max-width:100%;
+  pointer-events:none;
+  user-select:none;
+  filter:url("#aaeLogoContour");
+  transform:none;
+  will-change:opacity;
+}
+.game-header .brand-logo-frame .brand-logo-contour {
+  opacity:.62;
+  animation:aaeLogoHairlineBreathing 5.4s ease-in-out infinite;
+}
+.game-header .brand-logo-frame .brand-logo-contour-glint {
+  opacity:0;
+  -webkit-mask-image:linear-gradient(90deg,transparent 38%,#fff 50%,transparent 62%);
+  mask-image:linear-gradient(90deg,transparent 38%,#fff 50%,transparent 62%);
+  -webkit-mask-size:260% 100%;
+  mask-size:260% 100%;
+  -webkit-mask-repeat:no-repeat;
+  mask-repeat:no-repeat;
+  animation:aaeLogoHairlineSweep 7.2s ease-in-out infinite;
+}
+@keyframes aaeLogoHairlineBreathing {
+  0%,100% {opacity:.44;}
+  48% {opacity:.75;}
+}
+@keyframes aaeLogoHairlineSweep {
+  0%,9% {-webkit-mask-position:100% 0;mask-position:100% 0;opacity:0;}
+  16% {opacity:.98;}
+  56% {-webkit-mask-position:0% 0;mask-position:0% 0;opacity:.98;}
+  64%,100% {-webkit-mask-position:0% 0;mask-position:0% 0;opacity:0;}
+}
+
+/* The browser window must not scroll. Inner category/map lists and modal
+   dialogs remain independently scrollable, including with wheel/touch. */
+html,body {
+  height:100%;
+  overflow:hidden!important;
+}
+.game-shell {
+  height:100vh;
+  height:100dvh;
+  min-height:0;
+  max-height:100dvh;
+  padding-bottom:0;
+  overflow:hidden;
+}
+.game-shell .game-header {flex:0 0 auto;}
+.game-shell .game-content {
+  min-height:0;
+  flex:1 1 auto;
+  overflow:hidden;
+}
+.game-content .sidebar {
+  display:flex;
+  flex-direction:column;
+  min-height:0;
+  overflow:hidden;
+}
+.game-content .sidebar #categoryNav {
+  flex:1 1 auto;
+  min-height:0;
+  max-height:none;
+  overflow-y:auto;
+  overscroll-behavior-y:contain;
+}
+.game-content .selection-panel {
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+.game-content .selection-panel .catalog {
+  flex:1 1 auto;
+  min-height:0;
+  max-height:none;
+  overflow-y:auto;
+  overscroll-behavior-y:contain;
+}
+.game-content .preview-pane {
+  min-height:0;
+  overflow-y:auto;
+  overscroll-behavior-y:contain;
+}
+@media(max-width:1100px) {
+  .game-shell .game-content {
+    overflow-y:auto;
+    overscroll-behavior-y:contain;
+    align-content:start;
+  }
+  .game-content .sidebar {
+    max-height:330px;
+  }
+  .game-content .sidebar #categoryNav {
+    flex:none;
+    max-height:290px;
+    min-height:0;
+  }
+  .game-content .selection-panel .catalog {
+    flex:none;
+    max-height:390px;
+    min-height:250px;
+  }
+  .game-content .preview-pane {overflow:visible;}
+}
+@media(max-width:650px) {
+  .game-content .sidebar {max-height:280px;}
+  .game-content .sidebar #categoryNav {max-height:250px;}
+  .game-content .selection-panel .catalog {
+    max-height:330px;
+    min-height:180px;
+  }
+}
+@media(prefers-reduced-motion:reduce) {
+  .game-header .brand-logo-frame,
+  .game-header .brand-logo-frame .brand-logo-art,
+  .game-header .brand-logo-frame .brand-logo-contour,
+  .game-header .brand-logo-frame .brand-logo-contour-glint {
+    animation:none!important;
+    will-change:auto;
+  }
+  .game-header .brand-logo-frame .brand-logo-contour {opacity:.62;}
+  .game-header .brand-logo-frame .brand-logo-contour-glint {opacity:0;}
+}

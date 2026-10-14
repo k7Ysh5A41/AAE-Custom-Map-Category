@@ -156,27 +156,30 @@
         for(let y=0;y<h;y++){
             const v=(y+.5)/h;
             const depth=(v+.18)/1.18;
-            const spread=.20+.53*depth;
-            const decay=Math.exp(-depth*.82);
+            // Fan axis drifts toward the right as the light descends.
+            // Wide overlapping Gaussian lobes avoid any discrete seam.
+            const axis=.104+.41*Math.pow(depth,1.07);
+            const spread=.24+.58*depth;
+            const decay=Math.exp(-depth*.67);
             for(let x=0;x<w;x++){
                 const u=(x+.5)/w;
-                // Ray directions are measured from a common upper-left source.
-                const slope=(u-.115)/(depth*.65+.025);
-                const envelope=gaussian(u,.115+depth*.08,spread);
+                const slope=(u-.104)/(depth*.74+.035);
+                const envelope=gaussian(u,axis,spread);
                 const longShafts=
-                    .43*gaussian(slope,.08,.36)
-                   +.25*gaussian(slope,-.39,.34)
-                   +.105*gaussian(slope,.73,.33)
-                   +.045*gaussian(slope,1.45,.48);
+                    .30*gaussian(slope,.24,.64)
+                   +.29*gaussian(slope,.65,.72)
+                   +.17*gaussian(slope,1.10,.82)
+                   +.12*gaussian(slope,-.12,.55)
+                   +.055*gaussian(slope,1.64,.92);
                 const microDetail=
-                    .024*Math.sin(slope*29+v*3.1)
-                   +.016*Math.sin(slope*58-v*2.4)
-                   +.009*Math.sin(slope*103+v*6.4);
+                    .009*Math.sin(slope*19+v*2.2)
+                   +.006*Math.sin(slope*37-v*1.7)
+                   +.003*Math.sin(slope*75+v*3.8);
                 const radiance=Math.max(0,
-                    (.23+longShafts+microDetail)*envelope*decay);
+                    (.26+longShafts+microDetail)*envelope*decay);
                 const k=(y*w+x)*4;
                 data[k]=255;data[k+1]=215;data[k+2]=188;
-                data[k+3]=Math.min(255,Math.round(207*radiance));
+                data[k+3]=Math.min(255,Math.round(214*radiance));
             }
         }
         brush.putImageData(pixels,0,0);
@@ -198,8 +201,8 @@
         // The video has a gentle bloom just outside the upper-left edge.
         ellipticalGlow(x,-height*.065,width*.23,height*.31,
             [239,205,185],.27+.07*intro);
-        ellipticalGlow(x+width*.035,height*.16,width*.32,height*.62,
-            [193,162,147],.085);
+        ellipticalGlow(x+width*.17,height*.20,width*.49,height*.72,
+            [193,162,147],.11);
         paintGodRays(time);
     }
 
