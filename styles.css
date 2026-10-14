@@ -2452,9 +2452,10 @@ body.submission-open .social-bar { pointer-events:none; }
   pointer-events:none;
   user-select:none;
   background:
-    radial-gradient(ellipse 95% 70% at 53% 86%,rgba(29,44,73,.66),transparent 77%),
-    radial-gradient(ellipse 80% 68% at 90% 65%,rgba(36,42,72,.31),transparent 78%),
-    linear-gradient(155deg,#080910 0%,#0a0d16 48%,#08090e 100%);
+    radial-gradient(ellipse 83% 63% at 17% 83%,rgba(105,35,17,.17),transparent 76%),
+    radial-gradient(ellipse 91% 65% at 85% 64%,rgba(119,43,19,.13),transparent 74%),
+    radial-gradient(ellipse 85% 54% at 52% 96%,rgba(150,72,32,.075),transparent 78%),
+    linear-gradient(155deg,#050405 0%,#0a0809 47%,#080504 80%,#040305 100%);
 }
 .game-shell {position:relative;z-index:1;}
 
