@@ -6,10 +6,10 @@
 <meta name="theme-color" content="#050507">
 <meta name="description" content="All-Around Enhancement — a Black Ops III Zombies-style catalog of public Steam Workshop maps.">
 <title>All-Around Enhancement — Map Catalog</title>
-<link rel="stylesheet" href="styles.css?v=aae-hairline-ui-scroll-v5-20261015">
+<link rel="stylesheet" href="styles.css?v=aae-search-scroll-rays-v6-20261015">
 <script src="translations.js?v=5d480e9eeb3fa6f8ed56e48832f6be01cf080774" defer></script>
-<script src="ambient-background.js?v=aae-soft-right-rays-v5-20261015" defer></script>
-<script src="app.js?v=origin-pulse-v2-20261015" defer></script>
+<script src="ambient-background.js?v=aae-focused-dynamic-rays-v6-20261015" defer></script>
+<script src="app.js?v=aae-animated-search-v6-20261015" defer></script>
 </head>
 <body>
 <canvas id="ambientBackground" class="ambient-background" aria-hidden="true"></canvas>
@@ -58,10 +58,29 @@
     </aside>
     <section class="selection-panel" aria-label="Map selection">
       <div class="menu-toolbar">
-        <label class="search-field">
-          <span class="sr-only" data-i18n="search">Search Steam map title or Workshop ID</span>
-          <input id="searchInput" type="search" placeholder="SEARCH TITLE OR WORKSHOP ID…" data-i18n-placeholder="searchPlaceholder" autocomplete="off" spellcheck="false" aria-label="Search Steam map title or Workshop ID" data-i18n-aria-label="search">
-        </label>
+        <div class="search-module" id="searchModule">
+          <label class="search-field" for="searchInput">
+            <span class="search-accent-rail" aria-hidden="true"></span>
+            <span class="search-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="10.9" cy="10.9" r="6.4"></circle>
+                <path d="M15.7 15.7 21 21"></path>
+                <path d="M8.3 10.9h5.2" opacity=".65"></path>
+              </svg>
+            </span>
+            <span class="sr-only" data-i18n="search">Search Steam map title or Workshop ID</span>
+            <input id="searchInput" type="search" placeholder="SEARCH TITLE OR WORKSHOP ID…" data-i18n-placeholder="searchPlaceholder" autocomplete="off" spellcheck="false" aria-label="Search Steam map title or Workshop ID" data-i18n-aria-label="search">
+            <span class="search-highlight" aria-hidden="true"></span>
+          </label>
+          <button class="search-clear" id="searchClear" type="button" aria-label="Clear search" title="Clear search" disabled>
+            <span aria-hidden="true">×</span>
+          </button>
+        </div>
+        <div class="search-feedback" id="searchFeedback" role="status" aria-live="polite" aria-atomic="true">
+          <span class="search-feedback-led" aria-hidden="true"></span>
+          <output class="search-feedback-count" id="searchResultCount" for="searchInput">—</output>
+          <span class="search-feedback-caption" data-i18n="statMaps">MAPS</span>
+        </div>
       </div>
       <div id="catalog" class="catalog" aria-live="polite"><p class="empty" data-i18n="loading">VERIFYING PUBLIC WORKSHOP MAPS…</p></div>
       <p id="errorMessage" class="error" hidden></p>

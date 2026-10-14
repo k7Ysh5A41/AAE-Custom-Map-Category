@@ -731,6 +731,20 @@ function renderPreview() {
            escapeHtml(map.pending.url) + '">' + escapeHtml(t("viewPR")) + ' #' +
            map.pending.number + ' ↗</a>' : '') + '</div>';
 }
+function updateSearchVisualState(matchCount) {
+    const module = $("searchModule");
+    if (!module) return;
+    const hasValue = $("searchInput").value.length > 0;
+    module.classList.toggle("has-query", hasValue);
+    module.classList.toggle("no-results",
+        state.steamReady && matchCount === 0 && hasValue);
+    $("searchClear").disabled = !hasValue;
+    $("searchResultCount").textContent = state.steamReady ?
+        matchCount.toLocaleString("en-US") : "—";
+    $("searchFeedback").classList.toggle("has-query", hasValue);
+    $("searchFeedback").classList.toggle("no-results",
+        state.steamReady && matchCount === 0 && hasValue);
+}
 function render() {
     applyUiText();
     const publicItems = publicMaps();
@@ -753,6 +767,7 @@ function render() {
         '<p class="empty">' + escapeHtml(t("noMaps")) + '</p>';
     renderPreview();
     updateMapCategoryPulse(matches.find(map => map.id === state.activeMapId) || null);
+    updateSearchVisualState(matches.length);
 }
 async function copyID(id) {
     try {
@@ -903,12 +918,44 @@ function bind() {
         render();
         $("catalog").scrollTop = 0;
     });
-    $("searchInput").addEventListener("input", event => {
+    const searchInput = $("searchInput");
+    searchInput.addEventListener("input", event => {
         state.query = event.target.value;
         if (state.query.trim()) state.selected = null;
         state.activeMapId = null;
         render();
     });
+    $("searchClear").addEventListener("click", () => {
+        if (!searchInput.value) return;
+        searchInput.value = "";
+        searchInput.dispatchEvent(new Event("input", {bubbles:true}));
+        searchInput.focus({preventScroll:true});
+    });
+    // Accessible shortcuts: Ctrl/Command+K or "/" focuses the search.
+    document.addEventListener("keydown", event => {
+        if (!($("submitMapOverlay").hidden &&
+              $("changeMapOverlay").hidden &&
+              $("githubGuideOverlay").hidden)) return;
+        const el = document.activeElement;
+        const editing = el && (el.isContentEditable ||
+            /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName));
+        if ((event.ctrlKey || event.metaKey) &&
+            event.key.toLowerCase() === "k" && !event.altKey) {
+            event.preventDefault();
+            searchInput.focus({preventScroll:true});
+            searchInput.select();
+        } else if (event.key === "/" && !editing &&
+                   !event.ctrlKey && !event.metaKey && !event.altKey) {
+            event.preventDefault();
+            searchInput.focus({preventScroll:true});
+        } else if (event.key === "Escape" &&
+                   el === searchInput && searchInput.value) {
+            event.preventDefault();
+            searchInput.value = "";
+            searchInput.dispatchEvent(new Event("input", {bubbles:true}));
+        }
+    });
+    updateSearchVisualState(filtered().length);
     bindMapSubmission();
 }
 

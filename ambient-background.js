@@ -140,10 +140,10 @@
         ctx.restore();
     }
 
-    // Reference lighting: a wide, soft near-vertical canopy from upper left.
-    // A SINGLE precomputed alpha field blends broad atmospheric illumination,
-    // diffused shafts and tiny variation with no discrete layered ray edges.
-    function makeGodRayTexture(){
+    // Concentrated upper-left volumetric light, pitched slightly right.
+    // Three softly blended precomputed fields animate individual shafts
+    // without stacked hard-edged cones or per-frame pixel processing.
+    function makeGodRayTexture(phase){
         const w=compact.matches?512:768,h=compact.matches?360:480;
         const bitmap=document.createElement("canvas");
         bitmap.width=w;
@@ -155,54 +155,65 @@
         const gaussian=(x,c,s)=>Math.exp(-Math.pow((x-c)/s,2));
         for(let y=0;y<h;y++){
             const v=(y+.5)/h;
-            const depth=(v+.18)/1.18;
-            // Fan axis drifts toward the right as the light descends.
-            // Wide overlapping Gaussian lobes avoid any discrete seam.
-            const axis=.104+.41*Math.pow(depth,1.07);
-            const spread=.24+.58*depth;
-            const decay=Math.exp(-depth*.67);
+            const depth=(v+.16)/1.16;
+            const axis=.106+.245*Math.pow(depth,1.08);
+            const spread=.145+.315*depth;
+            const decay=Math.exp(-depth*1.10);
             for(let x=0;x<w;x++){
                 const u=(x+.5)/w;
-                const slope=(u-.104)/(depth*.74+.035);
+                const slope=(u-.10)/(depth*.67+.035);
                 const envelope=gaussian(u,axis,spread);
+                const breathe=.057*Math.sin(phase+slope*.42)*depth;
                 const longShafts=
-                    .30*gaussian(slope,.24,.64)
-                   +.29*gaussian(slope,.65,.72)
-                   +.17*gaussian(slope,1.10,.82)
-                   +.12*gaussian(slope,-.12,.55)
-                   +.055*gaussian(slope,1.64,.92);
+                     (.28+.055*Math.sin(phase+.5))*gaussian(slope,.30+breathe,.61)
+                    +(.235+.06*Math.cos(phase+1.2))*gaussian(slope,.71-breathe*.6,.64)
+                    +(.17+.038*Math.sin(phase+2.1))*gaussian(slope,1.19+breathe*.8,.68)
+                    +.135*gaussian(slope,-.13-breathe,.59);
+                // Micro streaks remain subordinate to the feathered shafts.
                 const microDetail=
-                    .009*Math.sin(slope*19+v*2.2)
-                   +.006*Math.sin(slope*37-v*1.7)
-                   +.003*Math.sin(slope*75+v*3.8);
+                    .009*Math.sin(slope*19+phase*.82+v*2.0)
+                   +.006*Math.sin(slope*38-phase*.55)
+                   +.004*Math.sin(slope*67+phase*1.1+v*3.5);
                 const radiance=Math.max(0,
-                    (.26+longShafts+microDetail)*envelope*decay);
+                    (.15+longShafts+microDetail)*envelope*decay);
                 const k=(y*w+x)*4;
-                data[k]=255;data[k+1]=215;data[k+2]=188;
-                data[k+3]=Math.min(255,Math.round(214*radiance));
+                data[k]=255;data[k+1]=214;data[k+2]=185;
+                data[k+3]=Math.min(255,Math.round(198*radiance));
             }
         }
         brush.putImageData(pixels,0,0);
         return bitmap;
     }
-    const godRayTexture=makeGodRayTexture();
+    const rayTextures=[
+        makeGodRayTexture(0),
+        makeGodRayTexture(Math.PI*2/3),
+        makeGodRayTexture(Math.PI*4/3)
+    ];
     function paintGodRays(time){
-        if(!godRayTexture)return;
+        const phase=time*.47;
+        const weights=rayTextures.map((_,i)=>{
+            const v=Math.max(0,Math.cos(phase-i*Math.PI*2/3));
+            return v*v;
+        });
+        const total=weights.reduce((sum,value)=>sum+value,0)||1;
         ctx.save();
         ctx.globalCompositeOperation="screen";
-        ctx.globalAlpha=.89+.06*Math.sin(time*.10);
-        ctx.drawImage(godRayTexture,0,0,width,height);
+        for(let i=0;i<rayTextures.length;i++){
+            if(!rayTextures[i]||weights[i]<.002)continue;
+            ctx.globalAlpha=(.82+.035*Math.sin(time*.25))*
+                weights[i]/total;
+            ctx.drawImage(rayTextures[i],0,0,width,height);
+        }
         ctx.restore();
     }
 
     function paintSpotlight(time){
         const intro=Math.min(1,Math.max(0,time/2.2));
-        const x=width*.115;
-        // The video has a gentle bloom just outside the upper-left edge.
-        ellipticalGlow(x,-height*.065,width*.23,height*.31,
-            [239,205,185],.27+.07*intro);
-        ellipticalGlow(x+width*.17,height*.20,width*.49,height*.72,
-            [193,162,147],.11);
+        const x=width*.105;
+        ellipticalGlow(x,-height*.09,width*.17,height*.24,
+            [239,205,185],.22+.05*intro);
+        ellipticalGlow(x+width*.075,height*.16,width*.29,height*.46,
+            [193,162,147],.052);
         paintGodRays(time);
     }
 
