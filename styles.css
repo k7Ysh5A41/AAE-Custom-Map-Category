@@ -3701,8 +3701,10 @@ html,body {
 }
 .preview-content .preview-buttons.map-intel-actions{
   display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:9px;
+  /* Column count must follow the actual card width, not the whole preview pane.
+     At narrow widths each action gets its own compact full-width row. */
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,185px),1fr));
+  gap:8px;
   margin:2px 13px 0;
   padding:0;
 }
@@ -3762,9 +3764,15 @@ html,body {
 }
 .map-action-icon svg{width:21px;height:21px;}
 .map-intel-actions .map-action-label{
-  flex:1 1 auto;min-width:0;position:relative;z-index:2;
+  flex:1 1 auto;
+  min-width:0;
+  position:relative;
+  z-index:2;
   text-align:left;
-  overflow-wrap:anywhere;
+  white-space:normal;
+  word-break:normal;
+  overflow-wrap:break-word;
+  hyphens:auto;
 }
 .map-intel-actions .map-action-end{
   position:relative;z-index:2;
@@ -3912,6 +3920,8 @@ html,body {
 .preview-content .map-intel{
   margin:12px 0 8px;
   padding-bottom:7px;
+  container-name:map-intel;
+  container-type:inline-size;
 }
 .preview-content .map-intel-header{
   gap:8px;
@@ -3987,4 +3997,35 @@ html,body {
 .submit-overlay .modal-flip-front-label{
   transform-origin:center center;
   white-space:nowrap;
+}
+
+
+/* Fit the header and data/actions to the card's own inline-size.
+   The surrounding desktop preview can be wide while its content is narrow. */
+@container map-intel (max-width:340px){
+  .map-intel-header{
+    gap:6px;
+    padding:8px 10px 7px;
+  }
+  .map-intel-header-dash{display:none;}
+  .map-intel-title{
+    flex:1 1 auto;
+    font-size:14px;
+    letter-spacing:.02em;
+    overflow-wrap:normal;
+    word-break:normal;
+  }
+  .map-intel-light{margin-left:auto;}
+  .map-intel-actions .map-action{
+    min-height:43px;
+    gap:9px;
+    padding:7px 11px;
+  }
+  .map-intel-actions .map-action-label{
+    line-height:1.32;
+    font-size:13px;
+  }
+  .map-intel-actions .map-action-end{
+    margin-left:auto;
+  }
 }
