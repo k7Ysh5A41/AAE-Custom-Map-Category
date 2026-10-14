@@ -682,15 +682,19 @@ function mapRow(map) {
                 "changePendingDelete" : map.changeRequest.action === "update" ? "changePendingUpdate" : "changePendingMove")) + '</span>' : '') +
         '</div>';
 }
+let lastRenderedPreviewMapId = null;
 function renderPreview() {
     const map = filtered().find(item => item.id === state.activeMapId);
     const info = map ? getSteamInfo(map.id) : null;
     if (!map || !info) {
+        lastRenderedPreviewMapId = null;
         $("previewContent").innerHTML =
             '<div class="preview-empty"><p>' + escapeHtml(t("selectMap")) + '</p>' +
             '<small>' + escapeHtml(t("previewHintLeft")) + '</small></div>';
         return;
     }
+    const fresh = lastRenderedPreviewMapId !== map.id;
+    lastRenderedPreviewMapId = map.id;
     const url = "https://steamcommunity.com/sharedfiles/filedetails/?id=" +
         encodeURIComponent(map.id);
     const desc = typeof info.description === "string" ? info.description
@@ -716,20 +720,52 @@ function renderPreview() {
             !map.pending ? '<button type="button" class="request-change-button" data-request-change="' +
                 escapeHtml(map.id) + '"><span aria-hidden="true">↺</span> ' +
                 escapeHtml(t("requestChange")) + ' <span aria-hidden="true">›</span></button>' : '') +
-        '<h3 class="preview-heading">' + escapeHtml(t("mapInformation")) + '</h3>' +
-        '<div class="preview-details"><p>' + escapeHtml(t("createdBy")) + ' <strong>' +
-        escapeHtml(publisherName(info)) + '</strong></p>' +
-        '<p>' + escapeHtml(t("workshopId")) + ' <strong>' + escapeHtml(map.id) + '</strong></p>' +
+        '<section class="map-intel' + (fresh ? ' is-new' : '') +
+        '" aria-label="' + escapeHtml(t("mapInformation")) + '">' +
+        '<div class="map-intel-header"><span class="map-intel-emblem" aria-hidden="true">III</span>' +
+        '<h3 class="map-intel-title">' + escapeHtml(t("mapInformation")) + '</h3>' +
+        '<span class="map-intel-header-dash" aria-hidden="true"></span>' +
+        '<span class="map-intel-light" aria-hidden="true"></span></div>' +
+        '<div class="map-intel-grid">' +
+        '<div class="map-intel-cell map-intel-author">' +
+        '<span class="map-intel-cell-symbol" aria-hidden="true">◈</span>' +
+        '<div class="map-intel-cell-copy"><span class="map-intel-label">' +
+        escapeHtml(t("createdBy")) + '</span><strong class="map-intel-value">' +
+        escapeHtml(publisherName(info)) + '</strong></div></div>' +
+        '<div class="map-intel-cell map-intel-id">' +
+        '<span class="map-intel-cell-symbol" aria-hidden="true">#</span>' +
+        '<div class="map-intel-cell-copy"><span class="map-intel-label">' +
+        escapeHtml(t("workshopId")) + '</span><strong class="map-intel-value map-intel-digits">' +
+        escapeHtml(map.id) + '</strong></div></div>' +
         '</div>' +
+        '<div class="preview-buttons map-intel-actions">' +
+        '<button type="button" class="map-action map-action-copy" data-copy="' +
+        escapeHtml(map.id) + '" aria-label="' + escapeHtml(t("copyId")) + '">' +
+        '<span class="map-action-icon" aria-hidden="true">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' +
+        '<rect x="8" y="8" width="11" height="11" rx="1"></rect>' +
+        '<path d="M15 8V5.5C15 4.7 14.3 4 13.5 4h-8C4.7 4 4 4.7 4 5.5v8C4 14.3 4.7 15 5.5 15H8"></path>' +
+        '</svg></span><span class="map-action-label" data-copy-label>' +
+        escapeHtml(t("copyId")) + '</span><span class="map-action-end" aria-hidden="true">+</span>' +
+        '<span class="map-action-sweep" aria-hidden="true"></span></button>' +
+        '<a class="map-action map-action-workshop" href="' + escapeHtml(url) +
+        '" target="_blank" rel="noopener noreferrer" aria-label="' +
+        escapeHtml(t("openWorkshop")) + '">' +
+        '<span class="map-action-icon" aria-hidden="true">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' +
+        '<path d="M13 5h6v6M19 5l-9 9"></path><path d="M19 13v5a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"></path>' +
+        '</svg></span><span class="map-action-label">' +
+        escapeHtml(t("openWorkshop")) +
+        '</span><span class="map-action-end" aria-hidden="true">↗</span>' +
+        '<span class="map-action-sweep" aria-hidden="true"></span></a>' +
+        (map.pending ? '<a class="map-action map-action-pr" target="_blank" rel="noopener noreferrer" href="' +
+           escapeHtml(map.pending.url) + '"><span class="map-action-icon" aria-hidden="true">PR</span>' +
+           '<span class="map-action-label">' + escapeHtml(t("viewPR")) + ' #' +
+           map.pending.number + '</span><span class="map-action-end" aria-hidden="true">↗</span></a>' : '') +
+        '</div><span class="map-intel-copy-status" role="status" aria-live="polite"></span>' +
+        '</section>' +
         (desc ? '<h3 class="preview-heading">' + escapeHtml(t("missionBriefing")) + '</h3>' +
-            '<p class="preview-blurb">' + escapeHtml(desc) + '</p>' : '') +
-        '<div class="preview-buttons"><button data-copy="' + escapeHtml(map.id) +
-        '">' + escapeHtml(t("copyId")) + '</button><a href="' + url +
-        '" target="_blank" rel="noopener noreferrer">' + escapeHtml(t("openWorkshop")) +
-        '</a>' +
-        (map.pending ? '<a class="view-pr" target="_blank" rel="noopener noreferrer" href="' +
-           escapeHtml(map.pending.url) + '">' + escapeHtml(t("viewPR")) + ' #' +
-           map.pending.number + ' ↗</a>' : '') + '</div>';
+            '<p class="preview-blurb">' + escapeHtml(desc) + '</p>' : '');
 }
 function updateSearchVisualState(matchCount) {
     const module = $("searchModule");
@@ -770,16 +806,30 @@ function render() {
     updateSearchVisualState(matches.length);
 }
 async function copyID(id) {
-    try {
-        await navigator.clipboard.writeText(id);
-    } catch (_) {
-        const field = document.createElement("textarea");
-        field.value = id;
-        document.body.appendChild(field);
-        field.select();
-        document.execCommand("copy");
-        field.remove();
+    if (navigator.clipboard?.writeText) {
+        try {
+            await navigator.clipboard.writeText(id);
+            return true;
+        } catch (_) { /* Use the legacy fallback if permissions block Clipboard API. */ }
     }
+    const field=document.createElement("textarea");
+    const previouslyFocused=document.activeElement;
+    field.value=id;
+    field.setAttribute("readonly","");
+    field.style.cssText="position:fixed;left:0;top:0;opacity:0;pointer-events:none";
+    document.body.appendChild(field);
+    let copied=false;
+    try {
+        field.select();
+        copied=Boolean(document.execCommand("copy"));
+    } catch (_) {
+        copied=false;
+    } finally {
+        field.remove();
+        if(previouslyFocused?.isConnected && typeof previouslyFocused.focus==="function")
+            previouslyFocused.focus({preventScroll:true});
+    }
+    return copied;
 }
 let categoryScrollEffect = null;
 function animateCategoryList(previousScroll) {
@@ -873,13 +923,38 @@ function bind() {
         }
     });
     $("previewPane").addEventListener("click", async event => {
-        const btn = event.target.closest("[data-copy]");
-        if (!btn) return;
-        await copyID(btn.dataset.copy);
-        btn.textContent = t("copied");
-        setTimeout(() => {
-            if (btn.isConnected) btn.textContent = t("copyId");
-        }, 1300);
+        const btn=event.target.closest("[data-copy]");
+        if (!btn || btn.disabled) return;
+        const label=btn.querySelector("[data-copy-label]");
+        const panel=btn.closest(".map-intel");
+        const status=panel?.querySelector(".map-intel-copy-status");
+        btn.disabled=true;
+        btn.classList.add("is-copying");
+        const success=await copyID(btn.dataset.copy);
+        if (!btn.isConnected) return;
+        btn.disabled=false;
+        btn.classList.remove("is-copying");
+        btn.classList.toggle("is-copied",success);
+        btn.classList.toggle("is-copy-error",!success);
+        if (success) {
+            if(label)label.textContent=t("copied");
+            if(status)status.textContent=t("copied");
+            const uid=Symbol("copied");
+            btn.copyFeedbackId=uid;
+            setTimeout(() => {
+                if (!btn.isConnected || btn.copyFeedbackId!==uid) return;
+                btn.classList.remove("is-copied","is-copy-error");
+                if(label)label.textContent=t("copyId");
+                if(status)status.textContent="";
+            },1900);
+        } else {
+            if(status)status.textContent=t("copyId");
+            setTimeout(() => {
+                if (btn.isConnected) btn.classList.remove("is-copy-error");
+                if (status?.isConnected && status.textContent===t("copyId"))
+                    status.textContent="";
+            },1400);
+        }
     });
     $("previewPane").addEventListener("error", event => {
         if (event.target.matches(".preview-cover img")) {
