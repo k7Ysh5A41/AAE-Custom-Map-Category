@@ -1,7 +1,8 @@
 "use strict";
 
-// Lightweight, original PS5-login-inspired atmosphere: drifting light,
-// translucent waves, and sparse bokeh behind the map catalog.
+// AAE ambient backdrop: layered copper/orange silk ribbons and traveling
+// luminous motes, inspired by the motion language of console login screens.
+// Pure Canvas 2D; no external assets, account data, pointer input, or timers.
 (() => {
     const canvas = document.getElementById("ambientBackground");
     if (!canvas) return;
@@ -9,146 +10,266 @@
     if (!ctx) return;
 
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const smallScreen = window.matchMedia("(max-width: 700px)");
-    let width = 0;
-    let height = 0;
-    let frame = 0;
-    let previousFrame = -Infinity;
-    let initialTime = null;
-
-    // Seeded distribution keeps the particles stable through re-renders.
-    let seed = 501311;
-    const random = () => {
-        seed = (1664525 * seed + 1013904223) >>> 0;
-        return seed / 4294967296;
+    const compact = window.matchMedia("(max-width: 700px)");
+    const palette = {
+        orange:"255,105,52",
+        ember:"246,78,43",
+        amber:"255,185,112",
+        pearl:"255,231,207"
     };
-    const particles = Array.from({length:50}, () => ({
-        x:random(), y:random(), radius:.65 + random()*2.0,
-        speed:.008+random()*.017, phase:random()*Math.PI*2,
-        sparkle:random()*.6+.4, tone:random()>.58?"warm":"cool"
+    const ribbons = [
+        {y:.63,slope:-.16,arch:.075,wave:.052,width:.116,
+         freq:1.22,speed:.095,phase:.2,ink:palette.orange,alpha:.95},
+        {y:.78,slope:.11,arch:-.16,wave:.041,width:.089,
+         freq:1.44,speed:-.082,phase:2.1,ink:palette.amber,alpha:.75},
+        {y:.91,slope:-.11,arch:-.105,wave:.029,width:.062,
+         freq:1.6,speed:.12,phase:4.1,ink:palette.ember,alpha:.66}
+    ];
+
+    let width=1;
+    let height=1;
+    let frame=0;
+    let lastFrame=-Infinity;
+    let startTime=null;
+    let resizeObserver;
+    let seed=3721608;
+    const random=()=>{
+        seed=(1664525*seed+1013904223)>>>0;
+        return seed/4294967296;
+    };
+    const trailMotes=Array.from({length:53},(_,i)=>({
+        ribbon:i%ribbons.length,
+        start:random(),speed:.025+random()*.085,
+        side:(random()-.5)*1.3,
+        size:.95+random()*1.9,
+        phase:random()*Math.PI*2,
+        strength:.58+random()*.42
+    }));
+    const ambientMotes=Array.from({length:62},()=>({
+        x:random(),y:random(),size:.45+random()*1.5,
+        phase:random()*Math.PI*2,
+        speed:.0018+random()*.006,
+        alpha:.13+random()*.35,
+        warm:random()>.36
     }));
 
-    function sizeCanvas() {
-        width = Math.max(1,window.innerWidth);
-        height = Math.max(1,window.innerHeight);
-        // Bound full-screen redraw cost even on high-DPI / 4K monitors.
-        const resolution = Math.min(window.devicePixelRatio || 1,1.35,
-            Math.sqrt(2400000/(width*height)));
-        const backingScale = Math.max(.35,resolution);
-        canvas.width = Math.max(1,Math.floor(width*backingScale));
-        canvas.height = Math.max(1,Math.floor(height*backingScale));
-        ctx.setTransform(backingScale,0,0,backingScale,0,0);
+    const rgba=(rgb,a)=>"rgba("+rgb+","+Math.max(0,Math.min(1,a))+")";
+
+    function resize() {
+        width=Math.max(1,window.innerWidth);
+        height=Math.max(1,window.innerHeight);
+        // Keep the full-screen buffer bounded on 4K/high-DPI displays.
+        const scale=Math.max(.42,Math.min(window.devicePixelRatio||1,
+            compact.matches?1.05:1.35,Math.sqrt(2400000/(width*height))));
+        canvas.width=Math.max(1,Math.round(width*scale));
+        canvas.height=Math.max(1,Math.round(height*scale));
+        ctx.setTransform(scale,0,0,scale,0,0);
     }
 
-    function halo(x,y,r,inner,outer) {
-        const gradient=ctx.createRadialGradient(x,y,0,x,y,r);
-        gradient.addColorStop(0,inner);
-        gradient.addColorStop(1,outer);
-        ctx.fillStyle=gradient;
+    function radialLight(x,y,r,rgb,opacity) {
+        const g=ctx.createRadialGradient(x,y,0,x,y,r);
+        g.addColorStop(0,rgba(rgb,opacity));
+        g.addColorStop(.5,rgba(rgb,opacity*.24));
+        g.addColorStop(1,rgba(rgb,0));
+        ctx.fillStyle=g;
         ctx.fillRect(x-r,y-r,r*2,r*2);
     }
 
-    function drawWaves(t) {
-        const motion=Math.sin(t*.13), drift=Math.cos(t*.10);
-        // Broad, diffuse portal-light layers.
-        halo(width*(.20+motion*.06),height*.72,width*.65,
-            "rgba(47,79,139,.115)","rgba(15,30,61,0)");
-        halo(width*(.84+drift*.04),height*(.59+motion*.025),width*.56,
-            "rgba(85,103,163,.11)","rgba(12,22,52,0)");
-        halo(width*.52,height*(.83+drift*.02),width*.45,
-            "rgba(150,113,88,.047)","rgba(24,28,47,0)");
+    function centerOf(r,u,t) {
+        const envelope=Math.max(0,Math.sin(Math.PI*u));
+        const phase=u*Math.PI*2*r.freq+t*r.speed+r.phase;
+        const slowRoll=Math.sin(phase)*r.wave*(.36+.64*envelope);
+        return {
+            x:width*(u*1.46-.23)+Math.sin(t*.09+r.phase)*width*.016,
+            y:height*(r.y+r.slope*(u-.5)+r.arch*envelope+slowRoll)
+        };
+    }
 
-        const left=-width*.15, right=width*1.15;
-        for(let i=0;i<10;i++){
-            const depth=i/9;
-            const sway=Math.sin(t*.21+depth*2.1)*height*.029;
-            const y=height*(.59+depth*.038)+sway;
-            const gradient=ctx.createLinearGradient(left,0,right,0);
-            gradient.addColorStop(0,"rgba(116,151,210,0)");
-            gradient.addColorStop(.22,`rgba(116,164,224,${.015+depth*.027})`);
-            gradient.addColorStop(.55,`rgba(200,207,224,${.042+depth*.031})`);
-            gradient.addColorStop(.83,`rgba(115,157,216,${.03+depth*.021})`);
-            gradient.addColorStop(1,"rgba(116,151,210,0)");
-            ctx.beginPath();
-            ctx.moveTo(left,y-height*.1);
-            ctx.bezierCurveTo(width*.18,y+height*(.18-depth*.04),
-                width*.66,y-height*(.21-depth*.035),right,y+height*.042);
-            ctx.strokeStyle=gradient;
-            ctx.lineWidth=1.05+(1-depth)*1.2;
-            ctx.stroke();
+    function geometry(r,t,count) {
+        const points=[];
+        for(let i=0;i<=count;i++){
+            const u=i/count;
+            const center=centerOf(r,u,t);
+            const prev=centerOf(r,Math.max(0,u-.002),t);
+            const next=centerOf(r,Math.min(1,u+.002),t);
+            const dx=next.x-prev.x,dy=next.y-prev.y;
+            const len=Math.max(1,Math.hypot(dx,dy));
+            const taper=Math.pow(Math.max(0,Math.sin(Math.PI*u)),.85);
+            const fold=.68+.32*Math.pow(Math.sin(u*7.6+t*.32+r.phase),2);
+            points.push({
+                x:center.x,y:center.y,
+                nx:-dy/len,ny:dx/len,
+                halfWidth:height*r.width*taper*fold*.5,
+                u
+            });
         }
-        // A pair of quiet mist-like arcs, well below the primary controls.
-        for(let i=0;i<2;i++){
-            const wave=Math.sin(t*.17+i*2.3)*height*.03;
-            const y=height*(.79+i*.1)+wave;
-            const beam=ctx.createLinearGradient(0,y,width,y);
-            beam.addColorStop(0,"rgba(103,144,212,0)");
-            beam.addColorStop(.35,"rgba(117,151,209,.08)");
-            beam.addColorStop(.72,"rgba(161,162,195,.08)");
-            beam.addColorStop(1,"rgba(103,144,212,0)");
+        return points;
+    }
+
+    function onRibbon(point,side) {
+        return {
+            x:point.x+point.nx*point.halfWidth*side,
+            y:point.y+point.ny*point.halfWidth*side
+        };
+    }
+
+    function strokeRibbonLine(points,side,rgb,alpha,lineWidth) {
+        const grad=ctx.createLinearGradient(points[0].x,0,points[points.length-1].x,0);
+        grad.addColorStop(0,rgba(rgb,0));
+        grad.addColorStop(.16,rgba(rgb,alpha*.48));
+        grad.addColorStop(.48,rgba(rgb,alpha));
+        grad.addColorStop(.82,rgba(rgb,alpha*.62));
+        grad.addColorStop(1,rgba(rgb,0));
+        ctx.beginPath();
+        for(let j=0;j<points.length;j++){
+            const p=onRibbon(points[j],side);
+            if(j===0)ctx.moveTo(p.x,p.y);
+            else ctx.lineTo(p.x,p.y);
+        }
+        ctx.lineWidth=lineWidth;
+        ctx.strokeStyle=grad;
+        ctx.stroke();
+    }
+
+    function paintRibbon(r,t,small) {
+        const segments=small?34:58;
+        const points=geometry(r,t,segments);
+
+        // Smooth translucent ribbon body. It tapers off-screen at both ends,
+        // while the individual filaments provide a folded-silk appearance.
+        ctx.beginPath();
+        for(let i=0;i<points.length;i++){
+            const p=onRibbon(points[i],1);
+            if(i===0)ctx.moveTo(p.x,p.y);else ctx.lineTo(p.x,p.y);
+        }
+        for(let i=points.length-1;i>=0;i--){
+            const p=onRibbon(points[i],-1);
+            ctx.lineTo(p.x,p.y);
+        }
+        ctx.closePath();
+        const fill=ctx.createLinearGradient(0,0,width,height);
+        fill.addColorStop(0,rgba(palette.ember,0));
+        fill.addColorStop(.28,rgba(r.ink,.042*r.alpha));
+        fill.addColorStop(.56,rgba(r.ink,.102*r.alpha));
+        fill.addColorStop(.85,rgba(palette.orange,.053*r.alpha));
+        fill.addColorStop(1,rgba(palette.ember,0));
+        ctx.fillStyle=fill;
+        ctx.fill();
+
+        // Broad luminous fold and fine fiber strands. Only their hue uses
+        // the AAE controls' copper, ember, apricot, and warm-white palette.
+        strokeRibbonLine(points,-.47,r.ink,.036*r.alpha,18);
+        strokeRibbonLine(points,.25,palette.ember,.032*r.alpha,14);
+        const strands=small?9:19;
+        for(let i=0;i<strands;i++){
+            const side=-.98+1.96*i/(strands-1);
+            const crest=Math.pow(Math.max(0,1-Math.abs(side-.10)),2);
+            const ink=i%5===0?palette.pearl:i%3===0?palette.amber:r.ink;
+            const alpha=(.018+crest*.088)*r.alpha;
+            strokeRibbonLine(points,side,ink,alpha,i%5===0?1.1:.65);
+        }
+        // The ribbon's sharp, gently illuminated folded edge.
+        strokeRibbonLine(points,-.98,palette.amber,.11*r.alpha,1);
+        strokeRibbonLine(points,.98,palette.ember,.075*r.alpha,1);
+    }
+
+    function paintMovingMotes(t,small) {
+        const number=small?23:trailMotes.length;
+        for(let i=0;i<number;i++){
+            const m=trailMotes[i],r=ribbons[m.ribbon];
+            const u=(m.start+t*m.speed)%1;
+            const edge=Math.pow(Math.sin(Math.PI*u),1.15);
+            if(edge<.045)continue;
+            const location=centerOf(r,u,t);
+            const next=centerOf(r,Math.min(1,u+.004),t);
+            const dx=next.x-location.x,dy=next.y-location.y;
+            const length=Math.max(1,Math.hypot(dx,dy));
+            const normalX=-dy/length,normalY=dx/length;
+            const half=height*r.width*.5*Math.pow(Math.sin(Math.PI*u),.85);
+            const x=location.x+normalX*half*m.side;
+            const y=location.y+normalY*half*m.side;
+            if(x<0||x>width||y<0||y>height)continue;
+            const blink=.74+.26*Math.sin(t*1.65+m.phase);
+            const alpha=.64*m.strength*edge*blink;
+            const tail=(10+m.size*12)*(small?.65:1);
+            const head=ctx.createLinearGradient(
+                x-dx/length*tail,y-dy/length*tail,x,y);
+            head.addColorStop(0,rgba(palette.ember,0));
+            head.addColorStop(.72,rgba(palette.orange,alpha*.16));
+            head.addColorStop(1,rgba(palette.amber,alpha*.81));
             ctx.beginPath();
-            ctx.moveTo(-width*.2,y);
-            ctx.bezierCurveTo(width*.25,y-height*.18,
-                width*.78,y+height*.11,width*1.2,y-height*.055);
-            ctx.lineWidth=9+i*7;
-            ctx.strokeStyle=beam;
+            ctx.moveTo(x-dx/length*tail,y-dy/length*tail);
+            ctx.lineTo(x,y);
+            ctx.strokeStyle=head;
+            ctx.lineWidth=Math.max(.6,m.size*.58);
             ctx.stroke();
+            if(i%3===0)radialLight(x,y,5+m.size*5,palette.orange,alpha*.20);
+            ctx.beginPath();
+            ctx.arc(x,y,.65+m.size*.63,0,Math.PI*2);
+            ctx.fillStyle=rgba(i%4===0?palette.pearl:palette.amber,alpha);
+            ctx.fill();
+            if(i%5===0) {
+                ctx.beginPath();
+                ctx.arc(x,y,.6,0,Math.PI*2);
+                ctx.fillStyle=rgba(palette.pearl,Math.min(1,alpha*1.18));
+                ctx.fill();
+            }
         }
     }
 
-    function drawParticles(t) {
-        const count=smallScreen.matches?23:particles.length;
-        for(let i=0;i<count;i++){
-            const p=particles[i];
-            const cycle=(p.x+t*p.speed)%1;
-            const x=cycle*width;
-            const y=height*(.31+p.y*.59)+Math.sin(t*.23+p.phase)*height*.027;
-            const shimmer=.55+.45*Math.sin(t*(.57+p.sparkle)+p.phase);
-            const alpha=(.038+p.sparkle*.13)*shimmer;
-            if(i%7===0){
-                const color=p.tone==="warm"
-                    ?`rgba(242,204,149,${alpha*.17})`
-                    :`rgba(183,213,255,${alpha*.15})`;
-                halo(x,y,p.radius*10,color,"rgba(12,19,41,0)");
-            }
+    function paintFloatingSparks(t,small) {
+        const number=small?26:ambientMotes.length;
+        for(let i=0;i<number;i++){
+            const p=ambientMotes[i];
+            // Slow diagonal drift, independent of the ribbons.
+            const x=((p.x+t*p.speed)%1)*width;
+            const y=((p.y-t*p.speed*.41+100)%1)*height;
+            const visibility=.64+.36*Math.sin(t*.9+p.phase);
+            const alpha=p.alpha*visibility*(y<height*.22?.37:1);
+            const ink=p.warm?palette.amber:palette.pearl;
+            if(i%9===0)radialLight(x,y,p.size*7,ink,alpha*.07);
             ctx.beginPath();
-            ctx.arc(x,y,p.radius,0,Math.PI*2);
-            ctx.fillStyle=p.tone==="warm"
-                ?`rgba(245,210,167,${alpha})`
-                :`rgba(198,223,255,${alpha})`;
+            ctx.arc(x,y,p.size,0,Math.PI*2);
+            ctx.fillStyle=rgba(ink,alpha);
             ctx.fill();
         }
     }
 
-    function draw(seconds) {
+    function paint(time) {
         ctx.clearRect(0,0,width,height);
-        drawWaves(seconds);
-        drawParticles(seconds);
+        const motion=compact.matches?.55:1;
+        const t=time*motion;
+        radialLight(width*(.21+Math.sin(t*.14)*.035),height*.76,
+            Math.max(width*.36,height*.38),palette.ember,.14);
+        radialLight(width*(.80+Math.cos(t*.11)*.022),height*.58,
+            Math.max(width*.34,height*.31),palette.orange,.102);
+        radialLight(width*.57,height*.91,
+            Math.max(width*.42,height*.32),palette.amber,.053);
+        for(const ribbon of ribbons)paintRibbon(ribbon,t,compact.matches);
+        paintMovingMotes(t,compact.matches);
+        paintFloatingSparks(t,compact.matches);
     }
 
-    function loop(timestamp) {
+    function tick(timestamp) {
         frame=0;
-        if(document.hidden || reducedMotion.matches) return;
-        const interval=smallScreen.matches?50:40;
-        if(timestamp-previousFrame>=interval){
-            previousFrame=timestamp;
-            if(initialTime===null)initialTime=timestamp;
-            draw((timestamp-initialTime)/1000);
+        if(document.hidden||reducedMotion.matches)return;
+        const frameGap=compact.matches?50:40; // 20/25 fps
+        if(timestamp-lastFrame>=frameGap){
+            lastFrame=timestamp;
+            if(startTime===null)startTime=timestamp;
+            paint((timestamp-startTime)/1000);
         }
-        frame=requestAnimationFrame(loop);
+        frame=requestAnimationFrame(tick);
     }
 
     function refresh() {
-        cancelAnimationFrame(frame);
+        if(frame)cancelAnimationFrame(frame);
         frame=0;
-        sizeCanvas();
-        previousFrame=-Infinity;
-        if(document.hidden) return;
-        if(reducedMotion.matches){
-            draw(0);
-        } else {
-            frame=requestAnimationFrame(loop);
-        }
+        lastFrame=-Infinity;
+        resize();
+        if(document.hidden)return;
+        if(reducedMotion.matches)paint(0);
+        else frame=requestAnimationFrame(tick);
     }
 
     window.addEventListener("resize",refresh,{passive:true});
