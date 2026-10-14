@@ -208,6 +208,46 @@ async function importSubscriptions() {
     }
 }
 function bindSubscriptions() {
+    // GitHub Pages cannot directly fetch signed-in Steam pages. The opt-in
+    // extension reads Steam Community and sends only Workshop IDs here.
+    window.addEventListener("message", event => {
+        if (event.source !== window || event.origin !== location.origin ||
+            event.data?.tag !== "AAE_STEAM_SUBSCRIPTIONS_EXTENSION_V1") return;
+        const data = event.data;
+        const info = $("subscriptionAutoStatus");
+        if (data.type === "ready") {
+            info.textContent = t("subscriptionAutoReady");
+            info.dataset.state = "ready";
+            window.postMessage({
+                tag:"AAE_STEAM_SUBSCRIPTIONS_CATALOG_V1", type:"request"
+            }, location.origin);
+        } else if (data.type === "syncing") {
+            info.textContent = t("subscriptionAutoSyncing");
+            info.dataset.state = "loading";
+        } else if (data.type === "error") {
+            info.textContent = t("subscriptionAutoError", {
+                detail:String(data.message || "Unknown error").slice(0,240)
+            });
+            info.dataset.state = "error";
+        } else if (data.type === "synced" && data.appId === "311210" &&
+            Array.isArray(data.ids) && data.ids.length <= 20000 &&
+            data.ids.every(id => typeof id === "string" && /^\d{7,20}$/.test(id))) {
+            const previous = [...subscribedIds];
+            subscribedIds.clear();
+            for (const id of data.ids) subscribedIds.add(id);
+            if (!saveSubscribedIds()) {
+                subscribedIds.clear();
+                for (const id of previous) subscribedIds.add(id);
+                info.textContent = t("subscriptionStorageError");
+                info.dataset.state = "error";
+                return;
+            }
+            info.textContent = t("subscriptionAutoSynced", {count:subscribedIds.size});
+            info.dataset.state = "synced";
+            updateSubscriptionStatus();
+            render();
+        }
+    });
     $("subscriptionOpen").addEventListener("click", openSubscriptionDialog);
     $("subscriptionClose").addEventListener("click", closeSubscriptionDialog);
     $("subscriptionDone").addEventListener("click", closeSubscriptionDialog);
