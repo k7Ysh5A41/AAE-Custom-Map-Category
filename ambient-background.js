@@ -177,7 +177,23 @@
                 const radiance=Math.max(0,
                     (.15+longShafts+microDetail)*envelope*decay);
                 const k=(y*w+x)*4;
-                data[k]=255;data[k+1]=214;data[k+2]=185;
+                // Traveling color caustics within the existing light shafts:
+                // champagne -> ember coral -> muted lilac, with an ivory base.
+                // The phase-dependent diagonal wave carries each tint gently
+                // from the upper-left origin toward the right-hand fan.
+                const huePhase=phase-slope*1.08+depth*.76;
+                const champagne=.5+.5*Math.cos(huePhase);
+                const coral=.5+.5*Math.cos(huePhase-Math.PI*2/3);
+                const lilac=.5+.5*Math.cos(huePhase+Math.PI*2/3);
+                // The three cosine weights always sum to 1.5, allowing a
+                // seamless and continuous color interpolation at every pixel.
+                const tint=.24+.48*Math.min(1,longShafts/.65);
+                data[k]=Math.round(255*(1-tint)+tint*
+                    (255*champagne+255*coral+221*lilac)/1.5);
+                data[k+1]=Math.round(214*(1-tint)+tint*
+                    (215*champagne+156*coral+184*lilac)/1.5);
+                data[k+2]=Math.round(185*(1-tint)+tint*
+                    (151*champagne+139*coral+219*lilac)/1.5);
                 data[k+3]=Math.min(255,Math.round(198*radiance));
             }
         }
@@ -210,8 +226,12 @@
     function paintSpotlight(time){
         const intro=Math.min(1,Math.max(0,time/2.2));
         const x=width*.105;
+        // The source subtly inherits the incoming tint without a full-screen
+        // color wash or a change to the existing beam's projection area.
+        const warmShift=.5+.5*Math.cos(time*.47);
         ellipticalGlow(x,-height*.09,width*.17,height*.24,
-            [239,205,185],.22+.05*intro);
+            [239,Math.round(195+18*warmShift),Math.round(184+8*warmShift)],
+            .22+.05*intro);
         ellipticalGlow(x+width*.075,height*.16,width*.29,height*.46,
             [193,162,147],.052);
         paintGodRays(time);
