@@ -1,282 +1,272 @@
 "use strict";
 
-// AAE ambient backdrop: layered copper/orange silk ribbons and traveling
-// luminous motes, inspired by the motion language of console login screens.
-// Pure Canvas 2D; no external assets, account data, pointer input, or timers.
+// Ambient particle river modeled after the user's PS5 login-screen reference,
+// with AAE's warm accent colors. No PlayStation imagery or UI is embedded.
 (() => {
-    const canvas = document.getElementById("ambientBackground");
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d", {alpha:true, desynchronized:true});
-    if (!ctx) return;
+    const canvas=document.getElementById("ambientBackground");
+    if(!canvas)return;
+    const ctx=canvas.getContext("2d",{alpha:true,desynchronized:true});
+    if(!ctx)return;
 
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const compact = window.matchMedia("(max-width: 700px)");
-    // The AAE UI uses #fa5630 for accents and #ffb277 / #ec5024 on active rows.
-    const palette = {
-        orange:"250,86,48",
-        ember:"236,80,36",
-        amber:"255,178,119",
-        pearl:"255,233,211"
-    };
-    const ribbons = [
-        {y:.63,slope:-.16,arch:.075,wave:.052,width:.116,
-         freq:1.22,speed:.095,phase:.2,ink:palette.orange,alpha:.95},
-        {y:.78,slope:.11,arch:-.16,wave:.041,width:.089,
-         freq:1.44,speed:-.082,phase:2.1,ink:palette.amber,alpha:.75},
-        {y:.91,slope:-.11,arch:-.105,wave:.029,width:.062,
-         freq:1.6,speed:.12,phase:4.1,ink:palette.ember,alpha:.66}
+    const motionPreference=window.matchMedia("(prefers-reduced-motion: reduce)");
+    const compact=window.matchMedia("(max-width: 700px)");
+    const COLORS=[
+        [250,86,48],   // AAE orange
+        [236,80,36],   // ember orange
+        [255,178,119], // AAE active-category highlight
+        [255,223,184], // soft ivory
+        [247,197,148]  // subtle golden dust
     ];
-
-    let width=1;
-    let height=1;
-    let frame=0;
-    let lastFrame=-Infinity;
-    let startTime=null;
-    let seed=3721608;
-    const random=()=>{
-        seed=(1664525*seed+1013904223)>>>0;
+    const FRAME_MS=1000/30;
+    let width=1,height=1,backingScale=1;
+    let raf=0,lastPaint=-Infinity,startedAt=null;
+    let seed=0x6A7B6355;
+    const rand=()=>{
+        seed=(Math.imul(seed,1664525)+1013904223)>>>0;
         return seed/4294967296;
     };
-    const trailMotes=Array.from({length:53},(_,i)=>({
-        ribbon:i%ribbons.length,
-        start:random(),speed:.025+random()*.085,
-        side:(random()-.5)*1.3,
-        size:.95+random()*1.9,
-        phase:random()*Math.PI*2,
-        strength:.58+random()*.42
-    }));
-    const ambientMotes=Array.from({length:62},()=>({
-        x:random(),y:random(),size:.45+random()*1.5,
-        phase:random()*Math.PI*2,
-        speed:.0018+random()*.006,
-        alpha:.13+random()*.35,
-        warm:random()>.36
+    const between=(a,b)=>a+(b-a)*rand();
+    const normal=()=>{
+        const x=Math.max(.00001,rand());
+        return Math.max(-2.7,Math.min(2.7,
+            Math.sqrt(-2*Math.log(x))*Math.cos(Math.PI*2*rand())));
+    };
+
+    function makeSprite(color,kind){
+        const size=kind==="sharp"?56:kind==="blur"?104:124;
+        const bitmap=document.createElement("canvas");
+        bitmap.width=bitmap.height=size;
+        const pen=bitmap.getContext("2d");
+        if(!pen)return null;
+        const c=color.join(",");
+        const grad=pen.createRadialGradient(size/2,size/2,0,size/2,size/2,size*.49);
+        if(kind==="sharp"){
+            grad.addColorStop(0,"rgba("+c+",1)");
+            grad.addColorStop(.14,"rgba("+c+",.96)");
+            grad.addColorStop(.29,"rgba("+c+",.53)");
+            grad.addColorStop(.56,"rgba("+c+",.09)");
+            grad.addColorStop(1,"rgba("+c+",0)");
+        }else if(kind==="blur"){
+            grad.addColorStop(0,"rgba("+c+",.47)");
+            grad.addColorStop(.25,"rgba("+c+",.34)");
+            grad.addColorStop(.58,"rgba("+c+",.17)");
+            grad.addColorStop(1,"rgba("+c+",0)");
+        }else{
+            grad.addColorStop(0,"rgba("+c+",.32)");
+            grad.addColorStop(.3,"rgba("+c+",.25)");
+            grad.addColorStop(.7,"rgba("+c+",.065)");
+            grad.addColorStop(1,"rgba("+c+",0)");
+        }
+        pen.fillStyle=grad;
+        pen.fillRect(0,0,size,size);
+        return bitmap;
+    }
+    const sprites=COLORS.map(rgb=>({
+        sharp:makeSprite(rgb,"sharp"),
+        blur:makeSprite(rgb,"blur"),
+        mist:makeSprite(rgb,"mist")
     }));
 
-    const rgba=(rgb,a)=>"rgba("+rgb+","+Math.max(0,Math.min(1,a))+")";
+    // Reference shape: a broad S-shaped band emerges from the lower left,
+    // climbs through the middle of the screen and drifts toward the right.
+    // Fog and sparkles share this evolving trajectory, with gentle depth parallax.
+    function streamY(u,time,lane){
+        const swell=Math.exp(-Math.pow((u-.43)/.19,2));
+        const dip=Math.exp(-Math.pow((u-.70)/.145,2));
+        const slow=Math.sin(u*7.4-time*.16+lane*1.8)*.014;
+        return .86-.39*u-.065*swell+.058*dip+slow+lane*.045;
+    }
 
-    function resize() {
+    // Seeded particles remain stable while scrolling, changing maps and
+    // resizing the browser. Their motion is tied only to elapsed time.
+    const streams=Array.from({length:560},(_,i)=>{
+        const depth=rand();
+        const bokeh=rand()<.115;
+        const sharp=!bokeh && rand()<.48;
+        return {
+            u:rand(),
+            lane:rand()<.36?-1:rand()<.52?0:1,
+            scatter:normal()*(.027+depth*.029),
+            drift:between(.006,.019)*(1+depth*.4),
+            bob:between(.001,.009),
+            phase:between(0,Math.PI*2),
+            blink:between(.17,.71),
+            color:rand()<.17?0:rand()<.35?1:rand()<.60?2:rand()<.65?3:4,
+            kind:bokeh?"blur":sharp?"sharp":"mist",
+            radius:bokeh?between(3.8,8.5):sharp?between(.8,2.2):between(1.2,4.1),
+            alpha:bokeh?between(.17,.60):sharp?between(.17,.69):between(.07,.34)
+        };
+    });
+    const floaters=Array.from({length:110},()=>({
+        x:rand(),y:rand(),depth:rand(),
+        drift:between(.0004,.0022),
+        color:rand()<.55?3:2,
+        radius:between(.5,1.45),
+        alpha:between(.025,.22),
+        phase:between(0,Math.PI*2)
+    }));
+
+    function resize(){
         width=Math.max(1,window.innerWidth);
         height=Math.max(1,window.innerHeight);
-        // Keep the full-screen buffer bounded on 4K/high-DPI displays.
-        const scale=Math.max(.42,Math.min(window.devicePixelRatio||1,
-            compact.matches?1.05:1.35,Math.sqrt(2400000/(width*height))));
-        canvas.width=Math.max(1,Math.round(width*scale));
-        canvas.height=Math.max(1,Math.round(height*scale));
-        ctx.setTransform(scale,0,0,scale,0,0);
+        const budget=compact.matches?1050000:2100000;
+        backingScale=Math.max(.36,Math.min(window.devicePixelRatio||1,
+            compact.matches?1.05:1.35,Math.sqrt(budget/(width*height))));
+        canvas.width=Math.max(1,Math.round(width*backingScale));
+        canvas.height=Math.max(1,Math.round(height*backingScale));
+        ctx.setTransform(backingScale,0,0,backingScale,0,0);
     }
 
-    function radialLight(x,y,r,rgb,opacity) {
-        const g=ctx.createRadialGradient(x,y,0,x,y,r);
-        g.addColorStop(0,rgba(rgb,opacity));
-        g.addColorStop(.5,rgba(rgb,opacity*.24));
-        g.addColorStop(1,rgba(rgb,0));
-        ctx.fillStyle=g;
-        ctx.fillRect(x-r,y-r,r*2,r*2);
+    function rgba(color,alpha){
+        return "rgba("+color.join(",")+","+alpha+")";
     }
-
-    function centerOf(r,u,t) {
-        const envelope=Math.max(0,Math.sin(Math.PI*u));
-        const phase=u*Math.PI*2*r.freq+t*r.speed+r.phase;
-        const slowRoll=Math.sin(phase)*r.wave*(.36+.64*envelope);
-        return {
-            x:width*(u*1.46-.23)+Math.sin(t*.09+r.phase)*width*.016,
-            y:height*(r.y+r.slope*(u-.5)+r.arch*envelope+slowRoll)
-        };
-    }
-
-    function geometry(r,t,count) {
-        const points=[];
-        for(let i=0;i<=count;i++){
-            const u=i/count;
-            const center=centerOf(r,u,t);
-            const prev=centerOf(r,Math.max(0,u-.002),t);
-            const next=centerOf(r,Math.min(1,u+.002),t);
-            const dx=next.x-prev.x,dy=next.y-prev.y;
-            const len=Math.max(1,Math.hypot(dx,dy));
-            const taper=Math.pow(Math.max(0,Math.sin(Math.PI*u)),.85);
-            const fold=.68+.32*Math.pow(Math.sin(u*7.6+t*.32+r.phase),2);
-            points.push({
-                x:center.x,y:center.y,
-                nx:-dy/len,ny:dx/len,
-                halfWidth:height*r.width*taper*fold*.5,
-                u
-            });
-        }
-        return points;
-    }
-
-    function onRibbon(point,side) {
-        return {
-            x:point.x+point.nx*point.halfWidth*side,
-            y:point.y+point.ny*point.halfWidth*side
-        };
-    }
-
-    function strokeRibbonLine(points,side,rgb,alpha,lineWidth) {
-        const grad=ctx.createLinearGradient(points[0].x,0,points[points.length-1].x,0);
-        grad.addColorStop(0,rgba(rgb,0));
-        grad.addColorStop(.16,rgba(rgb,alpha*.48));
-        grad.addColorStop(.48,rgba(rgb,alpha));
-        grad.addColorStop(.82,rgba(rgb,alpha*.62));
+    function ellipticalGlow(x,y,radiusX,radiusY,rgb,alpha){
+        ctx.save();
+        ctx.translate(x,y);
+        ctx.scale(radiusX,radiusY);
+        const grad=ctx.createRadialGradient(0,0,0,0,0,1);
+        grad.addColorStop(0,rgba(rgb,alpha));
+        grad.addColorStop(.35,rgba(rgb,alpha*.47));
+        grad.addColorStop(.78,rgba(rgb,alpha*.095));
         grad.addColorStop(1,rgba(rgb,0));
-        ctx.beginPath();
-        for(let j=0;j<points.length;j++){
-            const p=onRibbon(points[j],side);
-            if(j===0)ctx.moveTo(p.x,p.y);
-            else ctx.lineTo(p.x,p.y);
-        }
-        ctx.lineWidth=lineWidth;
-        ctx.strokeStyle=grad;
-        ctx.stroke();
+        ctx.fillStyle=grad;
+        ctx.fillRect(-1,-1,2,2);
+        ctx.restore();
     }
 
-    function paintRibbon(r,t,small) {
-        const segments=small?34:58;
-        const points=geometry(r,t,segments);
-
-        // Smooth translucent ribbon body. It tapers off-screen at both ends,
-        // while the individual filaments provide a folded-silk appearance.
+    function paintSpotlight(time){
+        // Wide upper-left diffuse ceiling light, matching the video framing.
+        const x=width*(.12+Math.sin(time*.067)*.014);
+        const bloom=[234,198,184];
+        ellipticalGlow(x,-height*.12,width*.47,height*.72,bloom,.24);
+        ellipticalGlow(x,height*.04,width*.24,height*.48,[218,178,164],.093);
+        ctx.save();
         ctx.beginPath();
-        for(let i=0;i<points.length;i++){
-            const p=onRibbon(points[i],1);
-            if(i===0)ctx.moveTo(p.x,p.y);else ctx.lineTo(p.x,p.y);
-        }
-        for(let i=points.length-1;i>=0;i--){
-            const p=onRibbon(points[i],-1);
-            ctx.lineTo(p.x,p.y);
-        }
+        ctx.moveTo(x-width*.11,-height*.13);
+        ctx.lineTo(x+width*.09,-height*.13);
+        ctx.lineTo(x+width*.42,height*.85);
+        ctx.lineTo(x-width*.28,height*.83);
         ctx.closePath();
-        const fill=ctx.createLinearGradient(0,0,width,height);
-        fill.addColorStop(0,rgba(palette.ember,0));
-        fill.addColorStop(.28,rgba(r.ink,.042*r.alpha));
-        fill.addColorStop(.56,rgba(r.ink,.102*r.alpha));
-        fill.addColorStop(.85,rgba(palette.orange,.053*r.alpha));
-        fill.addColorStop(1,rgba(palette.ember,0));
-        ctx.fillStyle=fill;
+        const shaft=ctx.createLinearGradient(x,0,x,height*.85);
+        shaft.addColorStop(0,"rgba(235,191,168,.12)");
+        shaft.addColorStop(.37,"rgba(214,168,147,.036)");
+        shaft.addColorStop(1,"rgba(214,168,147,0)");
+        ctx.fillStyle=shaft;
         ctx.fill();
-
-        // Broad luminous fold and fine fiber strands. Only their hue uses
-        // the AAE controls' copper, ember, apricot, and warm-white palette.
-        strokeRibbonLine(points,-.47,r.ink,.036*r.alpha,18);
-        strokeRibbonLine(points,.25,palette.ember,.032*r.alpha,14);
-        const strands=small?9:19;
-        for(let i=0;i<strands;i++){
-            const side=-.98+1.96*i/(strands-1);
-            const crest=Math.pow(Math.max(0,1-Math.abs(side-.10)),2);
-            const ink=i%5===0?palette.pearl:i%3===0?palette.amber:r.ink;
-            const alpha=(.018+crest*.088)*r.alpha;
-            strokeRibbonLine(points,side,ink,alpha,i%5===0?1.1:.65);
-        }
-        // The ribbon's sharp, gently illuminated folded edge.
-        strokeRibbonLine(points,-.98,palette.amber,.11*r.alpha,1);
-        strokeRibbonLine(points,.98,palette.ember,.075*r.alpha,1);
+        ctx.restore();
     }
 
-    function paintMovingMotes(t,small) {
-        const number=small?23:trailMotes.length;
-        for(let i=0;i<number;i++){
-            const m=trailMotes[i],r=ribbons[m.ribbon];
-            const u=(m.start+t*m.speed)%1;
-            const edge=Math.pow(Math.sin(Math.PI*u),1.15);
-            if(edge<.045)continue;
-            const location=centerOf(r,u,t);
-            const next=centerOf(r,Math.min(1,u+.004),t);
-            const dx=next.x-location.x,dy=next.y-location.y;
-            const length=Math.max(1,Math.hypot(dx,dy));
-            const normalX=-dy/length,normalY=dx/length;
-            const half=height*r.width*.5*Math.pow(Math.sin(Math.PI*u),.85);
-            const x=location.x+normalX*half*m.side;
-            const y=location.y+normalY*half*m.side;
-            if(x<0||x>width||y<0||y>height)continue;
-            const blink=.74+.26*Math.sin(t*1.65+m.phase);
-            const alpha=.64*m.strength*edge*blink;
-            const tail=(10+m.size*12)*(small?.65:1);
-            const head=ctx.createLinearGradient(
-                x-dx/length*tail,y-dy/length*tail,x,y);
-            head.addColorStop(0,rgba(palette.ember,0));
-            head.addColorStop(.72,rgba(palette.orange,alpha*.16));
-            head.addColorStop(1,rgba(palette.amber,alpha*.81));
+    function paintMist(time){
+        // A low, drifting milky cloud anchors the flow below the map UI.
+        const move=Math.sin(time*.11)*width*.022;
+        ellipticalGlow(width*.13+move,height*.86,width*.46,height*.23,
+            [184,172,162],.155);
+        ellipticalGlow(width*.36-move*.55,height*.93,width*.49,height*.18,
+            [123,118,124],.086);
+        ellipticalGlow(width*.71+move*.25,height*.76,width*.50,height*.27,
+            [115,101,96],.032);
+
+        // The "ribbon" is atmospheric, not a solid sheet: a few exceptionally
+        // soft, wide arcs beneath the flowing particles.
+        ctx.save();
+        for(let i=0;i<3;i++){
+            const g=ctx.createLinearGradient(-width*.1,0,width*1.1,0);
+            g.addColorStop(0,"rgba(200,162,144,0)");
+            g.addColorStop(.24,"rgba(200,162,144,.012)");
+            g.addColorStop(.52,"rgba(235,182,147,.023)");
+            g.addColorStop(.75,"rgba(250,117,65,.013)");
+            g.addColorStop(1,"rgba(250,117,65,0)");
             ctx.beginPath();
-            ctx.moveTo(x-dx/length*tail,y-dy/length*tail);
-            ctx.lineTo(x,y);
-            ctx.strokeStyle=head;
-            ctx.lineWidth=Math.max(.6,m.size*.58);
-            ctx.stroke();
-            if(i%3===0)radialLight(x,y,5+m.size*5,palette.orange,alpha*.20);
-            ctx.beginPath();
-            ctx.arc(x,y,.65+m.size*.63,0,Math.PI*2);
-            ctx.fillStyle=rgba(i%4===0?palette.pearl:palette.amber,alpha);
-            ctx.fill();
-            if(i%5===0) {
-                ctx.beginPath();
-                ctx.arc(x,y,.6,0,Math.PI*2);
-                ctx.fillStyle=rgba(palette.pearl,Math.min(1,alpha*1.18));
-                ctx.fill();
+            for(let j=0;j<=35;j++){
+                const u=j/35;
+                const px=width*(u*1.24-.12);
+                const py=height*(streamY(u,time*.48,i-1)+.025);
+                if(j===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);
             }
+            ctx.strokeStyle=g;
+            ctx.lineWidth=height*(.05+i*.038);
+            ctx.stroke();
         }
+        ctx.restore();
     }
 
-    function paintFloatingSparks(t,small) {
-        const number=small?26:ambientMotes.length;
-        for(let i=0;i<number;i++){
-            const p=ambientMotes[i];
-            // Slow diagonal drift, independent of the ribbons.
-            const x=((p.x+t*p.speed)%1)*width;
-            const y=((p.y-t*p.speed*.41+100)%1)*height;
-            const visibility=.64+.36*Math.sin(t*.9+p.phase);
-            const alpha=p.alpha*visibility*(y<height*.22?.37:1);
-            const ink=p.warm?palette.amber:palette.pearl;
-            if(i%9===0)radialLight(x,y,p.size*7,ink,alpha*.07);
-            ctx.beginPath();
-            ctx.arc(x,y,p.size,0,Math.PI*2);
-            ctx.fillStyle=rgba(ink,alpha);
-            ctx.fill();
-        }
+    function pointSprite(x,y,radius,alpha,color,kind){
+        if(alpha<=.008)return;
+        const sprite=sprites[color][kind];
+        if(!sprite)return;
+        const diameter=radius*(kind==="sharp"?4.8:kind==="blur"?4.2:4.9);
+        ctx.globalAlpha=Math.min(1,alpha);
+        ctx.drawImage(sprite,x-diameter/2,y-diameter/2,diameter,diameter);
     }
 
-    function paint(time) {
+    function paintRiver(time){
+        const count=compact.matches?240:streams.length;
+        for(let i=0;i<count;i++){
+            const p=streams[i];
+            // Positive drift across the river; particles recycle beyond view.
+            const u=(p.u+time*p.drift)%1;
+            const x=width*(u*1.29-.145);
+            const y=height*(streamY(u,time,p.lane)+p.scatter+
+                Math.sin(time*.27+p.phase)*p.bob);
+            if(x<-18||x>width+18||y<-18||y>height+18)continue;
+            const edge=Math.pow(Math.max(0,Math.sin(Math.PI*u)),.42);
+            const twinkle=.77+.23*Math.sin(time*(.65+p.blink)+p.phase);
+            const alpha=p.alpha*edge*twinkle;
+            pointSprite(x,y,p.radius,alpha,p.color,p.kind);
+            // Occasional tiny sharp centers on the brightest defocused motes.
+            if(p.kind==="blur" && i%8===0)
+                pointSprite(x,y,1.1,alpha*.44,3,"sharp");
+        }
+        ctx.globalAlpha=1;
+    }
+
+    function paintSparseDust(time){
+        const count=compact.matches?45:floaters.length;
+        for(let i=0;i<count;i++){
+            const p=floaters[i];
+            const x=width*((p.x+time*p.drift)%1);
+            const y=height*(p.y+.006*Math.sin(time*.3+p.phase));
+            const alpha=p.alpha*(.65+.35*Math.sin(time*.54+p.phase));
+            pointSprite(x,y,p.radius,alpha,p.color,"sharp");
+        }
+        ctx.globalAlpha=1;
+    }
+
+    function paint(time){
         ctx.clearRect(0,0,width,height);
-        const motion=compact.matches?.55:1;
-        const t=time*motion;
-        radialLight(width*(.21+Math.sin(t*.14)*.035),height*.76,
-            Math.max(width*.36,height*.38),palette.ember,.14);
-        radialLight(width*(.80+Math.cos(t*.11)*.022),height*.58,
-            Math.max(width*.34,height*.31),palette.orange,.102);
-        radialLight(width*.57,height*.91,
-            Math.max(width*.42,height*.32),palette.amber,.053);
-        for(const ribbon of ribbons)paintRibbon(ribbon,t,compact.matches);
-        paintMovingMotes(t,compact.matches);
-        paintFloatingSparks(t,compact.matches);
+        paintSpotlight(time);
+        paintMist(time);
+        paintSparseDust(time);
+        paintRiver(time);
     }
 
-    function tick(timestamp) {
-        frame=0;
-        if(document.hidden||reducedMotion.matches)return;
-        const frameGap=compact.matches?50:40; // 20/25 fps
-        if(timestamp-lastFrame>=frameGap){
-            lastFrame=timestamp;
-            if(startTime===null)startTime=timestamp;
-            paint((timestamp-startTime)/1000);
+    function tick(timestamp){
+        raf=0;
+        if(document.hidden||motionPreference.matches)return;
+        const interval=compact.matches?1000/24:FRAME_MS;
+        if(timestamp-lastPaint>=interval){
+            lastPaint=timestamp;
+            if(startedAt===null)startedAt=timestamp;
+            paint((timestamp-startedAt)/1000);
         }
-        frame=requestAnimationFrame(tick);
+        raf=requestAnimationFrame(tick);
     }
 
-    function refresh() {
-        if(frame)cancelAnimationFrame(frame);
-        frame=0;
-        lastFrame=-Infinity;
+    function refresh(){
+        if(raf)cancelAnimationFrame(raf);
+        raf=0;
+        lastPaint=-Infinity;
         resize();
         if(document.hidden)return;
-        if(reducedMotion.matches)paint(0);
-        else frame=requestAnimationFrame(tick);
+        if(motionPreference.matches)paint(12); // still PS5-like composition
+        else raf=requestAnimationFrame(tick);
     }
 
     window.addEventListener("resize",refresh,{passive:true});
     document.addEventListener("visibilitychange",refresh);
-    if(typeof reducedMotion.addEventListener==="function")
-        reducedMotion.addEventListener("change",refresh);
-    else if(typeof reducedMotion.addListener==="function")
-        reducedMotion.addListener(refresh);
+    if(motionPreference.addEventListener)
+        motionPreference.addEventListener("change",refresh);
+    else if(motionPreference.addListener)
+        motionPreference.addListener(refresh);
     refresh();
 })();
