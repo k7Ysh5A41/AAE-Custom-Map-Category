@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "description": "Catalog-managed NEW badge expiration dates (independent of Steam Workshop publication dates)",
+  "items": [
+    {
+      "title": "Shadow Moses Incident",
+      "new_until": "2026-10-13T00:00:00Z"
+    },
+    {
+      "title": "MARIO KART - COOKIE LAND (GUN GAME) [V1.3]",
+      "new_until": "2026-10-13T00:00:00Z"
+    },
+    {
+      "title": "CALL OF THE DEAD",
+      "new_until": "2026-10-13T00:00:00Z"
+    },
+    {
+      "title": "ARTIFICIAL EXPEDITION",
+      "new_until": "2026-10-13T00:00:00Z"
+    },
+    {
+      "title": "CRASH BANDICOOT ROAD TO NO WHERE",
+      "new_until": "2026-10-13T00:00:00Z"
+    },
+    {
+      "title": "Plants vs. Nazi Zombies",
+      "new_until": "2026-10-13T00:00:00Z"
+    },
+    {
+      "title": "plants vs zombies night time",
+      "new_until": "2026-10-13T00:00:00Z"
+    },
+    {
+      "title": "Hello Kitty Remastered: Remastered",
+      "new_until": "2026-10-13T00:00:00Z"
+    },
+    {
+      "title": "WAFFLE TOWER[SUPER HARD]",
+      "new_until": "2026-10-13T00:00:00Z"
+    }
+  ]
+}
