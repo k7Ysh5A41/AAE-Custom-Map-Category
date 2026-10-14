@@ -65,38 +65,42 @@
         mist:makeSprite(rgb,"mist")
     }));
 
-    // Reference shape: a broad S-shaped band emerges from the lower left,
-    // climbs through the middle of the screen and drifts toward the right.
-    // Fog and sparkles share this evolving trajectory, with gentle depth parallax.
+    // The reference particles form a deep, irregular ribbon rising from the
+    // lower-left toward the mid-right. Most dots drift slowly, not in formation.
     function streamY(u,time,lane){
-        const swell=Math.exp(-Math.pow((u-.43)/.19,2));
-        const dip=Math.exp(-Math.pow((u-.70)/.145,2));
-        const slow=Math.sin(u*7.4-time*.16+lane*1.8)*.014;
-        return .86-.39*u-.065*swell+.058*dip+slow+lane*.045;
+        const t=Math.max(0,Math.min(1,(u-.06)/.91));
+        const climb=(1-Math.exp(-3.1*t))/(1-Math.exp(-3.1));
+        const subtleWave=.009*Math.sin(u*7.4-time*.12+lane*1.6);
+        return .85-.38*climb+lane*(.065+.021*t)+subtleWave;
     }
 
-    // Seeded particles remain stable while scrolling, changing maps and
-    // resizing the browser. Their motion is tied only to elapsed time.
-    const streams=Array.from({length:900},(_,i)=>{
+    // Stable seeded depth layers with independent motion and loose clusters.
+    const streams=Array.from({length:940},()=>{
         const depth=rand();
-        const bokeh=rand()<.19;
-        const sharp=!bokeh && rand()<.63;
+        const bokeh=rand()<.205;
+        const sharp=!bokeh&&rand()<.61;
+        const chance=rand();
+        const u=chance<.34?between(.66,1.13):
+                chance<.48?between(.06,.34):between(0,1.15);
+        const lane=between(-1,1);
+        const direction=rand()<.15?-1:1;
+        const movement=between(.0014,.0067)*(0.70+depth*.95)*direction;
         return {
-            u:rand(),
-            initialY:rand(),
-            lane:rand()<.36?-1:rand()<.52?0:1,
-            scatter:normal()*(.026+depth*.039),
-            drift:between(.008,.019)*(1+depth*.45),
-            bob:between(.001,.009),
+            u,
+            initialY:between(.27,1.05),
+            lane,
+            scatter:normal()*(.051+depth*.024+u*.018),
+            drift:movement,
+            bob:between(.001,.010),
             phase:between(0,Math.PI*2),
-            blink:between(.17,.71),
-            sparkle:rand()<.50,
-            sparkleRate:between(.55,1.42),
+            blink:between(.12,.48),
+            sparkle:rand()<.33,
+            sparkleRate:between(.45,1.20),
             sparklePhase:between(0,Math.PI*2),
-            color:(()=>{const v=rand();return v<.16?0:v<.39?1:v<.66?2:v<.92?3:4;})(),
+            color:(()=>{const v=rand();return v<.13?0:v<.32?1:v<.60?2:v<.89?3:4;})(),
             kind:bokeh?"blur":sharp?"sharp":"mist",
-            radius:bokeh?between(3.6,12.2):sharp?between(.8,2.3):between(1.5,4.8),
-            alpha:bokeh?between(.33,.76):sharp?between(.40,.80):between(.12,.36)
+            radius:bokeh?between(2.3,8.8):sharp?between(.75,2.15):between(1.3,4.0),
+            alpha:bokeh?between(.26,.66):sharp?between(.42,.88):between(.12,.39)
         };
     });
     const floaters=Array.from({length:185},()=>({
@@ -136,11 +140,11 @@
         ctx.restore();
     }
 
-    // One continuous volumetric field: filaments and soft shadows are
-    // calculated inside the same alpha texture, never as stacked bands.
+    // Reference lighting: a wide, soft near-vertical canopy from upper left.
+    // A SINGLE precomputed alpha field blends broad atmospheric illumination,
+    // diffused shafts and tiny variation with no discrete layered ray edges.
     function makeGodRayTexture(){
-        const w=compact.matches?640:1024;
-        const h=compact.matches?352:512;
+        const w=compact.matches?512:768,h=compact.matches?360:480;
         const bitmap=document.createElement("canvas");
         bitmap.width=w;
         bitmap.height=h;
@@ -148,78 +152,74 @@
         if(!brush)return null;
         const pixels=brush.createImageData(w,h);
         const data=pixels.data;
-        for(let x=0;x<w;x++){
-            const t=x/(w-1);
-            // Open up the fan much farther than the previous narrow cone.
-            const spread=.024+.96*Math.pow(t,.81);
-            const entrance=1-Math.exp(-t*33);
-            const fade=entrance*Math.exp(-t*.33);
-            for(let y=0;y<h;y++){
-                const cross=((y+.5)/h*2-1)/spread;
-                const feather=Math.exp(-2.65*Math.pow(Math.abs(cross),1.65));
-                // Low-contrast, continuous fine rays; no independent light layers.
-                const detail=1
-                    +.080*Math.sin(cross*22.7+t*2.1+.3*Math.sin(t*6.5))
-                    +.047*Math.sin(cross*49.2-t*1.6)
-                    +.026*Math.sin(cross*91.0+t*4.8)
-                    +.10*Math.exp(-Math.pow((cross+.34-.022*Math.sin(t*4.4))/.054,2))
-                    +.12*Math.exp(-Math.pow((cross-.10+.017*Math.sin(t*3.2))/.041,2))
-                    +.08*Math.exp(-Math.pow((cross-.56)/.063,2));
+        const gaussian=(x,c,s)=>Math.exp(-Math.pow((x-c)/s,2));
+        for(let y=0;y<h;y++){
+            const v=(y+.5)/h;
+            const depth=(v+.18)/1.18;
+            const spread=.20+.53*depth;
+            const decay=Math.exp(-depth*.82);
+            for(let x=0;x<w;x++){
+                const u=(x+.5)/w;
+                // Ray directions are measured from a common upper-left source.
+                const slope=(u-.115)/(depth*.65+.025);
+                const envelope=gaussian(u,.115+depth*.08,spread);
+                const longShafts=
+                    .43*gaussian(slope,.08,.36)
+                   +.25*gaussian(slope,-.39,.34)
+                   +.105*gaussian(slope,.73,.33)
+                   +.045*gaussian(slope,1.45,.48);
+                const microDetail=
+                    .024*Math.sin(slope*29+v*3.1)
+                   +.016*Math.sin(slope*58-v*2.4)
+                   +.009*Math.sin(slope*103+v*6.4);
+                const radiance=Math.max(0,
+                    (.23+longShafts+microDetail)*envelope*decay);
                 const k=(y*w+x)*4;
-                data[k]=255;
-                data[k+1]=210;
-                data[k+2]=163;
-                data[k+3]=Math.max(0,Math.min(255,
-                    Math.round(237*fade*feather*detail)));
+                data[k]=255;data[k+1]=215;data[k+2]=188;
+                data[k+3]=Math.min(255,Math.round(207*radiance));
             }
         }
         brush.putImageData(pixels,0,0);
         return bitmap;
     }
     const godRayTexture=makeGodRayTexture();
-    function paintGodRays(time,originX,originY){
+    function paintGodRays(time){
         if(!godRayTexture)return;
-        // Overshoot the viewport so the far edge never reveals a texture seam.
-        const angle=.89+.008*Math.sin(time*.063);
-        const length=Math.max(height*2.35,width*1.75);
-        const halfHeight=Math.max(width*.66,height*.56);
         ctx.save();
         ctx.globalCompositeOperation="screen";
-        ctx.translate(originX,originY);
-        ctx.rotate(angle);
-        ctx.globalAlpha=.88+.06*Math.sin(time*.13);
-        ctx.drawImage(godRayTexture,0,-halfHeight,length,halfHeight*2);
+        ctx.globalAlpha=.89+.06*Math.sin(time*.10);
+        ctx.drawImage(godRayTexture,0,0,width,height);
         ctx.restore();
     }
 
     function paintSpotlight(time){
         const intro=Math.min(1,Math.max(0,time/2.2));
-        const x=width*(.10+Math.sin(time*.052)*.003);
-        const y=-height*.13;
-        // A single wide atmosphere and a tightly blended source highlight.
-        ellipticalGlow(x+width*.10,y+height*.11,
-            width*.72,height*.79,[255,153,98],.18+.06*intro);
-        paintGodRays(time,x,y);
-        ellipticalGlow(x,-height*.045,width*.17,height*.23,
-            [255,221,174],.27);
+        const x=width*.115;
+        // The video has a gentle bloom just outside the upper-left edge.
+        ellipticalGlow(x,-height*.065,width*.23,height*.31,
+            [239,205,185],.27+.07*intro);
+        ellipticalGlow(x+width*.035,height*.16,width*.32,height*.62,
+            [193,162,147],.085);
+        paintGodRays(time);
     }
 
     function paintMist(time){
         const reveal=Math.min(1,.35+time/7);
-        const move=Math.sin(time*.12)*width*.025;
-        ellipticalGlow(width*.14+move,height*.84,width*.48,height*.25,
-            [180,141,115],.24*reveal);
-        ellipticalGlow(width*.36-move*.5,height*.91,width*.48,height*.21,
-            [123,105,98],.16*reveal);
-        ellipticalGlow(width*.68+move*.24,height*.71,width*.46,height*.24,
-            [114,89,76],.055*reveal);
-        // No hard-edged silk bands: seven translucent clouds trace the curve.
-        for(let i=0;i<7;i++){
-            const u=(i+.35)/7;
-            const px=width*(u*1.28-.12);
-            const py=height*(streamY(u,time*.32,0)+.045);
-            ellipticalGlow(px,py,width*.145,height*.085,
-                [185,133,108],(.032+.012*Math.sin(time*.17+i))*reveal);
+        const move=Math.sin(time*.09)*width*.014;
+        // Desaturated low-left floor haze follows the reference video.
+        ellipticalGlow(width*.15+move,height*.90,width*.56,height*.27,
+            [157,142,131],.24*reveal);
+        ellipticalGlow(width*.35-move*.5,height*.81,width*.51,height*.22,
+            [137,112,105],.12*reveal);
+        ellipticalGlow(width*.74,height*.61,width*.39,height*.23,
+            [104,91,89],.045*reveal);
+        // Very faint local fog patches, not an opaque ribbon.
+        for(let i=0;i<5;i++){
+            const u=(i+.5)/5;
+            const px=width*(u*1.16-.10);
+            const py=height*(streamY(u,time*.20,0)+.08);
+            ellipticalGlow(px,py,width*.16,height*.10,
+                [170,132,110],(.021+.007*Math.sin(time*.13+i))*reveal);
         }
     }
 
@@ -239,16 +239,18 @@
         for(let i=0;i<count;i++){
             const p=streams[i];
             // Positive drift across the river; particles recycle beyond view.
-            const u=(p.u+time*p.drift)%1;
-            const x=width*(u*1.29-.145);
+            // Wrap well beyond both screen edges: no visible teleportation.
+            const u=((p.u+time*p.drift)%1.15+1.15)%1.15;
+            const x=width*(u*1.16-.10);
             const formed=Math.max(0,Math.min(1,(time-.2)/5));
             const ease=formed*formed*(3-2*formed);
             const waveY=streamY(u,time,p.lane)+p.scatter+
-                Math.sin(time*.27+p.phase)*p.bob;
+                Math.sin(time*.26+p.phase)*p.bob;
             const y=height*(p.initialY*(1-ease)+waveY*ease);
-            if(x<-18||x>width+18||y<-18||y>height+18)continue;
-            const edge=.38+.62*Math.pow(Math.max(0,Math.sin(Math.PI*u)),.43);
-            const simmer=.43+.17*Math.sin(time*(.36+p.blink)+p.phase);
+            if(x<-55||x>width+55||y<-55||y>height+55)continue;
+            const edge=.47+.53*Math.pow(Math.max(0,
+                Math.sin(Math.PI*Math.min(1,u))),.43);
+            const simmer=.55+.14*Math.sin(time*(.23+p.blink)+p.phase);
             // Very short 3–5x flashes rather than the former near-flat sine.
             const flash=p.sparkle?Math.pow(Math.max(0,
                 Math.sin(time*p.sparkleRate+p.sparklePhase)),18):0;

@@ -2628,3 +2628,25 @@ body.submission-open .social-bar { pointer-events:none; }
   .game-header .brand-logo,
   .game-header .heading::before {animation:none!important;will-change:auto;}
 }
+
+
+/* Improve legibility of idle category and Workshop title/publisher labels.
+   Preserve warm selected states and distinct pending/incompatible categories. */
+#categoryNav .nav-btn:not(.active):not(.incompatible-category):not(.pending-category):not(.pending-change-category):not(.pending-delete-category):not(.recent-category):not(.map-origin-pulse) {
+  color:#f1e9e4;
+}
+#categoryNav .nav-btn:not(.active):not(.incompatible-category):not(.pending-category):not(.pending-change-category):not(.pending-delete-category):not(.recent-category):not(.map-origin-pulse) small {
+  color:#d2c0b4;
+}
+.catalog .map-row:not(.active):not([aria-selected="true"]) .map-copy h3 {
+  color:#f4f0ec;
+  font-weight:750;
+}
+.catalog .map-row:not(.active):not([aria-selected="true"]) .map-publisher,
+.catalog .map-row:not(.active):not([aria-selected="true"]) .map-publisher .publisher-name {
+  color:#e2d2c7;
+}
+.catalog .map-row:not(.active):not([aria-selected="true"]) .map-copy h3,
+.catalog .map-row:not(.active):not([aria-selected="true"]) .map-publisher {
+  text-shadow:0 1px 2px rgba(0,0,0,.36);
+}
