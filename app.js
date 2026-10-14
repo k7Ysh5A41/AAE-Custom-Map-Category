@@ -1055,8 +1055,7 @@ function openChangeRequest(id) {
     const available = state.categories.filter(c =>
         c.button !== map.category.button && c.button !== INCOMPATIBLE_CATEGORY);
     $("changeTargetCategory").innerHTML =
-        '<option value="' + escapeHtml(map.category.button) + '">' +
-            escapeHtml(t("changeKeepCategory")) + '</option>' +
+        '<option value="">' + escapeHtml(t("selectCategory")) + '</option>' +
         available.map(c => '<option value="' + escapeHtml(c.button) + '">' +
             escapeHtml(c.name) + '</option>').join("");
     setChangeError("");
