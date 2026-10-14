@@ -45,14 +45,14 @@
             grad.addColorStop(.56,"rgba("+c+",.09)");
             grad.addColorStop(1,"rgba("+c+",0)");
         }else if(kind==="blur"){
-            grad.addColorStop(0,"rgba("+c+",.47)");
-            grad.addColorStop(.25,"rgba("+c+",.34)");
-            grad.addColorStop(.58,"rgba("+c+",.17)");
+            grad.addColorStop(0,"rgba("+c+",.90)");
+            grad.addColorStop(.25,"rgba("+c+",.62)");
+            grad.addColorStop(.58,"rgba("+c+",.18)");
             grad.addColorStop(1,"rgba("+c+",0)");
         }else{
-            grad.addColorStop(0,"rgba("+c+",.32)");
-            grad.addColorStop(.3,"rgba("+c+",.25)");
-            grad.addColorStop(.7,"rgba("+c+",.065)");
+            grad.addColorStop(0,"rgba("+c+",.53)");
+            grad.addColorStop(.3,"rgba("+c+",.36)");
+            grad.addColorStop(.7,"rgba("+c+",.085)");
             grad.addColorStop(1,"rgba("+c+",0)");
         }
         pen.fillStyle=grad;
@@ -77,31 +77,31 @@
 
     // Seeded particles remain stable while scrolling, changing maps and
     // resizing the browser. Their motion is tied only to elapsed time.
-    const streams=Array.from({length:710},(_,i)=>{
+    const streams=Array.from({length:900},(_,i)=>{
         const depth=rand();
-        const bokeh=rand()<.15;
-        const sharp=!bokeh && rand()<.56;
+        const bokeh=rand()<.19;
+        const sharp=!bokeh && rand()<.63;
         return {
             u:rand(),
             initialY:rand(),
             lane:rand()<.36?-1:rand()<.52?0:1,
-            scatter:normal()*(.032+depth*.036),
-            drift:between(.007,.017)*(1+depth*.45),
-            bob:between(.001,.009),.009),
+            scatter:normal()*(.026+depth*.039),
+            drift:between(.008,.019)*(1+depth*.45),
+            bob:between(.001,.009),
             phase:between(0,Math.PI*2),
             blink:between(.17,.71),
             color:(()=>{const v=rand();return v<.035?0:v<.16?1:v<.49?2:v<.79?3:4;})(),
             kind:bokeh?"blur":sharp?"sharp":"mist",
-            radius:bokeh?between(3.2,10.4):sharp?between(.58,1.80):between(1,3.5),
-            alpha:bokeh?between(.12,.51):sharp?between(.25,.75):between(.055,.30)
+            radius:bokeh?between(3.5,12.2):sharp?between(.75,2.05):between(1.6,4.8),
+            alpha:bokeh?between(.34,.83):sharp?between(.48,.96):between(.13,.45)
         };
     });
-    const floaters=Array.from({length:150},()=>({
+    const floaters=Array.from({length:185},()=>({
         x:rand(),y:rand(),depth:rand(),
         drift:between(.0004,.0022),
         color:rand()<.55?3:2,
-        radius:between(.5,1.45),
-        alpha:between(.025,.22),
+        radius:between(.65,1.75),
+        alpha:between(.06,.36),
         phase:between(0,Math.PI*2)
     }));
 
@@ -137,11 +137,11 @@
         // A gentle cone entering from the ceiling at the reference's sixth second.
         const intro=Math.min(1,Math.max(0,time/2.8));
         const x=width*(.225-.105*intro+Math.sin(time*.052)*.009);
-        ellipticalGlow(x,-height*.18,width*.56,height*.90,[237,215,208],.13+.15*intro);
-        ellipticalGlow(x-width*.06,-height*.06,width*.34,height*.77,
-            [219,190,190],.055+.06*intro);
-        ellipticalGlow(x+width*.08,height*.24,width*.35,height*.68,
-            [194,177,177],.024+.021*intro);
+        ellipticalGlow(x,-height*.16,width*.58,height*.99,[237,215,208],.22+.23*intro);
+        ellipticalGlow(x-width*.06,-height*.05,width*.33,height*.77,
+            [219,190,190],.12+.13*intro);
+        ellipticalGlow(x+width*.08,height*.24,width*.39,height*.71,
+            [194,177,177],.052+.047*intro);
         ctx.save();
         ctx.beginPath();
         ctx.moveTo(x-width*.135,-height*.16);
@@ -150,9 +150,9 @@
         ctx.lineTo(x-width*.315,height*.82);
         ctx.closePath();
         const shaft=ctx.createLinearGradient(x,-height*.1,x+width*.08,height*.84);
-        shaft.addColorStop(0,"rgba(239,214,203,"+(.067*intro)+")");
-        shaft.addColorStop(.22,"rgba(227,203,198,"+(.040*intro)+")");
-        shaft.addColorStop(.62,"rgba(204,182,184,"+(.011*intro)+")");
+        shaft.addColorStop(0,"rgba(239,214,203,"+(.16*intro)+")");
+        shaft.addColorStop(.22,"rgba(227,203,198,"+(.075*intro)+")");
+        shaft.addColorStop(.62,"rgba(204,182,184,"+(.018*intro)+")");
         shaft.addColorStop(1,"rgba(192,179,185,0)");
         ctx.fillStyle=shaft;
         ctx.fill();
@@ -163,18 +163,18 @@
         const reveal=Math.min(1,.35+time/7);
         const move=Math.sin(time*.12)*width*.025;
         ellipticalGlow(width*.14+move,height*.84,width*.48,height*.25,
-            [169,166,175],.11*reveal);
+            [169,166,175],.28*reveal);
         ellipticalGlow(width*.36-move*.5,height*.91,width*.48,height*.21,
-            [139,135,151],.064*reveal);
+            [139,135,151],.18*reveal);
         ellipticalGlow(width*.68+move*.24,height*.71,width*.46,height*.24,
-            [128,115,130],.017*reveal);
+            [128,115,130],.045*reveal);
         // No hard-edged silk bands: seven translucent clouds trace the curve.
         for(let i=0;i<7;i++){
             const u=(i+.35)/7;
             const px=width*(u*1.28-.12);
             const py=height*(streamY(u,time*.32,0)+.045);
             ellipticalGlow(px,py,width*.145,height*.085,
-                [176,151,155],(.013+.005*Math.sin(time*.17+i))*reveal);
+                [176,151,155],(.033+.009*Math.sin(time*.17+i))*reveal);
         }
     }
 
@@ -188,7 +188,9 @@
     }
 
     function paintRiver(time){
-        const count=compact.matches?275:streams.length;
+        const count=compact.matches?335:streams.length;
+        ctx.save();
+        ctx.globalCompositeOperation="lighter";
         for(let i=0;i<count;i++){
             const p=streams[i];
             // Positive drift across the river; particles recycle beyond view.
@@ -200,20 +202,21 @@
                 Math.sin(time*.27+p.phase)*p.bob;
             const y=height*(p.initialY*(1-ease)+waveY*ease);
             if(x<-18||x>width+18||y<-18||y>height+18)continue;
-            const edge=Math.pow(Math.max(0,Math.sin(Math.PI*u)),.42);
+            const edge=.38+.62*Math.pow(Math.max(0,Math.sin(Math.PI*u)),.43);
             const glint=Math.pow(Math.max(0,Math.sin(time*(.28+p.blink)+p.phase)),9);
-            const twinkle=.57+.31*Math.sin(time*(.26+p.blink)+p.phase)+.30*glint;
-            const alpha=p.alpha*(.55+.45*ease)*edge*Math.max(.17,twinkle);
+            const twinkle=.76+.22*Math.sin(time*(.26+p.blink)+p.phase)+.19*glint;
+            const alpha=p.alpha*(.79+.21*ease)*edge*Math.max(.27,twinkle);
             pointSprite(x,y,p.radius,alpha,p.color,p.kind);
             // Occasional tiny sharp centers on the brightest defocused motes.
             if(p.kind==="blur" && i%7===0)
                 pointSprite(x,y,1.0,alpha*.49,3,"sharp");
         }
+        ctx.restore();
         ctx.globalAlpha=1;
     }
 
     function paintSparseDust(time){
-        const count=compact.matches?55:floaters.length;
+        const count=compact.matches?65:floaters.length;
         for(let i=0;i<count;i++){
             const p=floaters[i];
             const x=width*((p.x+time*p.drift)%1);
@@ -225,6 +228,8 @@
     }
 
     function paint(time){
+        ctx.globalAlpha=1;
+        ctx.globalCompositeOperation="source-over";
         ctx.clearRect(0,0,width,height);
         paintSpotlight(time);
         paintMist(time);
@@ -238,7 +243,8 @@
         const interval=compact.matches?1000/24:FRAME_MS;
         if(timestamp-lastPaint>=interval){
             lastPaint=timestamp;
-            if(startedAt===null)startedAt=timestamp;
+            // Start with the video's fully established 6-second composition.
+            if(startedAt===null)startedAt=timestamp-6500;
             paint((timestamp-startedAt)/1000);
         }
         raf=requestAnimationFrame(tick);
@@ -250,8 +256,10 @@
         lastPaint=-Infinity;
         resize();
         if(document.hidden)return;
-        if(motionPreference.matches)paint(12); // still PS5-like composition
-        else raf=requestAnimationFrame(tick);
+        // Paint the first frame immediately; don't leave the page dark while
+        // waiting for the first animation frame or on reduced-motion devices.
+        paint(startedAt===null?6.5:12);
+        if(!motionPreference.matches)raf=requestAnimationFrame(tick);
     }
 
     window.addEventListener("resize",refresh,{passive:true});
