@@ -6,9 +6,9 @@
 <meta name="theme-color" content="#050507">
 <meta name="description" content="All-Around Enhancement — a Black Ops III Zombies-style catalog of public Steam Workshop maps.">
 <title>All-Around Enhancement — Map Catalog</title>
-<link rel="stylesheet" href="styles.css?v=incompatible-neutral-20261009">
-<script src="translations.js?v=incompatible-neutral-20261009" defer></script>
-<script src="app.js?v=incompatible-neutral-20261009" defer></script>
+<link rel="stylesheet" href="styles.css?v=subscriptions-20261014">
+<script src="translations.js?v=subscriptions-20261014" defer></script>
+<script src="app.js?v=subscriptions-20261014" defer></script>
 </head>
 <body>
 <div class="game-shell">
@@ -49,6 +49,10 @@
           <span class="sr-only" data-i18n="search">Search Steam map title or Workshop ID</span>
           <input id="searchInput" type="search" placeholder="SEARCH TITLE OR WORKSHOP ID…" data-i18n-placeholder="searchPlaceholder" autocomplete="off" spellcheck="false" aria-label="Search Steam map title or Workshop ID" data-i18n-aria-label="search">
         </label>
+        <button id="subscriptionOpen" class="subscription-trigger" type="button" aria-haspopup="dialog" aria-controls="subscriptionOverlay">
+          <span aria-hidden="true">✓</span> <span data-i18n="subscriptionButton">SUBSCRIPTIONS</span>
+          <span id="subscriptionCount" class="subscription-counter" hidden></span>
+        </button>
       </div>
       <div id="catalog" class="catalog" aria-live="polite"><p class="empty" data-i18n="loading">VERIFYING PUBLIC WORKSHOP MAPS…</p></div>
       <p id="errorMessage" class="error" hidden></p>
@@ -90,6 +94,27 @@
     </button>
     <div class="language-menu" id="languageMenu" role="group" aria-label="Website language" hidden></div>
   </div>
+  <section class="submit-overlay subscription-overlay" id="subscriptionOverlay" hidden role="presentation">
+    <div class="submit-dialog subscription-dialog" role="dialog" aria-modal="true" aria-labelledby="subscriptionTitle" aria-describedby="subscriptionHelp">
+      <div class="submit-heading">
+        <h2 id="subscriptionTitle" data-i18n="subscriptionTitle">STEAM SUBSCRIPTIONS</h2>
+        <button id="subscriptionClose" class="submit-close" type="button" aria-label="Close subscriptions" data-i18n-aria-label="subscriptionClose">×</button>
+      </div>
+      <p id="subscriptionHelp" class="submit-description" data-i18n="subscriptionHelp">This website cannot directly read your signed-in Steam account. Open your Steam subscribed items page, save each page as HTML, then import it here. You can also paste Workshop IDs or links. Only imported items are marked.</p>
+      <a class="subscription-steam-link" href="https://steamcommunity.com/my/myworkshopfiles/?appid=311210&amp;browsefilter=mysubscriptions" target="_blank" rel="noopener noreferrer" data-i18n="subscriptionSteamLink">OPEN MY STEAM SUBSCRIPTIONS ↗</a>
+      <label class="subscription-label" for="subscriptionFile" data-i18n="subscriptionFileLabel">IMPORT SAVED SUBSCRIPTIONS PAGE (.HTML), ID LIST (.TXT) OR JSON</label>
+      <input id="subscriptionFile" type="file" accept=".html,.htm,.txt,.json,text/html,text/plain,application/json">
+      <label class="subscription-label" for="subscriptionText" data-i18n="subscriptionPasteLabel">OR PASTE WORKSHOP IDS / LINKS</label>
+      <textarea id="subscriptionText" rows="4" spellcheck="false" data-i18n-placeholder="subscriptionPlaceholder" placeholder="1234567890&#10;https://steamcommunity.com/sharedfiles/filedetails/?id=2345678901"></textarea>
+      <p class="subscription-privacy" data-i18n="subscriptionPrivacy">Your imported IDs stay in this browser and are never uploaded. Import again after changing Steam accounts or subscriptions. For multiple pages, import each page in turn.</p>
+      <p id="subscriptionStatus" class="subscription-status" role="status" aria-live="polite"></p>
+      <div class="submit-actions subscription-actions">
+        <button id="subscriptionClear" type="button" data-i18n="subscriptionClear">CLEAR LIST</button>
+        <button id="subscriptionImport" type="button" class="submit-confirm" data-i18n="subscriptionImport">IMPORT / ADD ✓</button>
+        <button id="subscriptionDone" type="button" data-i18n="subscriptionDone">DONE</button>
+      </div>
+    </div>
+  </section>
   <section class="submit-overlay change-overlay" id="changeMapOverlay" hidden role="presentation">
     <div class="submit-dialog change-dialog" role="dialog" aria-modal="true" aria-labelledby="changeMapTitle">
       <div class="submit-heading">
