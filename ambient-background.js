@@ -136,72 +136,62 @@
         ctx.restore();
     }
 
-    // Multiple wide, soft-edged shafts diverge from one ceiling light.
-    // Gaussian-opacity strips prevent visibly hard triangular beam edges.
-    const GOD_RAYS=[
-        {angle:.99,spread:.062,strength:.82,warm:false},
-        {angle:1.14,spread:.047,strength:.92,warm:true},
-        {angle:1.27,spread:.036,strength:.48,warm:false},
-        {angle:1.39,spread:.077,strength:1.00,warm:false},
-        {angle:1.56,spread:.037,strength:.82,warm:true},
-        {angle:1.72,spread:.063,strength:.84,warm:false},
-        {angle:1.87,spread:.049,strength:.57,warm:true},
-        {angle:2.05,spread:.074,strength:.55,warm:false}
-    ];
+    // One continuous feathered shaft, rather than eight distinct bands.
+    // Cached alpha pixels provide a tapering Gaussian edge without seams.
+    function makeGodRayTexture(){
+        const w=448,h=224;
+        const bitmap=document.createElement("canvas");
+        bitmap.width=w;
+        bitmap.height=h;
+        const brush=bitmap.getContext("2d");
+        if(!brush)return null;
+        const pixels=brush.createImageData(w,h);
+        const data=pixels.data;
+        for(let x=0;x<w;x++){
+            const t=x/(w-1);
+            const halfWidth=.034+.66*Math.pow(t,.88);
+            const entrance=1-Math.exp(-t*32);
+            const tail=1-.65*Math.pow(Math.max(0,(t-.66)/.34),2);
+            const lengthFade=entrance*Math.exp(-t*.89)*tail;
+            for(let y=0;y<h;y++){
+                const cross=((y+.5)/h*2-1)/halfWidth;
+                const feather=Math.exp(-2.45*cross*cross);
+                const k=(y*w+x)*4;
+                data[k]=255;data[k+1]=214;data[k+2]=179;
+                data[k+3]=Math.round(214*lengthFade*feather);
+            }
+        }
+        brush.putImageData(pixels,0,0);
+        return bitmap;
+    }
+    const godRayTexture=makeGodRayTexture();
     function paintGodRays(time,originX,originY){
-        const distance=height*1.52;
+        if(!godRayTexture)return;
+        // One radian from horizontal sends light diagonally down and right.
+        const angle=1.00+.011*Math.sin(time*.063);
+        const length=Math.max(height*1.53,width*.93);
+        const halfHeight=width*.29;
         ctx.save();
         ctx.globalCompositeOperation="screen";
-        for(let i=0;i<GOD_RAYS.length;i++){
-            const ray=GOD_RAYS[i];
-            const angle=ray.angle+.012*Math.sin(time*.11+i*.71);
-            const pulse=.84+.16*Math.sin(time*.17+i*.89);
-            const farWidth=width*ray.spread;
-            const rgb=ray.warm?"255,180,122":"255,232,196";
-            ctx.save();
-            ctx.translate(originX,originY);
-            ctx.rotate(angle);
-            const fade=ctx.createLinearGradient(0,0,distance,0);
-            fade.addColorStop(0,"rgba("+rgb+",0)");
-            fade.addColorStop(.07,"rgba("+rgb+",.40)");
-            fade.addColorStop(.26,"rgba("+rgb+",.27)");
-            fade.addColorStop(.54,"rgba("+rgb+",.095)");
-            fade.addColorStop(.84,"rgba("+rgb+",.022)");
-            fade.addColorStop(1,"rgba("+rgb+",0)");
-            ctx.fillStyle=fade;
-            for(let band=0;band<12;band++){
-                const left=band/6-1;
-                const right=(band+1)/6-1;
-                const middle=(left+right)*.5;
-                ctx.globalAlpha=Math.min(1,ray.strength*pulse*
-                    Math.exp(-Math.pow(middle*2.15,2)));
-                ctx.beginPath();
-                ctx.moveTo(distance*.008,left*7);
-                ctx.lineTo(distance*.008,right*7);
-                ctx.lineTo(distance,right*farWidth);
-                ctx.lineTo(distance,left*farWidth);
-                ctx.closePath();
-                ctx.fill();
-            }
-            ctx.restore();
-        }
+        ctx.translate(originX,originY);
+        ctx.rotate(angle);
+        ctx.globalAlpha=.91+.09*Math.sin(time*.16);
+        ctx.drawImage(godRayTexture,0,-halfHeight,length,halfHeight*2);
         ctx.restore();
     }
 
     function paintSpotlight(time){
-        // Broad luminous reservoir plus separate rays; no hard spotlight polygon.
         const intro=Math.min(1,Math.max(0,time/2.2));
-        const x=width*(.14+Math.sin(time*.055)*.006);
-        const y=-height*.16;
-        ellipticalGlow(x,y,width*.43,height*.78,[255,216,182],(.25+.12*intro));
-        ellipticalGlow(x-width*.012,y+height*.06,width*.25,height*.63,
-            [246,181,139],(.14+.095*intro));
-        ellipticalGlow(x+width*.13,height*.24,width*.30,height*.62,
-            [221,143,104],.055);
+        const x=width*(.115+Math.sin(time*.052)*.005);
+        const y=-height*.19;
+        // Shift the atmospheric bloom toward the destination of the cone.
+        ellipticalGlow(x,y+height*.04,width*.37,height*.57,
+            [255,222,193],.25+.09*intro);
+        ellipticalGlow(x+width*.16,height*.19,width*.41,height*.58,
+            [247,191,153],.11+.06*intro);
         paintGodRays(time,x,y);
-        // A bright ceiling emitter makes the shafts read as a single light.
-        ellipticalGlow(x,-height*.11,width*.19,height*.35,
-            [255,238,211],.37);
+        ellipticalGlow(x,-height*.095,width*.19,height*.31,
+            [255,238,211],.33);
     }
 
     function paintMist(time){
