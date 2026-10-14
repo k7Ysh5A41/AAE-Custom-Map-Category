@@ -2555,16 +2555,17 @@ body.submission-open .social-bar { pointer-events:none; }
   }
 }
 
-/* Always-visible PS5 atmosphere: canvas glow sits above these base layers. */
+/* Obsidian / ember base keyed to the AAE orange controls.
+   Canvas renders the animated volumetric shafts, sparks and bokeh above it. */
 .ambient-background {
   background:
-    radial-gradient(ellipse 47% 105% at 13% -9%,
-      rgba(229,198,189,.24) 0%,rgba(149,132,142,.12) 40%,transparent 82%),
-    radial-gradient(ellipse 70% 31% at 25% 96%,
-      rgba(123,128,143,.24),rgba(84,87,107,.10) 55%,transparent 82%),
-    radial-gradient(ellipse 72% 60% at 72% 48%,
-      rgba(42,39,58,.18),transparent 85%),
-    linear-gradient(110deg,#27242d 0%,#201d28 38%,#171623 69%,#13121d 100%);
+    radial-gradient(ellipse 55% 94% at 12% -8%,
+      rgba(189,115,76,.21) 0%,rgba(114,67,55,.11) 39%,transparent 77%),
+    radial-gradient(ellipse 62% 29% at 18% 98%,
+      rgba(120,73,53,.21),rgba(83,58,50,.08) 58%,transparent 84%),
+    radial-gradient(ellipse 71% 62% at 76% 44%,
+      rgba(31,27,35,.19),transparent 84%),
+    linear-gradient(112deg,#20171a 0%,#191317 31%,#121116 65%,#0b0b12 100%);
 }
 
 /* The user-supplied distressed orange/white logotype. */
