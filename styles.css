@@ -2469,3 +2469,27 @@ body.submission-open .social-bar { pointer-events:none; }
  .subscription-dialog{padding:18px 16px}
  .subscription-actions button{flex:1 1 100%;min-width:0}
 }
+
+/* Automatically synced Steam Workshop subscription status. */
+.subscription-auto-status{
+  padding:11px 13px;margin:10px 0 12px;
+  background:rgba(39,51,56,.44);border-left:3px solid #8c979d;
+  color:#d3dde0;font:14px/1.55 "Segoe UI",Arial,sans-serif;
+}
+.subscription-auto-status[data-state="loading"],
+.subscription-auto-status[data-state="ready"]{border-left-color:#f3a66c;color:#ffe0b9}
+.subscription-auto-status[data-state="synced"]{border-left-color:#77c6a4;color:#b2f0ce}
+.subscription-auto-status[data-state="error"]{border-left-color:#ed817c;color:#ffc0b7}
+.subscription-extension-link{
+  display:inline-flex;padding:11px 13px;align-items:center;
+  border:1px solid rgba(109,209,167,.66);
+  background:rgba(26,63,47,.4);color:#c9ffe5;text-decoration:none;
+  font:700 12px/1.3 "Segoe UI",Arial,sans-serif;letter-spacing:.02em;
+}
+.subscription-extension-link:hover,.subscription-extension-link:focus-visible{
+  background:rgba(54,113,78,.7);color:white
+}
+.subscription-import-caption{
+  margin:16px 0 4px;border-top:1px solid rgba(151,163,164,.24);
+  padding-top:13px;color:#9eacb2;font:12px/1.5 "Segoe UI",Arial,sans-serif;
+}
