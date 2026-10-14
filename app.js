@@ -65,6 +65,174 @@ function selectedLocalization() {
     return state.languageChoice === "auto" ? preferredLocalization() :
         { code: state.languageChoice, folder: LOCALIZATION_LANGUAGES[state.languageChoice] };
 }
+
+const SUBSCRIPTION_STORAGE_KEY = "aae-map-catalog-subscriptions-v1";
+// These IDs are imported by the visitor, not fetched from a Steam account API.
+const subscribedIds = (() => {
+    try {
+        const stored = JSON.parse(window.localStorage.getItem(SUBSCRIPTION_STORAGE_KEY) || "[]");
+        return new Set(Array.isArray(stored) ?
+            stored.filter(id => typeof id === "string" && /^\d{7,20}$/.test(id)) : []);
+    } catch (_) { return new Set(); }
+})();
+function saveSubscribedIds() {
+    try {
+        window.localStorage.setItem(SUBSCRIPTION_STORAGE_KEY, JSON.stringify([...subscribedIds]));
+        return true;
+    } catch (_) { return false; }
+}
+function parseSubscriptionIds(text, format) {
+    const ids = new Set();
+    const add = value => {
+        const id = String(value ?? "").trim();
+        if (/^\d{7,20}$/.test(id)) ids.add(id);
+    };
+    if (format === "html") {
+        // Parse a saved page from "My Subscribed Items" without executing its scripts.
+        const page = new DOMParser().parseFromString(text, "text/html");
+        const cards = page.querySelectorAll(
+            ".workshopItem, .workshopItemSubscription, .workshopItemPreviewHolder, " +
+            "[data-publishedfileid], [id^='sharedfile_']"
+        );
+        for (const card of cards) {
+            add(card.getAttribute("data-publishedfileid"));
+            const cardId = (card.id || "").match(/^sharedfile_(\d{7,20})$/);
+            if (cardId) add(cardId[1]);
+            for (const link of card.querySelectorAll("a[href]")) {
+                try {
+                    const url = new URL(link.getAttribute("href"), "https://steamcommunity.com");
+                    if (url.hostname === "steamcommunity.com" &&
+                        /^\/(?:sharedfiles|workshop)\/filedetails\/?$/.test(url.pathname)) {
+                        add(url.searchParams.get("id"));
+                    }
+                } catch (_) { /* Ignore malformed links. */ }
+            }
+        }
+    } else if (format === "json") {
+        let parsed;
+        try { parsed = JSON.parse(text); }
+        catch (_) { throw new Error(t("subscriptionInvalid")); }
+        const values = Array.isArray(parsed) ? parsed :
+            Array.isArray(parsed?.ids) ? parsed.ids :
+            Array.isArray(parsed?.items) ? parsed.items :
+            Array.isArray(parsed?.subscriptions) ? parsed.subscriptions : [];
+        for (const item of values) {
+            if (typeof item === "string" || typeof item === "number") add(item);
+            else if (item && typeof item === "object")
+                add(item.id ?? item.publishedfileid ?? item.workshop_id);
+        }
+    } else {
+        for (const entry of text.split(/[\s,;]+/)) {
+            if (/^\d{7,20}$/.test(entry)) { add(entry); continue; }
+            try {
+                const url = new URL(entry);
+                if (url.protocol === "https:" &&
+                    ["steamcommunity.com", "www.steamcommunity.com"].includes(url.hostname) &&
+                    /^\/(?:sharedfiles|workshop)\/filedetails\/?$/.test(url.pathname)) {
+                    add(url.searchParams.get("id"));
+                }
+            } catch (_) { /* Ignore unrelated strings. */ }
+        }
+    }
+    return ids;
+}
+let subscriptionScrollY = 0;
+let subscriptionPreviousTop = "";
+function updateSubscriptionStatus(message, error = false) {
+    const element = $("subscriptionStatus");
+    if (!element) return;
+    element.textContent = message || t("subscriptionCountStatus", {count:subscribedIds.size});
+    element.classList.toggle("error", error);
+}
+function openSubscriptionDialog() {
+    if (!$("subscriptionOverlay").hidden) return;
+    subscriptionScrollY = window.scrollY || window.pageYOffset || 0;
+    subscriptionPreviousTop = document.body.style.top;
+    document.body.style.top = -subscriptionScrollY + "px";
+    document.documentElement.classList.add("submission-open");
+    document.body.classList.add("submission-open");
+    $("subscriptionOverlay").hidden = false;
+    updateSubscriptionStatus();
+    $("subscriptionClose").focus({preventScroll:true});
+}
+function closeSubscriptionDialog() {
+    if ($("subscriptionOverlay").hidden) return;
+    $("subscriptionOverlay").hidden = true;
+    document.documentElement.classList.remove("submission-open");
+    document.body.classList.remove("submission-open");
+    document.body.style.top = subscriptionPreviousTop;
+    window.scrollTo(0, subscriptionScrollY);
+    $("subscriptionOpen").focus({preventScroll:true});
+}
+async function importSubscriptions() {
+    const button = $("subscriptionImport");
+    if (button.disabled) return;
+    button.disabled = true;
+    try {
+        const imported = new Set();
+        const file = $("subscriptionFile").files[0];
+        if (file) {
+            if (file.size > 5 * 1024 * 1024)
+                throw new Error(t("subscriptionTooLarge"));
+            const extension = file.name.split(".").pop().toLowerCase();
+            if (!["html", "htm", "txt", "json"].includes(extension))
+                throw new Error(t("subscriptionInvalid"));
+            const format = extension === "html" || extension === "htm" ? "html" :
+                extension === "json" ? "json" : "text";
+            for (const id of parseSubscriptionIds(await file.text(), format))
+                imported.add(id);
+        }
+        const pasted = $("subscriptionText").value.trim();
+        if (pasted) {
+            for (const id of parseSubscriptionIds(pasted, "text")) imported.add(id);
+        }
+        if (imported.size === 0)
+            throw new Error(t("subscriptionNoIds"));
+        const oldIds = [...subscribedIds];
+        for (const id of imported) subscribedIds.add(id);
+        if (!saveSubscribedIds()) {
+            subscribedIds.clear();
+            for (const id of oldIds) subscribedIds.add(id);
+            throw new Error(t("subscriptionStorageError"));
+        }
+        $("subscriptionFile").value = "";
+        $("subscriptionText").value = "";
+        updateSubscriptionStatus(t("subscriptionImported", {
+            added:imported.size, count:subscribedIds.size
+        }));
+        render();
+    } catch (error) {
+        updateSubscriptionStatus(error.message || t("subscriptionInvalid"), true);
+    } finally {
+        button.disabled = false;
+    }
+}
+function bindSubscriptions() {
+    $("subscriptionOpen").addEventListener("click", openSubscriptionDialog);
+    $("subscriptionClose").addEventListener("click", closeSubscriptionDialog);
+    $("subscriptionDone").addEventListener("click", closeSubscriptionDialog);
+    $("subscriptionImport").addEventListener("click", importSubscriptions);
+    $("subscriptionClear").addEventListener("click", () => {
+        const oldIds = [...subscribedIds];
+        subscribedIds.clear();
+        if (!saveSubscribedIds()) {
+            for (const id of oldIds) subscribedIds.add(id);
+            updateSubscriptionStatus(t("subscriptionStorageError"), true);
+            return;
+        }
+        updateSubscriptionStatus();
+        render();
+    });
+    $("subscriptionOverlay").addEventListener("click", event => {
+        if (event.target === $("subscriptionOverlay")) closeSubscriptionDialog();
+    });
+    document.addEventListener("keydown", event => {
+        if (event.key === "Escape" && !$("subscriptionOverlay").hidden) {
+            event.preventDefault();
+            closeSubscriptionDialog();
+        }
+    });
+}
 const $ = id => document.getElementById(id);
 const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, char =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]
@@ -620,6 +788,9 @@ function mapRow(map) {
         escapeHtml(info.title) + '</h3><div class="map-publisher">' +
         escapeHtml(publisherName(info)) + '</div>' +
         reviewCategoryHtml(map) + '</div>' +
+        (subscribedIds.has(map.id) ? '<span class="map-subscribed" role="img" aria-label="' +
+            escapeHtml(t("subscriptionMarked")) + '" title="' +
+            escapeHtml(t("subscriptionMarked")) + '">✓</span>' : '') +
         (map.liteOnly ? '<span class="chip lite">' + escapeHtml(t("lite")) + '</span>' : '') +
         pendingTags(map) + newMapTag(map) +
         (map.changeRequest ? '<span class="chip change-chip">' +
@@ -646,6 +817,9 @@ function renderPreview() {
         '<div class="preview-topline"></div>' + squareCover(info.preview_url, true) +
         '<div class="preview-title-band">' + escapeHtml(info.title) + '</div>' +
         reviewCategoryHtml(map, true) +
+        (subscribedIds.has(map.id) ? '<div class="preview-subscribed">' +
+            '<span class="map-subscribed">✓ ' +
+            escapeHtml(t("subscriptionMarked")) + '</span></div>' : '') +
         (isRecentApproved(map) || (map.changeRequest && newMapTag(map)) ?
             '<div class="preview-pr-status"><span class="preview-new-tag">' +
             newMapTag(map) + '</span></div>' : '') +
@@ -681,6 +855,9 @@ function renderPreview() {
 }
 function render() {
     applyUiText();
+    const subscriptionCount = $("subscriptionCount");
+    subscriptionCount.hidden = subscribedIds.size === 0;
+    subscriptionCount.textContent = subscribedIds.size ? String(subscribedIds.size) : "";
     const publicItems = publicMaps();
     renderNav();
     const category = state.selected === null ? null : state.categories[state.selected];
@@ -764,6 +941,7 @@ function selectCategory(value) {
 function bind() {
     applyUiText();
     bindLanguagePicker();
+    bindSubscriptions();
     bindChangeRequests();
     bindGithubGuide();
     $("previewPane").addEventListener("click", event => {
