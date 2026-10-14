@@ -587,6 +587,23 @@ function renderNav() {
             '</small></button>';
     }).join("");
 }
+// Pulse only the approved, real category of the selected map when the
+// current view is a different category (including All / Recent Additions).
+// Virtual review queues and the incompatible category are never pulse targets.
+function updateMapCategoryPulse(selectedMap) {
+    const category = selectedMap && !selectedMap.pending ? selectedMap.category : null;
+    const validCategory = category &&
+        Number.isInteger(category.order) &&
+        state.categories[category.order]?.button === category.button &&
+        category.button !== INCOMPATIBLE_CATEGORY;
+    const target = validCategory && state.selected !== category.order
+        ? String(category.order) : null;
+    for (const button of $("categoryNav").querySelectorAll(".nav-btn")) {
+        button.classList.toggle("map-origin-pulse",
+            target !== null && button.dataset.category === target &&
+            !button.classList.contains("active"));
+    }
+}
 function categoryRow(category) {
     const maps = categoryMaps(category);
     return '<article class="category-row" tabindex="0" role="button" data-open="' +
@@ -721,6 +738,7 @@ function render() {
         matches.length ? matches.map(mapRow).join("") :
         '<p class="empty">' + escapeHtml(t("noMaps")) + '</p>';
     renderPreview();
+    updateMapCategoryPulse(matches.find(map => map.id === state.activeMapId) || null);
 }
 async function copyID(id) {
     try {
