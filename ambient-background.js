@@ -10,10 +10,10 @@
 
     const motionPreference=window.matchMedia("(prefers-reduced-motion: reduce)");
     const compact=window.matchMedia("(max-width: 700px)");
-    // Source video 6s–25s: rose-grey atmosphere and ivory/gold particle stream.
+    // Match AAE's orange controls: dark warm space, gold bokeh, ivory flashes.
     const COLORS=[
-        [250,115,68], [205,144,121], [242,187,145],
-        [255,235,208], [190,165,160]
+        [250,86,48], [255,137,75], [255,187,117],
+        [255,250,229], [214,150,110]
     ];
     const FRAME_MS=1000/30;
     let width=1,height=1,backingScale=1;
@@ -90,10 +90,13 @@
             bob:between(.001,.009),
             phase:between(0,Math.PI*2),
             blink:between(.17,.71),
-            color:(()=>{const v=rand();return v<.035?0:v<.16?1:v<.49?2:v<.79?3:4;})(),
+            sparkle:rand()<.50,
+            sparkleRate:between(.55,1.42),
+            sparklePhase:between(0,Math.PI*2),
+            color:(()=>{const v=rand();return v<.16?0:v<.39?1:v<.66?2:v<.92?3:4;})(),
             kind:bokeh?"blur":sharp?"sharp":"mist",
-            radius:bokeh?between(3.5,12.2):sharp?between(.75,2.05):between(1.6,4.8),
-            alpha:bokeh?between(.34,.83):sharp?between(.48,.96):between(.13,.45)
+            radius:bokeh?between(3.6,12.2):sharp?between(.8,2.3):between(1.5,4.8),
+            alpha:bokeh?between(.33,.76):sharp?between(.40,.80):between(.12,.36)
         };
     });
     const floaters=Array.from({length:185},()=>({
@@ -133,48 +136,90 @@
         ctx.restore();
     }
 
-    function paintSpotlight(time){
-        // A gentle cone entering from the ceiling at the reference's sixth second.
-        const intro=Math.min(1,Math.max(0,time/2.8));
-        const x=width*(.225-.105*intro+Math.sin(time*.052)*.009);
-        ellipticalGlow(x,-height*.16,width*.58,height*.99,[237,215,208],.22+.23*intro);
-        ellipticalGlow(x-width*.06,-height*.05,width*.33,height*.77,
-            [219,190,190],.12+.13*intro);
-        ellipticalGlow(x+width*.08,height*.24,width*.39,height*.71,
-            [194,177,177],.052+.047*intro);
+    // Multiple wide, soft-edged shafts diverge from one ceiling light.
+    // Gaussian-opacity strips prevent visibly hard triangular beam edges.
+    const GOD_RAYS=[
+        {angle:.99,spread:.062,strength:.82,warm:false},
+        {angle:1.14,spread:.047,strength:.92,warm:true},
+        {angle:1.27,spread:.036,strength:.48,warm:false},
+        {angle:1.39,spread:.077,strength:1.00,warm:false},
+        {angle:1.56,spread:.037,strength:.82,warm:true},
+        {angle:1.72,spread:.063,strength:.84,warm:false},
+        {angle:1.87,spread:.049,strength:.57,warm:true},
+        {angle:2.05,spread:.074,strength:.55,warm:false}
+    ];
+    function paintGodRays(time,originX,originY){
+        const distance=height*1.52;
         ctx.save();
-        ctx.beginPath();
-        ctx.moveTo(x-width*.135,-height*.16);
-        ctx.lineTo(x+width*.19,-height*.16);
-        ctx.lineTo(x+width*.405,height*.81);
-        ctx.lineTo(x-width*.315,height*.82);
-        ctx.closePath();
-        const shaft=ctx.createLinearGradient(x,-height*.1,x+width*.08,height*.84);
-        shaft.addColorStop(0,"rgba(239,214,203,"+(.16*intro)+")");
-        shaft.addColorStop(.22,"rgba(227,203,198,"+(.075*intro)+")");
-        shaft.addColorStop(.62,"rgba(204,182,184,"+(.018*intro)+")");
-        shaft.addColorStop(1,"rgba(192,179,185,0)");
-        ctx.fillStyle=shaft;
-        ctx.fill();
+        ctx.globalCompositeOperation="screen";
+        for(let i=0;i<GOD_RAYS.length;i++){
+            const ray=GOD_RAYS[i];
+            const angle=ray.angle+.012*Math.sin(time*.11+i*.71);
+            const pulse=.84+.16*Math.sin(time*.17+i*.89);
+            const farWidth=width*ray.spread;
+            const rgb=ray.warm?"255,180,122":"255,232,196";
+            ctx.save();
+            ctx.translate(originX,originY);
+            ctx.rotate(angle);
+            const fade=ctx.createLinearGradient(0,0,distance,0);
+            fade.addColorStop(0,"rgba("+rgb+",0)");
+            fade.addColorStop(.07,"rgba("+rgb+",.40)");
+            fade.addColorStop(.26,"rgba("+rgb+",.27)");
+            fade.addColorStop(.54,"rgba("+rgb+",.095)");
+            fade.addColorStop(.84,"rgba("+rgb+",.022)");
+            fade.addColorStop(1,"rgba("+rgb+",0)");
+            ctx.fillStyle=fade;
+            for(let band=0;band<12;band++){
+                const left=band/6-1;
+                const right=(band+1)/6-1;
+                const middle=(left+right)*.5;
+                ctx.globalAlpha=Math.min(1,ray.strength*pulse*
+                    Math.exp(-Math.pow(middle*2.15,2)));
+                ctx.beginPath();
+                ctx.moveTo(distance*.008,left*7);
+                ctx.lineTo(distance*.008,right*7);
+                ctx.lineTo(distance,right*farWidth);
+                ctx.lineTo(distance,left*farWidth);
+                ctx.closePath();
+                ctx.fill();
+            }
+            ctx.restore();
+        }
         ctx.restore();
+    }
+
+    function paintSpotlight(time){
+        // Broad luminous reservoir plus separate rays; no hard spotlight polygon.
+        const intro=Math.min(1,Math.max(0,time/2.2));
+        const x=width*(.14+Math.sin(time*.055)*.006);
+        const y=-height*.16;
+        ellipticalGlow(x,y,width*.43,height*.78,[255,216,182],(.25+.12*intro));
+        ellipticalGlow(x-width*.012,y+height*.06,width*.25,height*.63,
+            [246,181,139],(.14+.095*intro));
+        ellipticalGlow(x+width*.13,height*.24,width*.30,height*.62,
+            [221,143,104],.055);
+        paintGodRays(time,x,y);
+        // A bright ceiling emitter makes the shafts read as a single light.
+        ellipticalGlow(x,-height*.11,width*.19,height*.35,
+            [255,238,211],.37);
     }
 
     function paintMist(time){
         const reveal=Math.min(1,.35+time/7);
         const move=Math.sin(time*.12)*width*.025;
         ellipticalGlow(width*.14+move,height*.84,width*.48,height*.25,
-            [169,166,175],.28*reveal);
+            [180,141,115],.24*reveal);
         ellipticalGlow(width*.36-move*.5,height*.91,width*.48,height*.21,
-            [139,135,151],.18*reveal);
+            [123,105,98],.16*reveal);
         ellipticalGlow(width*.68+move*.24,height*.71,width*.46,height*.24,
-            [128,115,130],.045*reveal);
+            [114,89,76],.055*reveal);
         // No hard-edged silk bands: seven translucent clouds trace the curve.
         for(let i=0;i<7;i++){
             const u=(i+.35)/7;
             const px=width*(u*1.28-.12);
             const py=height*(streamY(u,time*.32,0)+.045);
             ellipticalGlow(px,py,width*.145,height*.085,
-                [176,151,155],(.033+.009*Math.sin(time*.17+i))*reveal);
+                [185,133,108],(.032+.012*Math.sin(time*.17+i))*reveal);
         }
     }
 
@@ -203,13 +248,29 @@
             const y=height*(p.initialY*(1-ease)+waveY*ease);
             if(x<-18||x>width+18||y<-18||y>height+18)continue;
             const edge=.38+.62*Math.pow(Math.max(0,Math.sin(Math.PI*u)),.43);
-            const glint=Math.pow(Math.max(0,Math.sin(time*(.28+p.blink)+p.phase)),9);
-            const twinkle=.76+.22*Math.sin(time*(.26+p.blink)+p.phase)+.19*glint;
-            const alpha=p.alpha*(.79+.21*ease)*edge*Math.max(.27,twinkle);
+            const simmer=.43+.17*Math.sin(time*(.36+p.blink)+p.phase);
+            // Very short 3–5x flashes rather than the former near-flat sine.
+            const flash=p.sparkle?Math.pow(Math.max(0,
+                Math.sin(time*p.sparkleRate+p.sparklePhase)),18):0;
+            const alpha=p.alpha*(.82+.18*ease)*edge*(simmer+flash*.70);
             pointSprite(x,y,p.radius,alpha,p.color,p.kind);
-            // Occasional tiny sharp centers on the brightest defocused motes.
-            if(p.kind==="blur" && i%7===0)
-                pointSprite(x,y,1.0,alpha*.49,3,"sharp");
+            // HDR-like additive halo plus warm-white pinprick at peak intensity.
+            if(flash>.035){
+                const intensity=Math.min(1,flash);
+                pointSprite(x,y,p.radius*(p.kind==="sharp"?2.3:1.35),
+                    intensity*.72,3,"blur");
+                pointSprite(x,y,Math.max(.85,p.radius*.82),
+                    intensity*.97,3,"sharp");
+                if(flash>.43){
+                    ctx.fillStyle=rgba([255,250,229],Math.min(.99,
+                        intensity*(p.kind==="sharp"?.96:.64)));
+                    ctx.beginPath();
+                    ctx.arc(x,y,Math.max(.65,p.radius*.42),0,Math.PI*2);
+                    ctx.fill();
+                }
+            }else if(p.kind==="blur" && i%7===0){
+                pointSprite(x,y,1.0,alpha*.56,3,"sharp");
+            }
         }
         ctx.restore();
         ctx.globalAlpha=1;
