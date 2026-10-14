@@ -2555,13 +2555,16 @@ body.submission-open .social-bar { pointer-events:none; }
   }
 }
 
-/* Video reference (6s onward): smoke-violet space, diffused ivory ceiling lamp. */
+/* Always-visible PS5 atmosphere: canvas glow sits above these base layers. */
 .ambient-background {
   background:
-    radial-gradient(ellipse 75% 100% at 12% 4%,rgba(120,105,111,.15),transparent 77%),
-    radial-gradient(ellipse 68% 30% at 23% 91%,rgba(107,109,122,.19),transparent 83%),
-    radial-gradient(ellipse 72% 68% at 74% 48%,rgba(25,24,40,.19),transparent 85%),
-    linear-gradient(115deg,#211d25 0%,#1a1925 32%,#151520 64%,#12121c 100%);
+    radial-gradient(ellipse 47% 105% at 13% -9%,
+      rgba(229,198,189,.24) 0%,rgba(149,132,142,.12) 40%,transparent 82%),
+    radial-gradient(ellipse 70% 31% at 25% 96%,
+      rgba(123,128,143,.24),rgba(84,87,107,.10) 55%,transparent 82%),
+    radial-gradient(ellipse 72% 60% at 72% 48%,
+      rgba(42,39,58,.18),transparent 85%),
+    linear-gradient(110deg,#27242d 0%,#201d28 38%,#171623 69%,#13121d 100%);
 }
 
 /* The user-supplied distressed orange/white logotype. */
