@@ -19,7 +19,8 @@
         };
         const cards = doc.querySelectorAll([
             ".workshopItem",".workshopItemSubscription",".workshopItemPreviewHolder",
-            "[data-publishedfileid]","[id^='sharedfile_']"
+            "[data-publishedfileid]","[id^='sharedfile_']",
+            "[id^='UnsubscribeItemBtn']", ".subscribeOption.subscribeOptionUnsubscribe"
         ].join(","));
         for (const card of cards) {
             add(card.getAttribute("data-publishedfileid"));
@@ -35,11 +36,25 @@
                 }
             }
         }
-        // Do not treat unrelated links, recommendations or Steam login as subscriptions.
-        const confirmed = cards.length > 0 ||
-            Boolean(doc.querySelector(".workshopBrowsePaging,.pagingPageLinks,.workshopItemList")) ||
-            /browsefilter=mysubscriptions/i.test(html);
-        return {ids:[...items],confirmed};
+        // Steam's subscribed-item controls provide a more specific signal than
+        // general Workshop links (which may contain recommendations).
+        for (const link of doc.querySelectorAll('a[id^="UnsubscribeItemBtn"]')) {
+            const target = String(link.getAttribute("href") || "");
+            const match = target.match(/(?:id=|\()(\d{7,20})(?:\D|$)/);
+            if (match) add(match[1]);
+        }
+        const paging = doc.querySelector(".workshopBrowsePagingInfo");
+        const pagingText = paging?.textContent || "";
+        const matchTotal = pagingText.match(/(?:of|von|de|共|／)\s*([\d,]+)/i) ||
+            pagingText.match(/([\d,]+)\s*(?:items|results|Workshop)/i);
+        const expectedTotal = matchTotal ? Number(matchTotal[1].replace(/,/g, "")) : null;
+        // Reject login / CAPTCHA pages; never silently overwrite prior data.
+        const confirmed = Boolean(doc.querySelector(
+            '[id^="UnsubscribeItemBtn"],.workshopBrowsePagingInfo,#no_items'
+        )) || (cards.length > 0 &&
+            /browsefilter=mysubscriptions|subscribed items|已订阅|登録済み/i.test(html));
+        return {ids:[...items],confirmed,expectedTotal};
+
     }
     async function fetchPage(page) {
         const r=await chrome.runtime.sendMessage({type:"AAE_STEAM_FETCH_PAGE",page});
@@ -54,20 +69,30 @@
         try {
             const found=new Set();
             let confirmed=false;
+            let expectedTotal=null;
+            let completed=false;
             for (let page=1;page<=MAX_PAGES;page++) {
                 const result=await fetchPage(page);
-                if (!result.confirmed && page===1)
-                    throw new Error("Unable to verify Steam subscriptions. Sign in to steamcommunity.com in this browser.");
-                confirmed ||= result.confirmed;
+                if (!result.confirmed)
+                    throw new Error("Unable to verify Steam subscriptions. Sign in to Steam Community.");
+                confirmed=true;
+                if (page===1 && Number.isSafeInteger(result.expectedTotal))
+                    expectedTotal=result.expectedTotal;
                 let newCount=0;
                 for (const id of result.ids) {
                     if (!found.has(id)) {found.add(id);newCount++;}
                 }
-                if (!result.ids.length || newCount===0) break;
-                if (page===MAX_PAGES)
-                    throw new Error("Steam subscription list is too large to verify completely.");
+                if (!result.ids.length || newCount===0) {
+                    completed=true;
+                    break;
+                }
+                if (expectedTotal!==null && found.size>=expectedTotal) {
+                    completed=true;
+                    break;
+                }
             }
-            if (!confirmed) throw new Error("Subscription page could not be verified.");
+            if (!confirmed || !completed || (expectedTotal!==null && found.size<expectedTotal))
+                throw new Error("Unable to verify all Steam subscription pages; existing marks were preserved.");
             send("synced",{ids:[...found],checkedAt:new Date().toISOString(),appId:APP_ID});
         } catch (error) {
             send("error",{message:String(error?.message || error)});
@@ -78,10 +103,7 @@
     window.addEventListener("message",event => {
         if (event.source!==window || event.origin!==location.origin ||
             event.data?.tag!=="AAE_STEAM_SUBSCRIPTIONS_CATALOG_V1") return;
-        if (event.data.type==="request") {
-            send("ready");
-            sync(true);
-        }
+        if (event.data.type==="request") sync(true);
     });
     send("ready");
     sync(true);
