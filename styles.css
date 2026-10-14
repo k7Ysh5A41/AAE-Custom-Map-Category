@@ -3905,3 +3905,86 @@ html,body {
   .preview-content .map-intel-actions .map-action:hover,
   .preview-content .map-intel-actions .map-action:focus-visible{transform:none!important;}
 }
+
+
+/* Compact Workshop intelligence panel: reduce vertical footprint while
+   preserving the existing content, responsive actions and motion details. */
+.preview-content .map-intel{
+  margin:12px 0 8px;
+  padding-bottom:7px;
+}
+.preview-content .map-intel-header{
+  gap:8px;
+  min-height:40px;
+  padding:8px 11px 7px;
+}
+.preview-content .map-intel-emblem{
+  flex-basis:26px;
+  width:26px;
+  height:26px;
+  font-size:11px;
+}
+.preview-content .map-intel-title{
+  font-size:clamp(14px,1.18vw,17px);
+}
+.preview-content .map-intel-grid{
+  gap:5px;
+  padding:7px 9px 8px;
+}
+.preview-content .map-intel-cell{
+  gap:9px;
+  padding:7px 10px;
+  min-height:43px;
+}
+.preview-content .map-intel-cell-symbol{
+  flex-basis:27px;
+  width:27px;
+  height:27px;
+  font-size:17px;
+}
+.preview-content .map-intel-cell-copy{gap:2px;}
+.preview-content .map-intel-label{
+  font-size:10px;
+  line-height:1.15;
+}
+.preview-content .map-intel-value{
+  font-size:clamp(12px,1vw,14px);
+  line-height:1.28;
+}
+.preview-content .preview-buttons.map-intel-actions{
+  gap:7px;
+  margin:0 9px;
+}
+.preview-content .map-intel-actions .map-action{
+  min-height:47px;
+  padding:6px 9px;
+  gap:7px;
+  font-size:clamp(11px,.9vw,13px);
+}
+.preview-content .map-intel-actions .map-action-icon{
+  flex-basis:25px;
+  width:25px;
+  height:25px;
+}
+.preview-content .map-intel-actions .map-action-icon svg{
+  width:17px;
+  height:17px;
+}
+.preview-content .map-intel-actions .map-action-end{font-size:17px;}
+.preview-content .map-intel-actions .map-action-pr{min-height:42px;}
+@container (min-width:560px){
+  .preview-content .map-intel-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+@media(max-width:650px){
+  .preview-content .map-intel-header{padding:8px 10px 7px;}
+  .preview-content .map-intel-grid{padding:6px 8px;}
+  .preview-content .preview-buttons.map-intel-actions{margin:0 8px;}
+}
+/* Make the button face's shape adjustment independent of the live form.
+   Text within the reverse-side dialog uses uniform scale exclusively. */
+.submit-overlay .modal-flip-front-label{
+  transform-origin:center center;
+  white-space:nowrap;
+}

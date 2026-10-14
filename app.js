@@ -1108,10 +1108,17 @@ function runModalMotion(overlay,opening,onComplete=()=>{}){
     const rect=stage.getBoundingClientRect(),origin=source.rect;
     const dx=origin.left+origin.width/2-(rect.left+rect.width/2);
     const dy=origin.top+origin.height/2-(rect.top+rect.height/2);
-    const sx=Math.min(1.25,Math.max(.04,origin.width/Math.max(1,rect.width)));
-    const sy=Math.min(1.25,Math.max(.04,origin.height/Math.max(1,rect.height)));
-    const atButton=`translate3d(${dx}px,${dy}px,0) rotateY(180deg) scale(${sx},${sy})`;
-    const atWindow="translate3d(0px,0px,0px) rotateY(0deg) scale(1,1)";
+    const sx=origin.width/Math.max(1,rect.width);
+    const sy=origin.height/Math.max(1,rect.height);
+    // Uniform scale protects the aspect ratio of ALL dialog typography.
+    const scale=Math.max(.05,Math.min(1,Math.sqrt(sx*sy)));
+    const atButton=`translate3d(${dx}px,${dy}px,0) rotateY(180deg) scale(${scale})`;
+    const atWindow="translate3d(0px,0px,0px) rotateY(0deg) scale(1)";
+    // Correct only the hidden front-facing button shell to the source button
+    // rectangle. Counter-transform its label, so both faces keep legible text.
+    const fx=sx/scale,fy=sy/scale;
+    front.style.transform=`rotateY(180deg) translateZ(1px) scale(${fx},${fy})`;
+    label.style.transform=`scale(${1/sx},${1/sy})`;
     front.style.background=source.background;
     front.style.color=source.color;
     label.textContent=source.label;
@@ -1128,17 +1135,18 @@ function runModalMotion(overlay,opening,onComplete=()=>{}){
         {transform:atWindow},{transform:atButton}
     ],{duration,fill:"both",easing:opening?
         "cubic-bezier(.19,.75,.22,1)":"cubic-bezier(.57,.08,.78,.32)"});
-    // Counter-scale the label only while the button face is visible.
+    // The front label remains correctly proportioned and fades before the
+    // shell grows; the reverse-side form shows only near its final dimensions.
     const labelAnimation=label.animate(opening?[
-        {transform:`scale(${1/sx},${1/sy})`,offset:0},
-        {transform:`scale(${1/sx},${1/sy})`,offset:.18},
-        {transform:"scale(1,1)",offset:.56},
-        {transform:"scale(1,1)",offset:1}
+        {opacity:1,offset:0},
+        {opacity:1,offset:.12},
+        {opacity:0,offset:.34},
+        {opacity:0,offset:1}
     ]:[
-        {transform:"scale(1,1)",offset:0},
-        {transform:"scale(1,1)",offset:.42},
-        {transform:`scale(${1/sx},${1/sy})`,offset:.82},
-        {transform:`scale(${1/sx},${1/sy})`,offset:1}
+        {opacity:0,offset:0},
+        {opacity:0,offset:.64},
+        {opacity:1,offset:.92},
+        {opacity:1,offset:1}
     ],{duration,fill:"both",easing:"ease-in-out"});
     modalMotions.set(overlay,[stageAnimation,labelAnimation]);
     stageAnimation.finished.then(()=>{
