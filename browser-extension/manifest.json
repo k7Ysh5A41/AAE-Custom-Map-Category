@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "AAE Steam Workshop Subscription Sync",
+  "version": "1.0.0",
+  "description": "Automatically match Steam Workshop subscriptions to the AAE map catalog, without a Steam API key.",
+  "host_permissions": [
+    "https://steamcommunity.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://k7ysh5a41.github.io/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}
