@@ -6,9 +6,9 @@
 <meta name="theme-color" content="#050507">
 <meta name="description" content="All-Around Enhancement — a Black Ops III Zombies-style catalog of public Steam Workshop maps.">
 <title>All-Around Enhancement — Map Catalog</title>
-<link rel="stylesheet" href="styles.css?v=lite-switches-hidden-20261014">
-<script src="translations.js?v=lite-switches-hidden-20261014" defer></script>
-<script src="app.js?v=lite-switches-hidden-20261014" defer></script>
+<link rel="stylesheet" href="styles.css?v=lite-labels-removed-20261014">
+<script src="translations.js?v=lite-labels-removed-20261014" defer></script>
+<script src="app.js?v=lite-labels-removed-20261014" defer></script>
 </head>
 <body>
 <div class="game-shell">
@@ -34,8 +34,6 @@
         <div class="stat-item"><span id="groupCount">—</span><span class="stat-label" data-i18n="statCategories">CATEGORIES</span></div>
         <span class="stat-separator" aria-hidden="true">/</span>
         <div class="stat-item"><span id="mapCount">—</span><span class="stat-label" data-i18n="statMaps">MAPS</span></div>
-        <span class="stat-separator" aria-hidden="true">/</span>
-        <div class="stat-item"><span id="liteCount">—</span><span class="stat-label" data-i18n="statLite">AAE Lite Version Only</span></div>
       </div>
     </div>
   </header>
@@ -106,7 +104,6 @@
         </div>
         <label for="changeTargetCategory" id="changeTargetLabel" data-i18n="changeTarget">NEW CATEGORY</label>
         <select id="changeTargetCategory" name="category" required></select>
-        <p id="changeCurrentLite" class="lite-current-status" aria-live="polite"></p>
         <label class="lite-form-option" for="changeLiteOnly"><input id="changeLiteOnly" name="liteOnly" type="checkbox"><span data-i18n="liteSubmissionLabel">AAE Lite Version Only</span></label>
         <label for="changeReason" data-i18n="changeReason">REASON FOR REQUEST</label>
         <textarea id="changeReason" name="reason" maxlength="400" minlength="5" rows="4" required data-i18n-placeholder="changeReasonPlaceholder" placeholder="Explain why this map should be recategorized"></textarea>
