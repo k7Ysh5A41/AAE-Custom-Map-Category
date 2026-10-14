@@ -1305,19 +1305,6 @@ html,body { max-width:100%;overflow-x:clip; }
   color:#201006;
   box-shadow:0 0 18px 3px rgba(255,173,78,.67),0 0 35px rgba(255,111,38,.30);
 }
-/* Reserve more room for the longer AAE Lite counter while preventing wrap. */
-.header-actions .header-stats .stat-item:last-child {
-  flex-grow:0;
-  justify-content:flex-start;
-}
-.header-actions .header-stats .stat-item:last-child .stat-label {
-  font-size:clamp(10px,.78vw,13px);
-}
-@media(max-width:700px) {
-  .header-actions .header-stats .stat-item:last-child .stat-label {
-    font-size:clamp(9px,2vw,12px);
-  }
-}
 
 
 /* Community destinations sit below the catalog rather than obscuring lists.
