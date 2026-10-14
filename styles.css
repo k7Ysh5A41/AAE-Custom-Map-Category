@@ -2554,3 +2554,77 @@ body.submission-open .social-bar { pointer-events:none; }
     opacity:0;
   }
 }
+
+/* Video reference (6s onward): smoke-violet space, diffused ivory ceiling lamp. */
+.ambient-background {
+  background:
+    radial-gradient(ellipse 75% 100% at 12% 4%,rgba(120,105,111,.15),transparent 77%),
+    radial-gradient(ellipse 68% 30% at 23% 91%,rgba(107,109,122,.19),transparent 83%),
+    radial-gradient(ellipse 72% 68% at 74% 48%,rgba(25,24,40,.19),transparent 85%),
+    linear-gradient(115deg,#211d25 0%,#1a1925 32%,#151520 64%,#12121c 100%);
+}
+
+/* The user-supplied distressed orange/white logotype. */
+.game-header .heading {
+  position:relative;
+  isolation:isolate;
+}
+.game-header .heading::before {
+  content:"";
+  position:absolute;
+  left:-6%;
+  top:-22%;
+  width:112%;
+  height:92%;
+  pointer-events:none;
+  z-index:-1;
+  background:radial-gradient(ellipse at 37% 47%,
+      rgba(255,177,117,.20) 0%,
+      rgba(245,117,55,.13) 35%,
+      rgba(246,91,45,.04) 65%,
+      transparent 78%);
+  filter:blur(20px);
+  transform-origin:37% 50%;
+  animation:aaeReferenceLogoAura 5.6s ease-in-out infinite;
+}
+.game-header .brand-logo {
+  position:relative;
+  z-index:1;
+  width:min(100%,520px);
+  height:auto;
+  max-height:65px;
+  object-fit:contain;
+  object-position:left center;
+  opacity:1;
+  transform-origin:38% 54%;
+  filter:
+    drop-shadow(0 0 4px rgba(255,232,197,.37))
+    drop-shadow(0 0 12px rgba(255,155,93,.30))
+    drop-shadow(0 0 27px rgba(246,103,48,.22));
+  animation:aaeReferenceLogoHover 6.2s ease-in-out infinite,
+    aaeReferenceLogoGlow 4.4s ease-in-out infinite;
+  will-change:transform,filter;
+}
+.game-header .heading h1 {position:relative;z-index:1;}
+@keyframes aaeReferenceLogoHover {
+  0%,100%{transform:translate3d(0,0,0) scale(1);}
+  50%{transform:translate3d(0,-2px,0) scale(1.005);}
+}
+@keyframes aaeReferenceLogoGlow {
+  0%,100% {filter:
+    drop-shadow(0 0 4px rgba(255,232,197,.26))
+    drop-shadow(0 0 12px rgba(255,155,93,.25))
+    drop-shadow(0 0 25px rgba(246,103,48,.16));}
+  50% {filter:
+    drop-shadow(0 0 8px rgba(255,238,218,.55))
+    drop-shadow(0 0 21px rgba(255,179,110,.48))
+    drop-shadow(0 0 39px rgba(250,114,52,.32));}
+}
+@keyframes aaeReferenceLogoAura {
+  0%,100%{opacity:.52;transform:scale(.96);}
+  50%{opacity:1;transform:scale(1.055);}
+}
+@media(prefers-reduced-motion:reduce) {
+  .game-header .brand-logo,
+  .game-header .heading::before {animation:none!important;will-change:auto;}
+}
