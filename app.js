@@ -4,6 +4,7 @@ const DATA_URL = "./custommap_cate.json";
 const STEAM_URL = "./steam_workshop.json";
 const PENDING_URL = "./pending_pr_maps.json";
 const RECENT_URL = "./recent_maps.json";
+const MAP_RECENCY_URL = "./map_recency.json";
 const RECENT_CATEGORY = "recently-updated";
 const RECENT_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 const PENDING_CATEGORY = "pending";
@@ -107,7 +108,7 @@ const state = {
     categories: [], maps: [], selected: null, liteOnly: false,
     translations: new Map(), workshop: {}, steamReady: false, steamFailed: false,
     activeMapId: null, query: "", pendingReady: false,
-    changeRequests: [], recentReady:false, languageChoice: savedLanguageChoice()
+    changeRequests: [], recentReady:false, mapRecency:new Map(), languageChoice: savedLanguageChoice()
 };
 let localizationRequestId = 0;
 const localizationCache = new Map();
@@ -431,13 +432,39 @@ async function loadRecentMaps() {
     state.recentReady = true;
     render();
 }
+function normalizeCatalogTitle(title) {
+    return String(title || "").normalize("NFKC").replace(/\s+/g, " ").trim().toLocaleLowerCase("en");
+}
+async function loadMapRecency() {
+    const response = await fetchWithTimeout(MAP_RECENCY_URL, {cache:"no-store"});
+    if (!response.ok) throw new Error("Map recency metadata HTTP " + response.status);
+    const payload = await response.json();
+    if (payload?.schema_version !== 1 || !Array.isArray(payload?.items))
+        throw new Error("Invalid map recency metadata");
+    const next = new Map();
+    for (const item of payload.items) {
+        const title = normalizeCatalogTitle(item?.title);
+        const until = Date.parse(item?.new_until);
+        if (!title || !Number.isFinite(until)) continue;
+        next.set(title, until);
+    }
+    state.mapRecency = next;
+    render();
+}
+function isCatalogEntryEstablished(map) {
+    const info = getSteamInfo(map.id);
+    if (!info) return false;
+    const until = state.mapRecency.get(normalizeCatalogTitle(info.title));
+    return until !== undefined && Date.now() >= until;
+}
 function isRecentApproved(map) {
+    if (isCatalogEntryEstablished(map)) return false;
     if (!map.recent) return false;
     const elapsed = Date.now() - Date.parse(map.recent.mergedAt);
     return Number.isFinite(elapsed) && elapsed >= 0 && elapsed <= RECENT_WINDOW_MS;
 }
 function isNewPR(map) {
-    if (!map.pending) return false;
+    if (isCatalogEntryEstablished(map) || !map.pending) return false;
     const elapsed = Date.now() - Date.parse(map.pending.createdAt);
     return elapsed >= 0 && elapsed < NEW_PR_WINDOW_MS;
 }
@@ -449,6 +476,7 @@ function pendingTags(map) {
         escapeHtml(t("pendingPR")) + '</span></span>';
 }
 function newMapTag(map) {
+    if (isCatalogEntryEstablished(map)) return "";
     const pendingChange = map.changeRequest;
     const changeAge = pendingChange ? Date.now() - Date.parse(pendingChange.createdAt) : Infinity;
     if (!isRecentApproved(map) &&
@@ -642,7 +670,7 @@ function renderPreview() {
         '<div class="preview-topline"></div>' + squareCover(info.preview_url, true) +
         '<div class="preview-title-band">' + escapeHtml(info.title) + '</div>' +
         reviewCategoryHtml(map, true) +
-        (isRecentApproved(map) || (map.changeRequest && newMapTag(map)) ?
+        (newMapTag(map) ?
             '<div class="preview-pr-status"><span class="preview-new-tag">' +
             newMapTag(map) + '</span></div>' : '') +
         (map.pending ? '<div class="preview-pr-status">' + pendingTags(map) +
@@ -1299,6 +1327,9 @@ async function init() {
 
         // Enrich the already visible map list as each optional source finishes.
         refreshLocalization();
+        loadMapRecency().catch(error => {
+            console.warn("Map recency metadata unavailable:", error);
+        });
         loadRecentMaps().catch(error => {
             state.recentReady = true;
             render(); // The approved catalog still works when the optional recent feed fails.
