@@ -6,9 +6,9 @@
 <meta name="theme-color" content="#050507">
 <meta name="description" content="All-Around Enhancement — a Black Ops III Zombies-style catalog of public Steam Workshop maps.">
 <title>All-Around Enhancement — Map Catalog</title>
-<link rel="stylesheet" href="styles.css?v=subscriptions-20261014">
-<script src="translations.js?v=subscriptions-20261014" defer></script>
-<script src="app.js?v=subscriptions-20261014" defer></script>
+<link rel="stylesheet" href="styles.css?v=auto-steam-sync-20261014">
+<script src="translations.js?v=auto-steam-sync-20261014" defer></script>
+<script src="app.js?v=auto-steam-sync-20261014" defer></script>
 </head>
 <body>
 <div class="game-shell">
@@ -100,7 +100,10 @@
         <h2 id="subscriptionTitle" data-i18n="subscriptionTitle">STEAM SUBSCRIPTIONS</h2>
         <button id="subscriptionClose" class="submit-close" type="button" aria-label="Close subscriptions" data-i18n-aria-label="subscriptionClose">×</button>
       </div>
-      <p id="subscriptionHelp" class="submit-description" data-i18n="subscriptionHelp">This website cannot directly read your signed-in Steam account. Open your Steam subscribed items page, save each page as HTML, then import it here. You can also paste Workshop IDs or links. Only imported items are marked.</p>
+      <p id="subscriptionHelp" class="submit-description" data-i18n="subscriptionHelp">Install the optional browser extension once, then subscribed Workshop maps are marked automatically when your Steam Community account is signed in. Manual import remains available as a fallback.</p>
+      <p class="subscription-auto-status" id="subscriptionAutoStatus" role="status" aria-live="polite" data-state="unavailable" data-i18n="subscriptionAutoMissing">Automatic sync requires the optional browser extension.</p>
+      <a class="subscription-extension-link" href="https://github.com/k7Ysh5A41/AAE-Custom-Map-Category/tree/main/browser-extension" target="_blank" rel="noopener noreferrer" data-i18n="subscriptionExtensionLink">INSTALL AUTOMATIC STEAM SYNC ↗</a>
+      <p class="subscription-import-caption" data-i18n="subscriptionManualFallback">Optional manual import (no extension):</p>
       <a class="subscription-steam-link" href="https://steamcommunity.com/my/myworkshopfiles/?appid=311210&amp;browsefilter=mysubscriptions" target="_blank" rel="noopener noreferrer" data-i18n="subscriptionSteamLink">OPEN MY STEAM SUBSCRIPTIONS ↗</a>
       <label class="subscription-label" for="subscriptionFile" data-i18n="subscriptionFileLabel">IMPORT SAVED SUBSCRIPTIONS PAGE (.HTML), ID LIST (.TXT) OR JSON</label>
       <input id="subscriptionFile" type="file" accept=".html,.htm,.txt,.json,text/html,text/plain,application/json">
