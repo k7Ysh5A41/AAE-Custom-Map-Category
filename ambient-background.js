@@ -136,10 +136,11 @@
         ctx.restore();
     }
 
-    // One continuous feathered shaft, rather than eight distinct bands.
-    // Cached alpha pixels provide a tapering Gaussian edge without seams.
+    // One continuous volumetric field: filaments and soft shadows are
+    // calculated inside the same alpha texture, never as stacked bands.
     function makeGodRayTexture(){
-        const w=448,h=224;
+        const w=compact.matches?640:1024;
+        const h=compact.matches?352:512;
         const bitmap=document.createElement("canvas");
         bitmap.width=w;
         bitmap.height=h;
@@ -149,16 +150,27 @@
         const data=pixels.data;
         for(let x=0;x<w;x++){
             const t=x/(w-1);
-            const halfWidth=.034+.66*Math.pow(t,.88);
-            const entrance=1-Math.exp(-t*32);
-            const tail=1-.65*Math.pow(Math.max(0,(t-.66)/.34),2);
-            const lengthFade=entrance*Math.exp(-t*.89)*tail;
+            // Open up the fan much farther than the previous narrow cone.
+            const spread=.024+.96*Math.pow(t,.81);
+            const entrance=1-Math.exp(-t*33);
+            const fade=entrance*Math.exp(-t*.33);
             for(let y=0;y<h;y++){
-                const cross=((y+.5)/h*2-1)/halfWidth;
-                const feather=Math.exp(-2.45*cross*cross);
+                const cross=((y+.5)/h*2-1)/spread;
+                const feather=Math.exp(-2.65*Math.pow(Math.abs(cross),1.65));
+                // Low-contrast, continuous fine rays; no independent light layers.
+                const detail=1
+                    +.080*Math.sin(cross*22.7+t*2.1+.3*Math.sin(t*6.5))
+                    +.047*Math.sin(cross*49.2-t*1.6)
+                    +.026*Math.sin(cross*91.0+t*4.8)
+                    +.10*Math.exp(-Math.pow((cross+.34-.022*Math.sin(t*4.4))/.054,2))
+                    +.12*Math.exp(-Math.pow((cross-.10+.017*Math.sin(t*3.2))/.041,2))
+                    +.08*Math.exp(-Math.pow((cross-.56)/.063,2));
                 const k=(y*w+x)*4;
-                data[k]=255;data[k+1]=214;data[k+2]=179;
-                data[k+3]=Math.round(214*lengthFade*feather);
+                data[k]=255;
+                data[k+1]=210;
+                data[k+2]=163;
+                data[k+3]=Math.max(0,Math.min(255,
+                    Math.round(237*fade*feather*detail)));
             }
         }
         brush.putImageData(pixels,0,0);
@@ -167,31 +179,29 @@
     const godRayTexture=makeGodRayTexture();
     function paintGodRays(time,originX,originY){
         if(!godRayTexture)return;
-        // One radian from horizontal sends light diagonally down and right.
-        const angle=1.00+.011*Math.sin(time*.063);
-        const length=Math.max(height*1.53,width*.93);
-        const halfHeight=width*.29;
+        // Overshoot the viewport so the far edge never reveals a texture seam.
+        const angle=.89+.008*Math.sin(time*.063);
+        const length=Math.max(height*2.35,width*1.75);
+        const halfHeight=Math.max(width*.66,height*.56);
         ctx.save();
         ctx.globalCompositeOperation="screen";
         ctx.translate(originX,originY);
         ctx.rotate(angle);
-        ctx.globalAlpha=.91+.09*Math.sin(time*.16);
+        ctx.globalAlpha=.88+.06*Math.sin(time*.13);
         ctx.drawImage(godRayTexture,0,-halfHeight,length,halfHeight*2);
         ctx.restore();
     }
 
     function paintSpotlight(time){
         const intro=Math.min(1,Math.max(0,time/2.2));
-        const x=width*(.115+Math.sin(time*.052)*.005);
-        const y=-height*.19;
-        // Shift the atmospheric bloom toward the destination of the cone.
-        ellipticalGlow(x,y+height*.04,width*.37,height*.57,
-            [255,222,193],.25+.09*intro);
-        ellipticalGlow(x+width*.16,height*.19,width*.41,height*.58,
-            [247,191,153],.11+.06*intro);
+        const x=width*(.10+Math.sin(time*.052)*.003);
+        const y=-height*.13;
+        // A single wide atmosphere and a tightly blended source highlight.
+        ellipticalGlow(x+width*.10,y+height*.11,
+            width*.72,height*.79,[255,153,98],.18+.06*intro);
         paintGodRays(time,x,y);
-        ellipticalGlow(x,-height*.095,width*.19,height*.31,
-            [255,238,211],.33);
+        ellipticalGlow(x,-height*.045,width*.17,height*.23,
+            [255,221,174],.27);
     }
 
     function paintMist(time){
