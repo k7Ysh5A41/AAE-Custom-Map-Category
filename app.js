@@ -562,13 +562,11 @@ function renderNav() {
 }
 function categoryRow(category) {
     const maps = categoryMaps(category);
-    const liteCount = maps.filter(map => map.liteOnly).length;
     return '<article class="category-row" tabindex="0" role="button" data-open="' +
         category.order + '"><div class="category-copy"><div class="category-kicker">' + escapeHtml(t("category")) + ' ' +
         escapeHtml(category.index) + '</div><h3>' + escapeHtml(category.name) +
         '</h3><p>' + escapeHtml(category.summary) + '</p></div><div class="category-count">' +
         maps.length + '<small> ' + escapeHtml(t("maps")) + '</small>' +
-        (liteCount ? '<span class="lite-count">' + liteCount + ' ' + escapeHtml(t("liteOnly")) + '</span>' : '') +
         '</div><span class="category-chevron" aria-hidden="true">›</span></article>';
 }
 function squareCover(url, large = false) {
@@ -620,7 +618,6 @@ function mapRow(map) {
         escapeHtml(info.title) + '</h3><div class="map-publisher">' +
         escapeHtml(publisherName(info)) + '</div>' +
         reviewCategoryHtml(map) + '</div>' +
-        (map.liteOnly ? '<span class="chip lite">' + escapeHtml(t("lite")) + '</span>' : '') +
         pendingTags(map) + newMapTag(map) +
         (map.changeRequest ? '<span class="chip change-chip">' +
             escapeHtml(t(map.changeRequest.action === "delete" ?
@@ -665,7 +662,7 @@ function renderPreview() {
         '<div class="preview-details"><p>' + escapeHtml(t("createdBy")) + ' <strong>' +
         escapeHtml(publisherName(info)) + '</strong></p>' +
         '<p>' + escapeHtml(t("workshopId")) + ' <strong>' + escapeHtml(map.id) + '</strong></p>' +
-        (map.liteOnly ? '<p><strong>' + escapeHtml(t("liteOnly")) + '</strong></p>' : '') + '</div>' +
+        '</div>' +
         (desc ? '<h3 class="preview-heading">' + escapeHtml(t("missionBriefing")) + '</h3>' +
             '<p class="preview-blurb">' + escapeHtml(desc) + '</p>' : '') +
         '<div class="preview-buttons"><button data-copy="' + escapeHtml(map.id) +
@@ -688,8 +685,6 @@ function render() {
         categoryCount().toLocaleString("en-US") : "—";
     $("mapCount").textContent = state.steamReady ?
         publicItems.length.toLocaleString("en-US") : "—";
-    $("liteCount").textContent = state.steamReady ?
-        publicItems.filter(map => map.liteOnly).length.toLocaleString("en-US") : "—";
     const matches = filtered();
     if (state.activeMapId && !matches.some(map => map.id === state.activeMapId)) {
         state.activeMapId = null;
@@ -1053,9 +1048,6 @@ function openChangeRequest(id) {
     // Initialize from the approved map, never the form's previous state.
     const changeLiteCheckbox = $("changeLiteOnly");
     changeLiteCheckbox.checked = map.liteOnly === true;
-    const status = $("changeCurrentLite");
-    status.dataset.i18n = map.liteOnly ? "currentLiteYes" : "currentLiteNo";
-    status.textContent = t(status.dataset.i18n);
     const incompatibleOption = $("changeIncompatible");
     incompatibleOption.disabled = map.category.button === INCOMPATIBLE_CATEGORY;
     incompatibleOption.closest("label").hidden = incompatibleOption.disabled;
