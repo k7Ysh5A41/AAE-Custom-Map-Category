@@ -369,7 +369,7 @@ a{color:inherit}
 .submit-overlay[hidden],.submit-error[hidden]{display:none!important}
 .submit-overlay{
   position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;
-  padding:18px;background:rgba(1,2,4,.86);backdrop-filter:blur(7px);
+  padding:18px;background:rgba(1,2,4,.86);backdrop-filter:none;
 }
 .submit-dialog{
   width:min(100%,560px);max-height:min(92vh,850px);overflow-y:auto;padding:27px 30px;
@@ -2143,7 +2143,7 @@ body.submission-open .social-bar { pointer-events:none; }
   z-index:1200;
   padding:clamp(12px,2.8vw,28px);
   background:rgba(0,0,0,.88);
-  backdrop-filter:blur(10px);
+  backdrop-filter:none;
 }
 .github-help-dialog {
   width:min(100%,750px);
@@ -3219,7 +3219,7 @@ html,body {
 .submit-overlay[data-motion="exit"]::before{
   animation:aaeModalOriginReturn .40s ease-in both;
 }
-.submit-overlay > .submit-dialog{
+.submit-overlay > .modal-flip-stage > .submit-dialog{
   position:relative;
   isolation:isolate;
   z-index:1;
@@ -3233,7 +3233,7 @@ html,body {
     inset 0 1px 0 rgba(255,206,145,.21);
   transform-origin:50% 50%;
 }
-.submit-overlay > .submit-dialog::after{
+.submit-overlay > .modal-flip-stage > .submit-dialog::after{
   content:"";
   position:absolute;
   z-index:0;
@@ -3252,17 +3252,17 @@ html,body {
 .submit-overlay[data-motion="exit"] > .submit-dialog::after{
   animation:aaeModalEdgeRetract .37s ease-in both;
 }
-.submit-overlay > .submit-dialog > *{position:relative;z-index:1;}
-.submit-overlay > .submit-dialog .submit-heading{
+.submit-overlay > .modal-flip-stage > .submit-dialog > *{position:relative;z-index:1;}
+.submit-overlay > .modal-flip-stage > .submit-dialog .submit-heading{
   border-bottom-color:rgba(255,145,87,.56);
 }
-.submit-overlay > .submit-dialog .submit-heading h2{
+.submit-overlay > .modal-flip-stage > .submit-dialog .submit-heading h2{
   text-shadow:0 0 13px rgba(255,132,58,.23);
 }
-.submit-overlay > .submit-dialog .submit-close{
+.submit-overlay > .modal-flip-stage > .submit-dialog .submit-close{
   transition:color .18s ease,transform .25s ease,text-shadow .22s ease;
 }
-.submit-overlay > .submit-dialog .submit-close:hover{
+.submit-overlay > .modal-flip-stage > .submit-dialog .submit-close:hover{
   transform:rotate(90deg);
   color:#ffe2af;
   text-shadow:0 0 14px rgba(255,140,63,.64);
@@ -3289,7 +3289,7 @@ html,body {
 
 /* Rectangular GitHub workflow cards: 10 existing localized actions retained.
    Cards read top-to-bottom in DOM and left-to-right in CSS grid. */
-.submit-overlay.github-help-overlay > .github-help-dialog{
+.submit-overlay.github-help-overlay > .modal-flip-stage > .github-help-dialog{
   width:min(100%,990px);
   max-height:min(93vh,920px);
   max-height:min(93dvh,920px);
@@ -3432,7 +3432,7 @@ html,body {
 }
 @media(prefers-reduced-motion:reduce){
   .submit-overlay::before,
-  .submit-overlay > .submit-dialog::after,
+  .submit-overlay > .modal-flip-stage > .submit-dialog::after,
   .github-help-overlay .github-guide-tile{
     animation:none!important;
     transition:none!important;
@@ -3442,119 +3442,113 @@ html,body {
 }
 
 
-/* Performance revision: no fullscreen backdrop blur and no SVG/filter blur
-   during modal motion. Retain warm static dimming without repaint cost. */
-.submit-overlay,
-.submit-overlay.github-help-overlay{
+
+/* 3D flip hosts: the button is the front, and the existing live form/guide
+   is the reverse face. No blur or full-page filter effects are used. */
+.submit-overlay,.submit-overlay.github-help-overlay{
   -webkit-backdrop-filter:none!important;
   backdrop-filter:none!important;
-  background:rgba(3,3,5,.91);
+  background:rgba(3,3,5,.78);
 }
-.submit-overlay:not([hidden])::before{
-  display:none!important;
-  animation:none!important;
-  filter:none!important;
-}
-.submit-overlay > .submit-dialog{
-  perspective:none!important;
-  backface-visibility:hidden;
-}
+.submit-overlay.github-help-overlay{background:rgba(3,3,5,.86);}
 .submit-overlay:not([hidden]){
-  perspective:none!important;
+  perspective:1500px;
+  isolation:isolate;
 }
-.submit-overlay[data-motion="enter"] > .submit-dialog::after,
-.submit-overlay[data-motion="exit"] > .submit-dialog::after{
-  animation:none!important;
+.submit-overlay:not([hidden])::before{display:none!important;animation:none!important;}
+.submit-overlay .modal-flip-stage{
+  position:relative;
+  z-index:1;
+  width:min(100%,620px);
+  max-height:min(92dvh,900px);
+  transform-style:preserve-3d;
+  transform-origin:50% 50%;
+  will-change:transform;
 }
-.github-help-overlay[data-motion="enter"] .github-guide-tile{
-  animation:none!important;
+.submit-overlay.github-help-overlay .modal-flip-stage{
+  width:min(100%,990px);
+  max-height:min(93dvh,920px);
 }
-.modal-origin-occupied{
-  opacity:0!important;
-  pointer-events:none!important;
-}
-.modal-morph-bridge{
-  position:fixed;
+.submit-overlay .modal-flip-stage > .submit-dialog{
+  position:relative;
   box-sizing:border-box;
-  z-index:5;
+  width:100%;
+  max-width:100%;
+  max-height:min(92dvh,900px);
+  -webkit-backface-visibility:hidden;
+  backface-visibility:hidden;
+  transform:translateZ(1px);
+  transform-origin:50% 50%;
+}
+.submit-overlay.github-help-overlay .modal-flip-stage > .github-help-dialog{
+  width:100%;
+  max-height:min(93dvh,920px);
+  scrollbar-gutter:stable;
+}
+.submit-overlay .modal-flip-front{
+  position:absolute;
+  inset:0;
+  z-index:2;
   display:flex;
   align-items:center;
   justify-content:center;
-  overflow:hidden;
+  box-sizing:border-box;
+  width:100%;
+  height:100%;
+  border:1px solid #ffbd83;
+  border-left:4px solid #ffe2b3;
+  background:linear-gradient(105deg,#ffb47e,#f46e36 70%,#e44d27);
+  color:#26130a;
   pointer-events:none;
-  isolation:isolate;
-  transform-origin:center center;
-  border:1px solid #ffc391;
-  border-left:3px solid #ffe0b2;
-  border-radius:0;
-  box-shadow:0 0 11px rgba(255,133,64,.22);
-  color:#1b1010;
-  font-weight:800;
-  text-align:center;
-  will-change:transform,opacity;
-  contain:paint;
+  overflow:hidden;
+  -webkit-backface-visibility:hidden;
+  backface-visibility:hidden;
+  transform:rotateY(180deg) translateZ(1px);
 }
-.modal-morph-label{
-  position:relative;
-  z-index:2;
-  padding:0 7px;
-  max-width:100%;
+.submit-overlay .modal-flip-front-label{
+  display:block;
+  max-width:88%;
+  padding:0 8px;
+  text-align:center;
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
-  pointer-events:none;
+  font-size:18px;
+  line-height:1.1;
 }
-.modal-morph-window{
-  position:absolute;
-  z-index:1;
-  inset:0;
-  pointer-events:none;
-  background:linear-gradient(150deg,#281c19,#151315 42%,#0b0c10);
-  opacity:0;
-  will-change:opacity;
-}
+.modal-origin-occupied{opacity:0!important;pointer-events:none!important;}
+.submit-overlay[data-motion] .modal-flip-stage > .submit-dialog{pointer-events:none;}
+.submit-overlay .modal-flip-stage > .submit-dialog::after{animation:none!important;}
+/* Two-column GitHub workflow retains its large numbered, unlabeled tiles. */
 .github-guide-steps .github-guide-tile{
   display:grid;
-  grid-template-columns:clamp(52px,6vw,66px) minmax(0,1fr);
-  grid-template-rows:auto 1fr;
-  column-gap:13px;
-  row-gap:7px;
-  align-content:start;
+  grid-template-columns:clamp(56px,6vw,70px) minmax(0,1fr);
+  grid-template-rows:1fr;
+  gap:12px;
+  align-items:center;
   min-height:132px;
 }
 .github-guide-steps .github-guide-tile .github-guide-step-number{
   grid-column:1;
-  grid-row:1 / span 2;
-  align-self:center;
+  grid-row:1;
   color:#ffdaa3;
   text-shadow:0 0 12px rgba(255,133,54,.24);
-  font:900 clamp(34px,3.7vw,46px)/1 "Arial Narrow","Bahnschrift Condensed","Segoe UI",sans-serif;
+  font:900 clamp(36px,3.8vw,48px)/1 "Arial Narrow","Bahnschrift Condensed","Segoe UI",sans-serif;
   letter-spacing:-.04em;
   font-variant-numeric:tabular-nums;
 }
-.github-guide-steps .github-guide-tile .github-guide-tile-kicker{
-  grid-column:2;
-  grid-row:1;
-  align-self:end;
-}
-.github-guide-steps .github-guide-tile p{
-  grid-column:2;
-  grid-row:2;
-  align-self:start;
-}
+.github-guide-steps .github-guide-tile p{grid-column:2;grid-row:1;color:#f2e5d9;line-height:1.6;}
 .github-guide-steps .github-guide-tile:nth-child(5) .github-guide-step-number,
 .github-guide-steps .github-guide-tile:nth-child(7) .github-guide-step-number,
-.github-guide-steps .github-guide-tile:nth-child(9) .github-guide-step-number{
-  color:#fff0c8;
-}
+.github-guide-steps .github-guide-tile:nth-child(9) .github-guide-step-number{color:#fff0c8;}
 @media(max-width:740px){
   .github-guide-steps .github-guide-tile{
+    grid-template-columns:48px minmax(0,1fr);
     min-height:0;
-    grid-template-columns:52px minmax(0,1fr);
-    column-gap:9px;
+    gap:10px;
   }
-  .github-guide-steps .github-guide-tile .github-guide-step-number{font-size:36px;}
+  .github-guide-steps .github-guide-tile .github-guide-step-number{font-size:35px;}
 }
 @media(prefers-reduced-motion:reduce){
-  .modal-morph-bridge{display:none!important;}
+  .submit-overlay .modal-flip-stage{will-change:auto;transform:none!important;}
 }

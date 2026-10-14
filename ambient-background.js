@@ -336,8 +336,7 @@
 
     function tick(timestamp){
         raf=0;
-        if(document.hidden||motionPreference.matches||
-           document.documentElement.classList.contains("submission-open"))return;
+        if(document.hidden||motionPreference.matches)return;
         const interval=compact.matches?1000/24:FRAME_MS;
         if(timestamp-lastPaint>=interval){
             lastPaint=timestamp;
@@ -353,20 +352,13 @@
         raf=0;
         lastPaint=-Infinity;
         resize();
-        if(document.hidden ||
-           document.documentElement.classList.contains("submission-open"))return;
+        if(document.hidden)return;
         // Paint the first frame immediately; don't leave the page dark while
         // waiting for the first animation frame or on reduced-motion devices.
         paint(startedAt===null?6.5:12);
         if(!motionPreference.matches)raf=requestAnimationFrame(tick);
     }
 
-    // Suspend canvas painting while submission/guide layers cover the page.
-    // Resume using the existing timestamp when the form is dismissed.
-    const modalObserver=new MutationObserver(refresh);
-    modalObserver.observe(document.documentElement,{
-        attributes:true,attributeFilter:["class"]
-    });
     window.addEventListener("resize",refresh,{passive:true});
     document.addEventListener("visibilitychange",refresh);
     if(motionPreference.addEventListener)

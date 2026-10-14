@@ -990,122 +990,84 @@ function setSubmissionPending(pending) {
     button.disabled = pending;
     button.textContent = t(pending ? "checking" : "submitRequest");
 }
+
 const modalMotions = new WeakMap();
 const modalOrigins = new WeakMap();
-
-// Keep the physical position and styling of the clicked control. The button
-// itself appears to unfold into the dialog instead of merely launching one.
-function rememberModalOrigin(overlay, trigger) {
-    if (!trigger || !trigger.isConnected) return;
-    const rect=trigger.getBoundingClientRect();
-    const computed=window.getComputedStyle(trigger);
+function rememberModalOrigin(overlay,trigger) {
+    if(!trigger||!trigger.isConnected)return;
+    const box=trigger.getBoundingClientRect();
+    const style=window.getComputedStyle(trigger);
     modalOrigins.set(overlay,{
-        rect:{left:rect.left,top:rect.top,width:Math.max(1,rect.width),
-            height:Math.max(1,rect.height)},
-        trigger,
-        label:(trigger.textContent || "").trim().replace(/\\s+/g," "),
-        background:computed.background,
-        color:computed.color,
-        font:computed.font
+        trigger,rect:{left:box.left,top:box.top,width:Math.max(1,box.width),
+            height:Math.max(1,box.height)},
+        label:(trigger.textContent||"").trim().replace(/\s+/g," "),
+        background:style.background,color:style.color,font:style.font
     });
 }
-function stopModalMotion(overlay) {
-    const previous=modalMotions.get(overlay);
-    if (!previous) return;
+function stopModalMotion(overlay){
+    const running=modalMotions.get(overlay);
+    if(!running)return;
     modalMotions.delete(overlay);
-    for(const animation of previous.animations)animation.cancel();
-    previous.bridge.remove();
+    for(const animation of running)animation.cancel();
     delete overlay.dataset.motion;
+    const stage=overlay.querySelector(".modal-flip-stage");
+    if(stage)stage.inert=false;
 }
-function releaseModalOrigin(overlay) {
+function releaseModalOrigin(overlay){
     const source=modalOrigins.get(overlay);
-    if(source && source.trigger && source.trigger.isConnected)
+    if(source?.trigger?.isConnected)
         source.trigger.classList.remove("modal-origin-occupied");
 }
-function runModalMotion(overlay,opening,onComplete=()=>{}) {
+function runModalMotion(overlay,opening,onComplete=()=>{}){
     stopModalMotion(overlay);
-    const dialog=overlay.querySelector(".submit-dialog");
+    const stage=overlay.querySelector(".modal-flip-stage");
+    const front=stage?.querySelector(".modal-flip-front");
+    const label=front?.querySelector(".modal-flip-front-label");
     const source=modalOrigins.get(overlay);
     const reduced=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (!dialog || !source || reduced ||
-        typeof dialog.animate!=="function" || typeof overlay.animate!=="function") {
-        if(opening && source && source.trigger)
-            source.trigger.classList.remove("modal-origin-occupied");
+    if(!stage||!source||reduced||typeof stage.animate!=="function"){
         if(!opening)releaseModalOrigin(overlay);
         onComplete();
         return;
     }
-    const from=source.rect;
-    const target=dialog.getBoundingClientRect();
-    const dx=target.left+target.width/2-(from.left+from.width/2);
-    const dy=target.top+target.height/2-(from.top+from.height/2);
-    const sx=target.width/from.width;
-    const sy=target.height/from.height;
-    const full=`translate3d(${dx}px,${dy}px,0) scale(${sx},${sy})`;
-    const idle="translate3d(0px,0px,0px) scale(1,1)";
-    const bridge=document.createElement("div");
-    bridge.className="modal-morph-bridge";
-    bridge.setAttribute("aria-hidden","true");
-    Object.assign(bridge.style,{
-        left:from.left+"px",top:from.top+"px",
-        width:from.width+"px",height:from.height+"px",
-        background:source.background,
-        color:source.color,
-        font:source.font
-    });
-    const label=document.createElement("span");
-    label.className="modal-morph-label";
+    const rect=stage.getBoundingClientRect(),origin=source.rect;
+    const dx=origin.left+origin.width/2-(rect.left+rect.width/2);
+    const dy=origin.top+origin.height/2-(rect.top+rect.height/2);
+    const sx=Math.min(1.25,Math.max(.04,origin.width/Math.max(1,rect.width)));
+    const sy=Math.min(1.25,Math.max(.04,origin.height/Math.max(1,rect.height)));
+    const atButton=`translate3d(${dx}px,${dy}px,0) rotateY(180deg) scale(${sx},${sy})`;
+    const atWindow="translate3d(0px,0px,0px) rotateY(0deg) scale(1,1)";
+    front.style.background=source.background;
+    front.style.color=source.color;
     label.textContent=source.label;
-    const windowSkin=document.createElement("span");
-    windowSkin.className="modal-morph-window";
-    bridge.append(label,windowSkin);
-    overlay.appendChild(bridge);
-    if(source.trigger && source.trigger.isConnected)
-        source.trigger.classList.add("modal-origin-occupied");
+    label.style.font=source.font;
+    const duration=opening?660:555;
     overlay.dataset.motion=opening?"enter":"exit";
-    const duration=opening?470:380;
-    const baseOptions={duration,fill:"both"};
-    const animations=[];
-    // Only compositor-friendly opacity/transform are animated. Neither the
-    // entire dialog nor any of its form fields is repeatedly scaled/blurred.
-    animations.push(bridge.animate(opening?[
-        {transform:idle,opacity:1,offset:0},
-        {transform:full,opacity:1,offset:1}
+    stage.inert=true;
+    if(source.trigger?.isConnected)source.trigger.classList.add("modal-origin-occupied");
+    // Real 3D faces: the original trigger is the front, the fully laid-out
+    // interactive dialog is the reverse. The whole object flips and scales.
+    const stageAnimation=stage.animate(opening?[
+        {transform:atButton},{transform:atWindow}
     ]:[
-        {transform:full,opacity:1,offset:0},
-        {transform:idle,opacity:1,offset:1}
-    ],{...baseOptions,easing:opening?
-        "cubic-bezier(.18,.72,.23,1)":"cubic-bezier(.6,.05,.77,.35)"}));
-    animations.push(windowSkin.animate(opening?[
-        {opacity:0,offset:0},{opacity:.18,offset:.23},
-        {opacity:1,offset:.76},{opacity:1,offset:1}
+        {transform:atWindow},{transform:atButton}
+    ],{duration,fill:"both",easing:opening?
+        "cubic-bezier(.19,.75,.22,1)":"cubic-bezier(.57,.08,.78,.32)"});
+    // Counter-scale the label only while the button face is visible.
+    const labelAnimation=label.animate(opening?[
+        {transform:`scale(${1/sx},${1/sy})`,offset:0},
+        {transform:`scale(${1/sx},${1/sy})`,offset:.18},
+        {transform:"scale(1,1)",offset:.56},
+        {transform:"scale(1,1)",offset:1}
     ]:[
-        {opacity:1,offset:0},{opacity:1,offset:.16},
-        {opacity:.14,offset:.73},{opacity:0,offset:1}
-    ],baseOptions));
-    animations.push(label.animate(opening?[
-        {opacity:1,offset:0},{opacity:.65,offset:.15},
-        {opacity:0,offset:.39},{opacity:0,offset:1}
-    ]:[
-        {opacity:0,offset:0},{opacity:0,offset:.45},
-        {opacity:1,offset:1}
-    ],baseOptions));
-    animations.push(dialog.animate(opening?[
-        {opacity:0,offset:0},{opacity:0,offset:.48},
-        {opacity:1,offset:.86},{opacity:1,offset:1}
-    ]:[
-        {opacity:1,offset:0},{opacity:0,offset:.36},
-        {opacity:0,offset:1}
-    ],baseOptions));
-    animations.push(overlay.animate(opening?[
-        {opacity:0,offset:0},{opacity:1,offset:.55},{opacity:1,offset:1}
-    ]:[
-        {opacity:1,offset:0},{opacity:1,offset:.43},{opacity:0,offset:1}
-    ],baseOptions));
-    const record={animations,bridge};
-    modalMotions.set(overlay,record);
-    animations[0].finished.then(()=>{
-        if(modalMotions.get(overlay)!==record)return;
+        {transform:"scale(1,1)",offset:0},
+        {transform:"scale(1,1)",offset:.42},
+        {transform:`scale(${1/sx},${1/sy})`,offset:.82},
+        {transform:`scale(${1/sx},${1/sy})`,offset:1}
+    ],{duration,fill:"both",easing:"ease-in-out"});
+    modalMotions.set(overlay,[stageAnimation,labelAnimation]);
+    stageAnimation.finished.then(()=>{
+        if(modalMotions.get(overlay)?.[0]!==stageAnimation)return;
         stopModalMotion(overlay);
         if(!opening)releaseModalOrigin(overlay);
         onComplete();
@@ -1152,8 +1114,9 @@ function openSubmission() {
     const overlay=$("submitMapOverlay");
     rememberModalOrigin(overlay,$("submitMapOpen"));
     overlay.hidden=false;
-    runModalMotion(overlay,true);
-    $("submitWorkshopId").focus({preventScroll:true});
+    runModalMotion(overlay,true,()=>{
+        if(!overlay.hidden)$("submitWorkshopId").focus({preventScroll:true});
+    });
 }
 // Recheck current public main, not just the catalog snapshot loaded with this page.
 async function isWorkshopIdInMain(workshopId) {
@@ -1298,8 +1261,9 @@ function openChangeRequest(id,trigger) {
     const overlay=$("changeMapOverlay");
     rememberModalOrigin(overlay,trigger);
     overlay.hidden=false;
-    runModalMotion(overlay,true);
-    $("changeReason").focus({preventScroll:true});
+    runModalMotion(overlay,true,()=>{
+        if(!overlay.hidden)$("changeReason").focus({preventScroll:true});
+    });
 }
 function closeChangeRequest() {
     const overlay=$("changeMapOverlay");
@@ -1431,7 +1395,6 @@ function renderGithubGuide() {
         '<li class="github-guide-tile" style="--step-index:' + index + '">' +
         '<span class="github-guide-step-number" aria-hidden="true">' +
         String(index+1).padStart(2,"0") + '</span>' +
-        '<span class="github-guide-tile-kicker" aria-hidden="true">GITHUB</span>' +
         '<p>' + escapeHtml(t(key)) + '</p></li>').join("");
     $("githubGuideProceed").hidden = !githubGuideDestination;
 }
@@ -1452,8 +1415,9 @@ function openGithubGuide(mode, destination) {
     rememberModalOrigin(overlay,githubGuideReturnFocus);
     overlay.hidden=false;
     $("githubGuideDialog").scrollTop=0;
-    runModalMotion(overlay,true);
-    $("githubGuideClose").focus({preventScroll:true});
+    runModalMotion(overlay,true,()=>{
+        if(!overlay.hidden)$("githubGuideClose").focus({preventScroll:true});
+    });
 }
 function closeGithubGuide(instant=false,restoreFocus=true) {
     const overlay=$("githubGuideOverlay");

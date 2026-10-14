@@ -6,10 +6,10 @@
 <meta name="theme-color" content="#050507">
 <meta name="description" content="All-Around Enhancement — a Black Ops III Zombies-style catalog of public Steam Workshop maps.">
 <title>All-Around Enhancement — Map Catalog</title>
-<link rel="stylesheet" href="styles.css?v=aae-fast-morph-numbered-guide-v9-20261015">
+<link rel="stylesheet" href="styles.css?v=aae-3d-flip-v10-20261015">
 <script src="translations.js?v=5d480e9eeb3fa6f8ed56e48832f6be01cf080774" defer></script>
-<script src="ambient-background.js?v=aae-modal-pause-v9-20261015" defer></script>
-<script src="app.js?v=aae-fast-morph-numbered-guide-v9-20261015" defer></script>
+<script src="ambient-background.js?v=aae-continuous-particles-v10-20261015" defer></script>
+<script src="app.js?v=aae-3d-flip-v10-20261015" defer></script>
 </head>
 <body>
 <canvas id="ambientBackground" class="ambient-background" aria-hidden="true"></canvas>
@@ -123,6 +123,7 @@
     <div class="language-menu" id="languageMenu" role="group" aria-label="Website language" hidden></div>
   </div>
   <section class="submit-overlay change-overlay" id="changeMapOverlay" hidden role="presentation">
+    <div class="modal-flip-stage"><div class="modal-flip-front" aria-hidden="true"><span class="modal-flip-front-label"></span></div>
     <div class="submit-dialog change-dialog" role="dialog" aria-modal="true" aria-labelledby="changeMapTitle">
       <div class="submit-heading">
         <h2 id="changeMapTitle" data-i18n="requestChange">REQUEST MAP CHANGE</h2>
@@ -150,8 +151,10 @@
         </div>
       </form>
     </div>
+    </div>
   </section>
   <section class="submit-overlay" id="submitMapOverlay" hidden role="presentation">
+    <div class="modal-flip-stage"><div class="modal-flip-front" aria-hidden="true"><span class="modal-flip-front-label"></span></div>
     <div class="submit-dialog" role="dialog" aria-modal="true" aria-labelledby="submitMapTitle">
       <div class="submit-heading">
         <h2 id="submitMapTitle" data-i18n="submitMap">SUBMIT A MAP</h2>
@@ -176,8 +179,10 @@
         </div>
       </form>
     </div>
+    </div>
   </section>
   <section class="submit-overlay github-help-overlay" id="githubGuideOverlay" hidden role="presentation">
+    <div class="modal-flip-stage"><div class="modal-flip-front" aria-hidden="true"><span class="modal-flip-front-label"></span></div>
     <div id="githubGuideDialog" class="submit-dialog github-help-dialog" role="dialog" aria-modal="true"
          aria-labelledby="githubGuideTitle" aria-describedby="githubGuideIntro" tabindex="-1">
       <div class="submit-heading">
@@ -203,6 +208,7 @@
         <button id="githubGuideBack" type="button" data-i18n="githubGuideBack">← BACK TO FORM</button>
          <button id="githubGuideProceed" type="button" class="submit-confirm" data-i18n="githubGuideProceed" hidden>I UNDERSTAND, CONTINUE TO GITHUB ↗</button>
       </div>
+    </div>
     </div>
   </section>
 </div>
