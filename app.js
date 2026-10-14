@@ -543,6 +543,7 @@ function getSteamInfo(id) {
     return state.steamReady && entry && Number(entry.visibility) === 0 &&
         typeof entry.title === "string" && entry.title.trim() ? entry : null;
 }
+let lastNavMarkup = "";
 function renderNav() {
     const visible = state.steamReady ?
         state.categories.filter(category => categoryMaps(category).length > 0) :
@@ -565,7 +566,7 @@ function renderNav() {
         ...(changeMaps("delete").length ? [pendingDeletion] : [])
     ] : [];
     const recentCategories = state.recentReady && state.steamReady && recentMaps().length ? [recent] : [];
-    $("categoryNav").innerHTML = [all, ...recentCategories, ...reviewCategories, ...visible].map(category => {
+    const markup = [all, ...recentCategories, ...reviewCategories, ...visible].map(category => {
         const count = category.order === null ? category.visibleCount :
             category.order === RECENT_CATEGORY ? recentMaps().length :
             category.order === PENDING_CATEGORY ?
@@ -586,6 +587,12 @@ function renderNav() {
             '<span>' + escapeHtml(category.name) + '</span><small>' + count +
             '</small></button>';
     }).join("");
+    // Preserve sidebar elements while switching between maps in the same view,
+    // so the origin-category beacon never restarts on every selection.
+    if (lastNavMarkup !== markup) {
+        $("categoryNav").innerHTML = markup;
+        lastNavMarkup = markup;
+    }
 }
 // Pulse only the approved, real category of the selected map when the
 // current view is a different category (including All / Recent Additions).
@@ -599,9 +606,16 @@ function updateMapCategoryPulse(selectedMap) {
     const target = validCategory && state.selected !== category.order
         ? String(category.order) : null;
     for (const button of $("categoryNav").querySelectorAll(".nav-btn")) {
-        button.classList.toggle("map-origin-pulse",
-            target !== null && button.dataset.category === target &&
-            !button.classList.contains("active"));
+        const shouldPulse = target !== null &&
+            button.dataset.category === target &&
+            !button.classList.contains("active") &&
+            !button.classList.contains("recent-category") &&
+            !button.classList.contains("pending-category") &&
+            !button.classList.contains("pending-change-category") &&
+            !button.classList.contains("pending-delete-category") &&
+            !button.classList.contains("incompatible-category");
+        if (button.classList.contains("map-origin-pulse") !== shouldPulse)
+            button.classList.toggle("map-origin-pulse", shouldPulse);
     }
 }
 function categoryRow(category) {
