@@ -53,7 +53,8 @@
             '[id^="UnsubscribeItemBtn"],.workshopBrowsePagingInfo,#no_items'
         )) || (cards.length > 0 &&
             /browsefilter=mysubscriptions|subscribed items|已订阅|登録済み/i.test(html));
-        return {ids:[...items],confirmed,expectedTotal};
+        const explicitEmpty = Boolean(doc.querySelector("#no_items")) || expectedTotal === 0;
+        return {ids:[...items],confirmed,expectedTotal,explicitEmpty};
 
     }
     async function fetchPage(page) {
@@ -78,6 +79,8 @@
                 confirmed=true;
                 if (page===1 && Number.isSafeInteger(result.expectedTotal))
                     expectedTotal=result.expectedTotal;
+                if (page===1 && result.ids.length===0 && !result.explicitEmpty)
+                    throw new Error("Steam returned no verifiable subscribed items; previous marks were preserved.");
                 let newCount=0;
                 for (const id of result.ids) {
                     if (!found.has(id)) {found.add(id);newCount++;}
