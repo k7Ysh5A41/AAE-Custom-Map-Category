@@ -7,6 +7,14 @@
 window.AAE_I18N = {
   "ui": {
     "en": {
+      "subscriptionHelp": "Install the optional browser extension once. When signed in to Steam Community in this browser, your BO3 Workshop subscriptions will be detected automatically. The import controls below are optional.",
+      "subscriptionAutoMissing": "Automatic sync requires the optional browser extension.",
+      "subscriptionAutoReady": "Steam sync extension detected.",
+      "subscriptionAutoSyncing": "Checking your Steam Community subscriptions…",
+      "subscriptionAutoSynced": "Steam subscriptions synced automatically: {count} items.",
+      "subscriptionAutoError": "Unable to sync Steam subscriptions: {detail}",
+      "subscriptionExtensionLink": "INSTALL AUTOMATIC STEAM SYNC ↗",
+      "subscriptionManualFallback": "Optional manual import (no extension):",
       "subscriptionButton": "SUBSCRIPTIONS",
       "subscriptionTitle": "STEAM SUBSCRIPTIONS",
       "subscriptionClose": "Close subscriptions",
@@ -153,6 +161,14 @@ window.AAE_I18N = {
       "githubGuideTrouble": "If no PR appears, check the Issue comments and the repository’s Actions tab for validation errors or permission problems (for example HTTP 403). Correct the underlying issue or contact the maintainer; avoid creating duplicate Issues."
     },
     "zh-CN": {
+      "subscriptionHelp": "只需安装一次浏览器扩展，并在同一个浏览器登录 Steam Community。之后网页会自动获取《黑色行动3》创意工坊订阅并显示 ✓。以下手动导入功能仅作备用。",
+      "subscriptionAutoMissing": "自动同步需要安装可选的浏览器扩展。",
+      "subscriptionAutoReady": "已检测到 Steam 自动同步扩展。",
+      "subscriptionAutoSyncing": "正在检测 Steam Community 订阅…",
+      "subscriptionAutoSynced": "Steam 订阅自动同步完成：{count} 项。",
+      "subscriptionAutoError": "Steam 订阅同步失败：{detail}",
+      "subscriptionExtensionLink": "安装自动 Steam 订阅同步扩展 ↗",
+      "subscriptionManualFallback": "手动导入备用方式（无需扩展）：",
       "subscriptionButton": "Steam 订阅",
       "subscriptionTitle": "STEAM 已订阅地图",
       "subscriptionClose": "关闭订阅列表",
@@ -299,6 +315,14 @@ window.AAE_I18N = {
       "githubGuideTrouble": "如果没有生成 PR，请查看 Issue 评论和仓库“Actions”页面，检查审核错误或权限问题（例如 HTTP 403）。按提示修复或联系维护者，不要重复创建同一请求。"
     },
     "zh-TW": {
+      "subscriptionHelp": "只需安裝一次瀏覽器擴充功能，並在同一瀏覽器登入 Steam Community。之後網頁會自動讀取《黑色行動3》工作坊訂閱並顯示 ✓。以下手動匯入僅作備用。",
+      "subscriptionAutoMissing": "自動同步需要安裝選用的瀏覽器擴充功能。",
+      "subscriptionAutoReady": "已偵測到 Steam 自動同步擴充功能。",
+      "subscriptionAutoSyncing": "正在檢查 Steam Community 訂閱…",
+      "subscriptionAutoSynced": "Steam 訂閱自動同步完成：{count} 項。",
+      "subscriptionAutoError": "Steam 訂閱同步失敗：{detail}",
+      "subscriptionExtensionLink": "安裝自動 Steam 訂閱同步擴充功能 ↗",
+      "subscriptionManualFallback": "手動匯入備用方案（不需要擴充功能）：",
       "subscriptionButton": "Steam 訂閱",
       "subscriptionTitle": "STEAM 已訂閱地圖",
       "subscriptionClose": "關閉訂閱列表",
@@ -445,6 +469,10 @@ window.AAE_I18N = {
       "githubGuideTrouble": "若未產生 PR，請查看 Issue 評論和「Actions」頁面是否有驗證錯誤或權限問題（如 HTTP 403）。依照提示處理或聯絡維護者，勿重複建立同一申請。"
     },
     "fr": {
+      "subscriptionAutoMissing": "La synchronisation automatique nécessite l’extension facultative.",
+      "subscriptionAutoSyncing": "Vérification des abonnements Steam…",
+      "subscriptionAutoSynced": "Abonnements Steam synchronisés : {count}.",
+      "subscriptionExtensionLink": "INSTALLER LA SYNCHRONISATION STEAM ↗",
       "subscriptionButton": "ABONNEMENTS",
       "subscriptionTitle": "ABONNEMENTS STEAM",
       "subscriptionClose": "Fermer",
@@ -583,6 +611,10 @@ window.AAE_I18N = {
       "githubGuideTrouble": "Si aucune PR n'apparaît, consultez les commentaires et l'onglet Actions pour identifier une erreur ou un problème d'autorisations (ex. HTTP 403). Contactez le mainteneur sans créer de doublon."
     },
     "de": {
+      "subscriptionAutoMissing": "Für die automatische Synchronisierung ist die Browsererweiterung erforderlich.",
+      "subscriptionAutoSyncing": "Steam-Abonnements werden geprüft…",
+      "subscriptionAutoSynced": "Steam-Abonnements synchronisiert: {count}.",
+      "subscriptionExtensionLink": "AUTOMATISCHE STEAM-SYNCHRONISIERUNG INSTALLIEREN ↗",
       "subscriptionButton": "ABONNEMENTS",
       "subscriptionTitle": "STEAM-ABONNEMENTS",
       "subscriptionClose": "Schließen",
@@ -721,6 +753,10 @@ window.AAE_I18N = {
       "githubGuideTrouble": "Falls kein PR erscheint, prüfe Issue-Kommentare und den Bereich Actions auf Fehler oder Berechtigungsprobleme (z. B. HTTP 403). Kontaktiere den Maintainer, statt doppelt einzureichen."
     },
     "it": {
+      "subscriptionAutoMissing": "La sincronizzazione automatica richiede l'estensione del browser.",
+      "subscriptionAutoSyncing": "Controllo delle iscrizioni Steam…",
+      "subscriptionAutoSynced": "Iscrizioni Steam sincronizzate: {count}.",
+      "subscriptionExtensionLink": "INSTALLA SINCRONIZZAZIONE STEAM ↗",
       "subscriptionButton": "ISCRIZIONI",
       "subscriptionTitle": "ISCRIZIONI STEAM",
       "subscriptionClose": "Chiudi",
@@ -859,6 +895,13 @@ window.AAE_I18N = {
       "githubGuideTrouble": "Se non compare una PR, consulta commenti e Actions per errori o problemi di autorizzazione (ad es. HTTP 403). Contatta il manutentore, senza inviare duplicati."
     },
     "ja": {
+      "subscriptionAutoMissing": "自動同期にはブラウザー拡張機能が必要です。",
+      "subscriptionAutoReady": "Steam 同期拡張機能を検出しました。",
+      "subscriptionAutoSyncing": "Steam Community の登録アイテムを確認しています…",
+      "subscriptionAutoSynced": "Steam 登録アイテムを同期しました：{count} 件。",
+      "subscriptionAutoError": "Steam 同期エラー：{detail}",
+      "subscriptionExtensionLink": "STEAM 自動同期拡張機能をインストール ↗",
+      "subscriptionManualFallback": "手動インポート（拡張機能不要）：",
       "subscriptionButton": "Steam 登録",
       "subscriptionTitle": "STEAM サブスクリプション",
       "subscriptionClose": "閉じる",
@@ -997,6 +1040,10 @@ window.AAE_I18N = {
       "githubGuideTrouble": "PR が作成されない場合は Issue のコメントと Actions を確認してください。検証失敗や HTTP 403 などの権限問題があれば管理者に連絡してください。重複投稿は避けてください。"
     },
     "pl": {
+      "subscriptionAutoMissing": "Automatyczna synchronizacja wymaga rozszerzenia przeglądarki.",
+      "subscriptionAutoSyncing": "Sprawdzanie subskrypcji Steam…",
+      "subscriptionAutoSynced": "Zsynchronizowano subskrypcje Steam: {count}.",
+      "subscriptionExtensionLink": "ZAINSTALUJ AUTOMATYCZNĄ SYNCHRONIZACJĘ STEAM ↗",
       "subscriptionButton": "SUBSKRYPCJE",
       "subscriptionTitle": "SUBSKRYPCJE STEAM",
       "subscriptionClose": "Zamknij",
@@ -1135,6 +1182,10 @@ window.AAE_I18N = {
       "githubGuideTrouble": "Gdy nie pojawi się PR, sprawdź komentarze i zakładkę Actions pod kątem błędów lub uprawnień (np. HTTP 403). Skontaktuj się z opiekunem i nie twórz duplikatów."
     },
     "pt": {
+      "subscriptionAutoMissing": "A sincronização automática requer a extensão do navegador.",
+      "subscriptionAutoSyncing": "Verificando inscrições Steam…",
+      "subscriptionAutoSynced": "Inscrições Steam sincronizadas: {count}.",
+      "subscriptionExtensionLink": "INSTALAR SINCRONIZAÇÃO STEAM ↗",
       "subscriptionButton": "INSCRIÇÕES",
       "subscriptionTitle": "INSCRIÇÕES STEAM",
       "subscriptionClose": "Fechar",
@@ -1273,6 +1324,10 @@ window.AAE_I18N = {
       "githubGuideTrouble": "Se não houver PR, verifique os comentários e a aba Actions para erros ou permissões (como HTTP 403). Contate o responsável e evite enviar duplicatas."
     },
     "ru": {
+      "subscriptionAutoMissing": "Для автоматической синхронизации требуется расширение браузера.",
+      "subscriptionAutoSyncing": "Проверка подписок Steam…",
+      "subscriptionAutoSynced": "Подписки Steam синхронизированы: {count}.",
+      "subscriptionExtensionLink": "УСТАНОВИТЬ АВТОСИНХРОНИЗАЦИЮ STEAM ↗",
       "subscriptionButton": "ПОДПИСКИ",
       "subscriptionTitle": "ПОДПИСКИ STEAM",
       "subscriptionClose": "Закрыть",
@@ -1411,6 +1466,10 @@ window.AAE_I18N = {
       "githubGuideTrouble": "Если PR не появился, проверьте комментарии Issue и вкладку Actions на ошибки или проблемы прав (например HTTP 403). Свяжитесь с владельцем и не создавайте дубликаты."
     },
     "es": {
+      "subscriptionAutoMissing": "La sincronización automática requiere la extensión del navegador.",
+      "subscriptionAutoSyncing": "Comprobando suscripciones de Steam…",
+      "subscriptionAutoSynced": "Suscripciones de Steam sincronizadas: {count}.",
+      "subscriptionExtensionLink": "INSTALAR SINCRONIZACIÓN STEAM ↗",
       "subscriptionButton": "SUSCRIPCIONES",
       "subscriptionTitle": "SUSCRIPCIONES DE STEAM",
       "subscriptionClose": "Cerrar",
