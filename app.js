@@ -1041,7 +1041,7 @@ function runModalMotion(overlay,opening,onComplete=()=>{}){
     front.style.color=source.color;
     label.textContent=source.label;
     label.style.font=source.font;
-    const duration=opening?660:555;
+    const duration=opening?560:290;
     overlay.dataset.motion=opening?"enter":"exit";
     stage.inert=true;
     if(source.trigger?.isConnected)source.trigger.classList.add("modal-origin-occupied");
