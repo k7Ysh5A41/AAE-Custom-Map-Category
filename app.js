@@ -2,7 +2,6 @@
 
 const DATA_URL = "./custommap_cate.json";
 const STEAM_URL = "./steam_workshop.json";
-const AAE_LITE_WORKSHOP_URL = "https://steamcommunity.com/workshop/filedetails/?id=2994481309";
 const PENDING_URL = "./pending_pr_maps.json";
 const RECENT_URL = "./recent_maps.json";
 const RECENT_CATEGORY = "recently-updated";
@@ -669,9 +668,6 @@ function renderPreview() {
         '">' + escapeHtml(t("copyId")) + '</button><a href="' + url +
         '" target="_blank" rel="noopener noreferrer">' + escapeHtml(t("openWorkshop")) +
         '</a>' +
-        (map.liteOnly ? '<a class="open-aae-lite" href="' + AAE_LITE_WORKSHOP_URL +
-            '" target="_blank" rel="noopener noreferrer">' +
-            escapeHtml(t("openAaeLite")) + '</a>' : '') +
         (map.pending ? '<a class="view-pr" target="_blank" rel="noopener noreferrer" href="' +
            escapeHtml(map.pending.url) + '">' + escapeHtml(t("viewPR")) + ' #' +
            map.pending.number + ' ↗</a>' : '') + '</div>';
