@@ -1295,23 +1295,17 @@ function runModalMotion(overlay,opening,onComplete=()=>{}){
     overlay.dataset.motion=opening?"enter":"exit";
     stage.inert=true;
 
-    // Pronounced accelerate-to-brake motion on ONE continuous stage.
-    // The opening/closing form has an 8x speed contrast: starts gently,
-    // peaks at 60% elapsed, then slows continuously to a complete stop.
-    // At 60% it has covered 60% of the total distance, leaving a real
-    // 40% of rotation, translation and enlargement to taper over 120 ms.
-    // Position and first derivative are continuous at the 60% join.
+    // Continuous ease-out from the FIRST frame: highest initial speed,
+    // then progressively slower until a true zero-velocity stop.
+    // Translation, Y rotation and both scale axes share this ONE curve.
+    // Closing applies the same easing in its own direction instead of
+    // reversing elapsed time, so it also slows from its first frame.
     const motionProgress=t=>{
         const value=Math.min(1,Math.max(0,t));
         if(overlay.id==="githubGuideOverlay"){
             return value*value*value*(value*(value*6-15)+10);
         }
-        if(value<=.60){
-            const u=value/.60;
-            return .18*u+.42*u*u*u;
-        }
-        const u=(value-.60)/.40;
-        return .60+.40*(1-Math.pow(1-u,2.4));
+        return 1-Math.pow(1-value,3);
     };
     const frame=(t,expanding)=>{
         // Closing must use its OWN eased travel, not reversed timestamps.

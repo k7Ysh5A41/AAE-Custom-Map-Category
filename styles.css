@@ -4546,59 +4546,58 @@ html.aae-scroll-enhanced #catalog::-webkit-scrollbar{
 }
 
 
-/* Highly legible 300ms submission motion: quick midflight, strong braking
-   from the 60% mark through the last 120ms. Keep the flat backdrop
-   synchronized with the same physical stage progress and direction. */
+/* Immediate, continuously decelerating cubic ease-out on the SAME
+   300ms timeline as the 3D stage. No delayed 60% braking handoff. */
 .submit-overlay:not(.github-help-overlay)[data-motion="enter"]::before{
-  animation:aaeModalLateBrakeBackdropIn 300ms linear both!important;
+  animation:aaeModalEaseOutBackdropIn 300ms linear both!important;
 }
 .submit-overlay:not(.github-help-overlay)[data-motion="exit"]::before{
-  animation:aaeModalLateBrakeBackdropOut 300ms linear both!important;
+  animation:aaeModalEaseOutBackdropOut 300ms linear both!important;
 }
-@keyframes aaeModalLateBrakeBackdropIn{
+@keyframes aaeModalEaseOutBackdropIn{
   0%{opacity:0.000000;}
-  5%{opacity:0.015243;}
-  10%{opacity:0.031944;}
-  15%{opacity:0.051562;}
-  20%{opacity:0.075556;}
-  25%{opacity:0.105382;}
-  30%{opacity:0.142500;}
-  35%{opacity:0.188368;}
-  40%{opacity:0.244444;}
-  45%{opacity:0.312188;}
-  50%{opacity:0.393056;}
-  55%{opacity:0.488507;}
-  60%{opacity:0.600000;}
-  65%{opacity:0.709678;}
-  70%{opacity:0.799457;}
-  75%{opacity:0.870529;}
-  80%{opacity:0.924214;}
-  85%{opacity:0.962004;}
-  90%{opacity:0.985641;}
-  95%{opacity:0.997280;}
+  5%{opacity:0.142625;}
+  10%{opacity:0.271000;}
+  15%{opacity:0.385875;}
+  20%{opacity:0.488000;}
+  25%{opacity:0.578125;}
+  30%{opacity:0.657000;}
+  35%{opacity:0.725375;}
+  40%{opacity:0.784000;}
+  45%{opacity:0.833625;}
+  50%{opacity:0.875000;}
+  55%{opacity:0.908875;}
+  60%{opacity:0.936000;}
+  65%{opacity:0.957125;}
+  70%{opacity:0.973000;}
+  75%{opacity:0.984375;}
+  80%{opacity:0.992000;}
+  85%{opacity:0.996625;}
+  90%{opacity:0.999000;}
+  95%{opacity:0.999875;}
   100%{opacity:1.000000;}
 }
-@keyframes aaeModalLateBrakeBackdropOut{
+@keyframes aaeModalEaseOutBackdropOut{
   0%{opacity:1.000000;}
-  5%{opacity:0.984757;}
-  10%{opacity:0.968056;}
-  15%{opacity:0.948438;}
-  20%{opacity:0.924444;}
-  25%{opacity:0.894618;}
-  30%{opacity:0.857500;}
-  35%{opacity:0.811632;}
-  40%{opacity:0.755556;}
-  45%{opacity:0.687812;}
-  50%{opacity:0.606944;}
-  55%{opacity:0.511493;}
-  60%{opacity:0.400000;}
-  65%{opacity:0.290322;}
-  70%{opacity:0.200543;}
-  75%{opacity:0.129471;}
-  80%{opacity:0.075786;}
-  85%{opacity:0.037996;}
-  90%{opacity:0.014359;}
-  95%{opacity:0.002720;}
+  5%{opacity:0.857375;}
+  10%{opacity:0.729000;}
+  15%{opacity:0.614125;}
+  20%{opacity:0.512000;}
+  25%{opacity:0.421875;}
+  30%{opacity:0.343000;}
+  35%{opacity:0.274625;}
+  40%{opacity:0.216000;}
+  45%{opacity:0.166375;}
+  50%{opacity:0.125000;}
+  55%{opacity:0.091125;}
+  60%{opacity:0.064000;}
+  65%{opacity:0.042875;}
+  70%{opacity:0.027000;}
+  75%{opacity:0.015625;}
+  80%{opacity:0.008000;}
+  85%{opacity:0.003375;}
+  90%{opacity:0.001000;}
+  95%{opacity:0.000125;}
   100%{opacity:0.000000;}
 }
 @media(prefers-reduced-motion:reduce){
