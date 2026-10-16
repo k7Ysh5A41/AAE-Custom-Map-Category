@@ -4642,14 +4642,37 @@ html.aae-scroll-enhanced #catalog::-webkit-scrollbar{
   box-shadow:inset 0 1px rgba(255,219,155,.10),0 0 8px rgba(255,95,33,.06);
   transition:border-color .19s ease,box-shadow .23s ease,transform .22s ease,color .18s ease;
 }
-.category-choice-glyph{
-  display:grid;place-items:center;
-  flex:0 0 37px;width:37px;height:37px;
+.category-choice-trigger > .category-choice-glyph{
+  position:relative;
+  box-sizing:border-box;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 37px;
+  width:37px;
+  height:37px;
+  min-width:37px;
+  min-height:37px;
+  padding:0;
+  margin:0;
+  overflow:hidden;
   border:1px solid rgba(255,192,127,.45);
-  font-size:22px;
   color:#ffbf80;
   background:rgba(255,131,53,.10);
-  transition:transform .3s ease;
+  font-size:0;
+  line-height:0;
+  transform:none;
+}
+.category-choice-trigger > .category-choice-glyph > svg{
+  position:static;
+  display:block;
+  flex:0 0 22px;
+  width:22px;
+  height:22px;
+  margin:0;
+  padding:0;
+  transform:none;
+  transition:transform .23s ease,color .2s ease;
 }
 .category-choice-trigger .category-picker-value{
   flex:1;min-width:0;
@@ -4672,7 +4695,10 @@ html.aae-scroll-enhanced #catalog::-webkit-scrollbar{
   transform:translateY(-2px);
   box-shadow:inset 0 0 15px rgba(245,118,48,.13),0 0 17px rgba(244,120,54,.27);
 }
-.category-choice-trigger:hover .category-choice-glyph{transform:rotate(-12deg) scale(1.09);}
+.category-choice-trigger:hover .category-choice-glyph > svg,
+.category-choice-trigger:focus-visible .category-choice-glyph > svg{
+  transform:scale(1.12);
+}
 .category-choice-trigger:hover .category-choice-chevron{transform:translate3d(3px,-3px,0);}
 .category-picker-overlay{
   position:fixed;
@@ -5068,4 +5094,29 @@ html.aae-scroll-enhanced #catalog::-webkit-scrollbar{
     transition:none!important;
   }
   .submit-overlay.guide-flipping > .modal-flip-stage{will-change:auto;}
+}
+
+/* Keep the classification trigger in one aligned row even while the
+   parent form transitions. The icon is vector art, never a font glyph. */
+.submit-dialog .category-choice-trigger{
+  position:relative;
+  flex-flow:row nowrap;
+  align-items:center;
+  justify-content:flex-start;
+  min-width:0;
+  overflow:hidden;
+}
+.submit-dialog .category-choice-trigger > .category-picker-value{
+  display:block;
+  flex:1 1 auto;
+  min-width:0;
+  max-width:100%;
+  white-space:normal;
+  transform:none;
+}
+.submit-dialog .category-choice-trigger > .category-choice-chevron{
+  margin-left:auto;
+}
+.category-picker-panel:not([hidden]){
+  backface-visibility:visible;
 }

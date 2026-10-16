@@ -1086,6 +1086,13 @@ function openCategoryPicker(selectId){
     mainDialog.setAttribute("aria-hidden","true");
     categoryPickerClosing=false;
     overlay.classList.remove("is-leaving");
+    // Defensive cleanup when reopening after an interrupted WAAPI transition.
+    const previous=categoryPickerExit;
+    categoryPickerExit=null;
+    if(previous)previous.cancel();
+    const panel=$("categoryPickerPanel");
+    panel.style.opacity="";
+    panel.style.transform="";
     renderCategoryPicker();
     overlay.hidden=false;
     const selected=$("categoryPickerGrid").querySelector(".is-selected");
@@ -1093,17 +1100,31 @@ function openCategoryPicker(selectId){
 }
 function closeCategoryPicker(instant=false){
     const overlay=$("categoryPickerOverlay");
-    if(overlay.hidden||categoryPickerClosing)return;
+    if(overlay.hidden)return;
+    if(categoryPickerClosing){
+        if(!instant)return;
+        // An immediate parent close must not be delayed by the exit animation.
+        const active=categoryPickerExit;
+        categoryPickerExit=null;
+        if(active)active.cancel();
+    }
     categoryPickerClosing=true;
     const savedSource=categoryPickerSource;
     const savedTrigger=categoryPickerTrigger;
+    const panel=$("categoryPickerPanel");
     const finish=()=>{
+        const running=categoryPickerExit;
+        categoryPickerExit=null;
+        // WAAPI fill:"both" persists after finished unless cancelled.
+        // Cancel BEFORE the next opening so an invisible panel cannot survive.
+        if(running)running.cancel();
         overlay.hidden=true;
         overlay.classList.remove("is-leaving");
+        panel.style.opacity="";
+        panel.style.transform="";
         categoryPickerSource=null;
         categoryPickerTrigger=null;
         categoryPickerClosing=false;
-        categoryPickerExit=null;
         const parent=$(savedSource==="submitCategory"?"submitMapOverlay":"changeMapOverlay");
         const form=parent.querySelector(".submit-dialog");
         form.inert=false;
@@ -1111,16 +1132,19 @@ function closeCategoryPicker(instant=false){
         if(!parent.hidden&&savedTrigger?.isConnected)
             savedTrigger.focus({preventScroll:true});
     };
-    if(categoryPickerExit){categoryPickerExit.cancel();categoryPickerExit=null;}
     if(instant||window.matchMedia("(prefers-reduced-motion: reduce)").matches||
-       typeof overlay.animate!=="function"){finish();return;}
+       typeof panel.animate!=="function"){finish();return;}
     overlay.classList.add("is-leaving");
-    const panel=$("categoryPickerPanel");
-    categoryPickerExit=panel.animate([
+    const animation=panel.animate([
         {opacity:1,transform:"translateY(0) scale(1)"},
         {opacity:0,transform:"translateY(13px) scale(.975)"}
     ],{duration:210,easing:"cubic-bezier(.5,0,1,.55)",fill:"both"});
-    categoryPickerExit.finished.then(finish,finish);
+    categoryPickerExit=animation;
+    // Ignore rejected/cancelled old promises. Never reset a newer picker.
+    animation.finished.then(()=>{
+        if(categoryPickerExit!==animation)return;
+        finish();
+    },()=>{});
 }
 function bindCategoryPicker(){
     $("categoryPickerSubmit").addEventListener("click",()=>openCategoryPicker("submitCategory"));
