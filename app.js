@@ -1295,26 +1295,42 @@ function runModalMotion(overlay,opening,onComplete=()=>{}){
     overlay.dataset.motion=opening?"enter":"exit";
     stage.inert=true;
 
-    // Rotation, position and BOTH size axes use this ONE progress curve.
-    // None can reach the finished state before any of the others.
-    // Stronger quintic ease-in-out: one shared progress value controls
-    // translation, X/Y expansion and the entire 180-degree rotation.
-    // Opening and closing use the same curve, reversed in time.
-    const smooth=t=>t*t*t*(t*(t*6-15)+10);
-    const frame=t=>{
-        const progress=smooth(t);
+    // The two submission dialogs accelerate briefly, travel quickly,
+    // then progressively decelerate for the LAST 40% of EACH direction.
+    // Integrating the velocity curve keeps the entire transform C1
+    // continuous at 14% and 60%, with zero velocity at both endpoints.
+    const motionProgress=t=>{
+        const value=Math.min(1,Math.max(0,t));
+        if(overlay.id==="githubGuideOverlay"){
+            return value*value*value*(value*(value*6-15)+10);
+        }
+        const rampEnd=.14,slowdownStart=.60,tailLength=.40;
+        const fastDistance=rampEnd*.5+(slowdownStart-rampEnd);
+        const fullDistance=fastDistance+tailLength*.5;
+        if(value<=rampEnd){
+            const u=value/rampEnd;
+            return rampEnd*(u*u*u-.5*u*u*u*u)/fullDistance;
+        }
+        if(value<=slowdownStart){
+            return (rampEnd*.5+value-rampEnd)/fullDistance;
+        }
+        const u=(value-slowdownStart)/tailLength;
+        return (fastDistance+tailLength*(u-u*u*u+.5*u*u*u*u))/fullDistance;
+    };
+    const frame=(t,expanding)=>{
+        // Closing must use its OWN eased travel, not reversed timestamps.
+        // All four properties share the same geometric progress.
+        const traveled=motionProgress(t);
+        const progress=expanding?traveled:1-traveled;
         const remaining=1-progress;
         return {
             offset:t,
             transform:`translate3d(${dx*remaining}px,${dy*remaining}px,0) rotateY(${180*remaining}deg) scale(${sx+(1-sx)*progress},${sy+(1-sy)*progress})`
         };
     };
-    const frames=Array.from({length:49},(_,i)=>frame(i/48));
-    const atButton=frames[0].transform;
-    const atWindow=frames[frames.length-1].transform;
-    const animationFrames=opening?frames:frames.slice().reverse().map(
-        (item,i)=>({offset:i/48,transform:item.transform})
-    );
+    const atButton=frame(0,true).transform;
+    const atWindow=frame(1,true).transform;
+    const animationFrames=Array.from({length:49},(_,i)=>frame(i/48,opening));
 
     // Apply the first pose synchronously before the overlay is painted.
     stage.style.transform=opening?atButton:atWindow;

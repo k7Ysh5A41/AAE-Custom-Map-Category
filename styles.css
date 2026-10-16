@@ -4544,3 +4544,44 @@ html.aae-scroll-enhanced #catalog::-webkit-scrollbar{
   animation-duration:210ms!important;
   animation-timing-function:cubic-bezier(.65,0,.35,1)!important;
 }
+
+
+/* The two submission forms now use an independent 60%-to-100% velocity
+   taper in BOTH directions. The backdrop follows the same progress
+   without introducing blur or a second transform animation. */
+.submit-overlay:not(.github-help-overlay)[data-motion="enter"]::before{
+  animation:aaeModalLateBrakeBackdropIn 210ms linear both!important;
+}
+.submit-overlay:not(.github-help-overlay)[data-motion="exit"]::before{
+  animation:aaeModalLateBrakeBackdropOut 210ms linear both!important;
+}
+@keyframes aaeModalLateBrakeBackdropIn{
+  0%{opacity:0.000000;}
+  7%{opacity:0.017979;}
+  14%{opacity:0.095890;}
+  30%{opacity:0.315068;}
+  45%{opacity:0.520548;}
+  60%{opacity:0.726027;}
+  70%{opacity:0.855522;}
+  80%{opacity:0.948630;}
+  90%{opacity:0.992509;}
+  100%{opacity:1.000000;}
+}
+@keyframes aaeModalLateBrakeBackdropOut{
+  0%{opacity:1.000000;}
+  7%{opacity:0.982021;}
+  14%{opacity:0.904110;}
+  30%{opacity:0.684932;}
+  45%{opacity:0.479452;}
+  60%{opacity:0.273973;}
+  70%{opacity:0.144478;}
+  80%{opacity:0.051370;}
+  90%{opacity:0.007491;}
+  100%{opacity:0.000000;}
+}
+@media(prefers-reduced-motion:reduce){
+  .submit-overlay:not(.github-help-overlay)[data-motion="enter"]::before,
+  .submit-overlay:not(.github-help-overlay)[data-motion="exit"]::before{
+    animation:none!important;
+  }
+}
