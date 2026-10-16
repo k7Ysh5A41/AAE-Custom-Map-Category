@@ -1114,21 +1114,21 @@ function runModalMotion(overlay,opening,onComplete=()=>{}){
         return;
     }
 
-    // Opening overlays are laid out while INVISIBLE, so no first-frame
-    // flash of an untransformed, centered full-size dialog is possible.
+    // Opening is measured without becoming visible. The first rendered
+    // frame has the exact button position and outer dimensions.
     stage.style.transform="";
-    const rect=stage.getBoundingClientRect();
-    const origin=source.rect;
-    const dx=origin.left+origin.width/2-(rect.left+rect.width/2);
-    const dy=origin.top+origin.height/2-(rect.top+rect.height/2);
-    const sx=origin.width/Math.max(1,rect.width);
-    const sy=origin.height/Math.max(1,rect.height);
-    const buttonTransform=`translate3d(${dx}px,${dy}px,0) rotateY(180deg) scale(${sx},${sy})`;
-    const expandedTransform="translate3d(0px,0px,0px) rotateY(0deg) scale(1,1)";
+    const dialogRect=stage.getBoundingClientRect();
+    const buttonRect=source.rect;
+    const dx=buttonRect.left+buttonRect.width/2-
+        (dialogRect.left+dialogRect.width/2);
+    const dy=buttonRect.top+buttonRect.height/2-
+        (dialogRect.top+dialogRect.height/2);
+    const sx=buttonRect.width/Math.max(1,dialogRect.width);
+    const sy=buttonRect.height/Math.max(1,dialogRect.height);
 
-    // Both faces share the exact same geometry: no independent resize or
-    // turn of the front face. The front is the source button; the back is
-    // the real interactive form, already laid out at its final size.
+    // One real 3D card: its front has the trigger's visual treatment,
+    // its reverse is the existing interactive form. The duplicated text
+    // was responsible for a large centered caption on the first frame.
     front.style.transform="rotateY(180deg) translateZ(1px)";
     front.style.background=source.background;
     front.style.color=source.color;
@@ -1136,77 +1136,47 @@ function runModalMotion(overlay,opening,onComplete=()=>{}){
     front.style.borderLeft=source.borderLeft;
     front.style.boxShadow=source.shadow;
     label.replaceChildren();
-    if(source.trigger?.isConnected){
-        for(const child of source.trigger.childNodes)
-            label.appendChild(child.cloneNode(true));
-    }else{
-        label.textContent=source.label;
-    }
-    label.style.font=source.font;
-    // Correct the initial button text proportions for the first 55ms.
-    // Content is gone before the panel's nonuniform starting aspect grows.
-    label.style.transform=`scale(${1/Math.max(.025,sx)},${1/Math.max(.025,sy)})`;
+    label.style.opacity="0";
+    label.style.transform="none";
 
     const duration=opening?560:290;
-    const fastButton=overlay.id==="submitMapOverlay"||
-        overlay.id==="changeMapOverlay";
     overlay.dataset.motion=opening?"enter":"exit";
     stage.inert=true;
 
-    // A single, uninterrupted FLIP and a single monotonic GROW are applied
-    // to the whole stage. At the 90-degree face crossover (progress .5)
-    // width and height are already 100%, so text on the back is never
-    // drawn with nonuniform scaling.
-    const smoother=t=>{
-        const v=Math.min(1,Math.max(0,t));
-        return v*v*v*(v*(v*6-15)+10);
+    // Rotation, position and BOTH size axes use this ONE progress curve.
+    // None can reach the finished state before any of the others.
+    const smooth=t=>t*t*(3-2*t);
+    const frame=t=>{
+        const progress=smooth(t);
+        const remaining=1-progress;
+        return {
+            offset:t,
+            transform:`translate3d(${dx*remaining}px,${dy*remaining}px,0) rotateY(${180*remaining}deg) scale(${sx+(1-sx)*progress},${sy+(1-sy)*progress})`
+        };
     };
-    const ease=t=>t*t*(3-2*t);
-    const buildFrame=t=>{
-        const turn=ease(t);
-        const expand=smoother(turn/.485);
-        const widthScale=sx+(1-sx)*expand;
-        const heightScale=sy+(1-sy)*expand;
-        const angle=180*(1-turn);
-        const left=dx*(1-expand),top=dy*(1-expand);
-        return {offset:t,transform:`translate3d(${left}px,${top}px,0) rotateY(${angle}deg) scale(${widthScale},${heightScale})`};
-    };
-    // Sampling the SAME transform over the duration avoids the two-part
-    // keyframe easing discontinuity that previously resembled two windows.
-    const frames=Array.from({length:49},(_,i)=>buildFrame(i/48));
-    const runningFrames=opening?frames:
-        frames.map((_,i)=>{
-            const sourceFrame=frames[48-i];
-            return {offset:i/48,transform:sourceFrame.transform};
-        });
-    // Match the button position before letting the browser paint the overlay.
-    stage.style.transform=opening?buttonTransform:expandedTransform;
-    const stageAnimation=stage.animate(runningFrames,{
+    const frames=Array.from({length:49},(_,i)=>frame(i/48));
+    const atButton=frames[0].transform;
+    const atWindow=frames[frames.length-1].transform;
+    const animationFrames=opening?frames:frames.slice().reverse().map(
+        (item,i)=>({offset:i/48,transform:item.transform})
+    );
+
+    // Apply the first pose synchronously before the overlay is painted.
+    stage.style.transform=opening?atButton:atWindow;
+    const stageAnimation=stage.animate(animationFrames,{
         duration,fill:"both",easing:"linear"
     });
-    const labelAnimation=label.animate(opening?[
-        {opacity:1,offset:0},
-        {opacity:1,offset:fastButton?.006:.04},
-        {opacity:0,offset:fastButton?.105:.18},
-        {opacity:0,offset:1}
-    ]:[
-        {opacity:0,offset:0},
-        {opacity:0,offset:fastButton?.77:.7},
-        {opacity:1,offset:.96},
-        {opacity:1,offset:1}
-    ],{duration,fill:"both",easing:"linear"});
-    modalMotions.set(overlay,[stageAnimation,labelAnimation]);
-    if(source.trigger?.isConnected)source.trigger.classList.add("modal-origin-occupied");
+    modalMotions.set(overlay,[stageAnimation]);
+    if(source.trigger?.isConnected)
+        source.trigger.classList.add("modal-origin-occupied");
     overlay.style.visibility="";
 
     stageAnimation.finished.then(()=>{
         if(modalMotions.get(overlay)?.[0]!==stageAnimation)return;
         if(!opening)overlay.style.visibility="hidden";
-        // Put the final geometry in normal CSS before removing WAAPI fill.
-        stage.style.transform=opening?expandedTransform:buttonTransform;
+        stage.style.transform=opening?atWindow:atButton;
         stopModalMotion(overlay);
         stage.style.transform="";
-        label.style.transform="";
         if(!opening)releaseModalOrigin(overlay);
         onComplete();
         if(!opening)overlay.style.visibility="";

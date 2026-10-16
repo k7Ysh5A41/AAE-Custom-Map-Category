@@ -4312,3 +4312,25 @@ html,body {
   transform-style:preserve-3d;
   transform-origin:50% 50%;
 }
+
+
+/* One transform timeline owns translation, growth and rotation. The old
+   cloned button caption is permanently hidden: this prevents the first
+   frame from re-centering the original button's text in the dialog box. */
+.submit-overlay .modal-flip-front-label{
+  display:none!important;
+}
+.submit-overlay .modal-flip-front{
+  transform:rotateY(180deg) translateZ(1px);
+  -webkit-backface-visibility:hidden;
+  backface-visibility:hidden;
+}
+.submit-overlay .modal-flip-stage > .submit-dialog{
+  -webkit-backface-visibility:hidden;
+  backface-visibility:hidden;
+}
+/* The stage itself is the only element that grows or turns. */
+.submit-overlay .modal-flip-stage{
+  transform-style:preserve-3d;
+  transform-origin:50% 50%;
+}
