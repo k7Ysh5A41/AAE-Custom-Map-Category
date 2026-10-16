@@ -5011,12 +5011,17 @@ html.aae-scroll-enhanced #catalog::-webkit-scrollbar{
 .submit-overlay.guide-active .modal-flip-front{display:none!important;}
 .submit-overlay.guide-flipping > .modal-flip-stage > .submit-dialog:not(.github-help-dialog){
   position:absolute;
-  left:0;
+  left:50%;
   top:50%;
-  width:100%;
-  max-height:100%;
+  box-sizing:border-box;
+  width:var(--aae-guide-form-width,620px)!important;
+  height:var(--aae-guide-form-height,auto)!important;
+  max-width:none!important;
+  max-height:var(--aae-guide-form-height,none)!important;
   overflow-y:auto;
-  transform:translate3d(0,-50%,1px)!important;
+  transform-origin:50% 50%;
+  transform:translate3d(-50%,-50%,1px)
+    scale3d(var(--aae-guide-counter-x,1),var(--aae-guide-counter-y,1),1)!important;
   backface-visibility:hidden;
   -webkit-backface-visibility:hidden;
   animation:none!important;
@@ -5138,5 +5143,16 @@ html.aae-scroll-enhanced #catalog::-webkit-scrollbar{
 .submit-overlay.guide-flipping > .modal-flip-stage > .github-help-dialog,
 .submit-overlay.guide-flipping > .modal-flip-stage > .submit-dialog:not(.github-help-dialog){
   transform-origin:50% 50%;
+  transition:none!important;
+}
+
+/* At the first guide-flip frame the wide stage is scaled down, but
+   its form face is rendered at the ORIGINAL 620px layout with matching
+   static inverse scale. The two transforms cancel exactly at t=0.
+   At the 90deg crossover both faces have smoothly approached the same
+   wide silhouette. No layout changes occur inside the visible front. */
+.submit-overlay.guide-flipping > .modal-flip-stage > .submit-dialog:not(.github-help-dialog) *,
+.submit-overlay.guide-flipping > .modal-flip-stage > .submit-dialog:not(.github-help-dialog) *::before,
+.submit-overlay.guide-flipping > .modal-flip-stage > .submit-dialog:not(.github-help-dialog) *::after{
   transition:none!important;
 }

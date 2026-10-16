@@ -1874,6 +1874,9 @@ function resetGithubGuide(parent,restoreFocus){
     stage.style.width="";
     stage.style.maxHeight="";
     stage.style.transform="";
+    for(const name of ["--aae-guide-form-width","--aae-guide-form-height",
+        "--aae-guide-counter-x","--aae-guide-counter-y"])
+        stage.style.removeProperty(name);
     delete stage.dataset.formWidth;
     delete stage.dataset.formHeight;
     guide.inert=true;
@@ -1916,10 +1919,21 @@ function flipGithubGuide(parent,opening,finished){
     // Never shrink an already-tall form as soon as the flip begins.
     // Both faces retain a stable maximum height through the crossover.
     const fullHeight=Math.max(formHeight,Math.min(window.innerHeight*.88,900));
-    const startX=opening?Math.min(1,formWidth/wideWidth):1;
-    const endX=opening?1:Math.min(1,formWidth/wideWidth);
-    const startY=opening?Math.min(1,formHeight/fullHeight):1;
-    const endY=opening?1:Math.min(1,formHeight/fullHeight);
+    const narrowX=Math.min(1,formWidth/wideWidth);
+    const narrowY=Math.min(1,formHeight/fullHeight);
+    const startX=opening?narrowX:1;
+    const endX=opening?1:narrowX;
+    const startY=opening?narrowY:1;
+    const endY=opening?1:narrowY;
+    // Preserve the EXACT pre-flip form layout on the entire front face.
+    // The card is pre-sized for the wide guide, but the old form keeps its
+    // original width and font metrics. A static counter-scale compensates
+    // the stage's initial shrink, so the first painted frame is unchanged.
+    // The inverse scales remain fixed: only ONE stage transform is animated.
+    stage.style.setProperty("--aae-guide-form-width",formWidth+"px");
+    stage.style.setProperty("--aae-guide-form-height",formHeight+"px");
+    stage.style.setProperty("--aae-guide-counter-x",String(1/narrowX));
+    stage.style.setProperty("--aae-guide-counter-y",String(1/narrowY));
     const startAngle=opening?0:180;
     const endAngle=opening?180:0;
     const startPose=`rotateY(${startAngle}deg) scale3d(${startX},${startY},1)`;
