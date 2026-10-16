@@ -4546,14 +4546,14 @@ html.aae-scroll-enhanced #catalog::-webkit-scrollbar{
 }
 
 
-/* The 800ms unified form morph retains a full 320ms of visibly slowing
+/* The 300ms unified form morph retains 120ms of visibly slowing
    travel after 60%. The backdrop follows the same normalized easing.
    The larger GitHub guide keeps its separate timing and curve. */
 .submit-overlay:not(.github-help-overlay)[data-motion="enter"]::before{
-  animation:aaeModalLateBrakeBackdropIn 800ms linear both!important;
+  animation:aaeModalLateBrakeBackdropIn 300ms linear both!important;
 }
 .submit-overlay:not(.github-help-overlay)[data-motion="exit"]::before{
-  animation:aaeModalLateBrakeBackdropOut 800ms linear both!important;
+  animation:aaeModalLateBrakeBackdropOut 300ms linear both!important;
 }
 @keyframes aaeModalLateBrakeBackdropIn{
   0%{opacity:0.000000;}

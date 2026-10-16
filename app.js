@@ -1291,7 +1291,7 @@ function runModalMotion(overlay,opening,onComplete=()=>{}){
     label.style.opacity="0";
     label.style.transform="none";
 
-    const duration=overlay.id==="githubGuideOverlay" ? (opening?360:170) : 800;
+    const duration=overlay.id==="githubGuideOverlay" ? (opening?360:170) : 300;
     overlay.dataset.motion=opening?"enter":"exit";
     stage.inert=true;
 
