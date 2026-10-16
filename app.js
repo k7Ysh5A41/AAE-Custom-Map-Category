@@ -1291,31 +1291,26 @@ function runModalMotion(overlay,opening,onComplete=()=>{}){
     label.style.opacity="0";
     label.style.transform="none";
 
-    const duration=overlay.id==="githubGuideOverlay" ? (opening?360:170) : 210;
+    const duration=overlay.id==="githubGuideOverlay" ? (opening?360:170) : 800;
     overlay.dataset.motion=opening?"enter":"exit";
     stage.inert=true;
 
-    // The two submission dialogs accelerate briefly, travel quickly,
-    // then progressively decelerate for the LAST 40% of EACH direction.
-    // Integrating the velocity curve keeps the entire transform C1
-    // continuous at 14% and 60%, with zero velocity at both endpoints.
+    // Shared monotonic motion timeline for one stage transform.
+    // At 60% elapsed, only 65% of the distance has been covered, leaving
+    // 35% of the rotation/scale/position change for the final 320 ms.
+    // A C1-continuous cubic Hermite curve increases velocity up to 60%,
+    // then strictly decreases it to zero at exactly 100%.
     const motionProgress=t=>{
         const value=Math.min(1,Math.max(0,t));
         if(overlay.id==="githubGuideOverlay"){
             return value*value*value*(value*(value*6-15)+10);
         }
-        const rampEnd=.14,slowdownStart=.60,tailLength=.40;
-        const fastDistance=rampEnd*.5+(slowdownStart-rampEnd);
-        const fullDistance=fastDistance+tailLength*.5;
-        if(value<=rampEnd){
-            const u=value/rampEnd;
-            return rampEnd*(u*u*u-.5*u*u*u*u)/fullDistance;
+        if(value<=.60){
+            const u=value/.60;
+            return .96*u*u-.31*u*u*u;
         }
-        if(value<=slowdownStart){
-            return (rampEnd*.5+value-rampEnd)/fullDistance;
-        }
-        const u=(value-slowdownStart)/tailLength;
-        return (fastDistance+tailLength*(u-u*u*u+.5*u*u*u*u))/fullDistance;
+        const u=(value-.60)/.40;
+        return .65+.66*u-.27*u*u-.04*u*u*u;
     };
     const frame=(t,expanding)=>{
         // Closing must use its OWN eased travel, not reversed timestamps.
