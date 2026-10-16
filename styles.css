@@ -5055,7 +5055,7 @@ html.aae-scroll-enhanced #catalog::-webkit-scrollbar{
 .submit-overlay.guide-flipping .github-guide-steps,
 .submit-overlay.guide-active .github-guide-steps{
   display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
+  grid-template-columns:minmax(0,1fr);
   gap:9px;
 }
 .submit-overlay.guide-flipping .github-guide-tile,
@@ -5147,7 +5147,7 @@ html.aae-scroll-enhanced #catalog::-webkit-scrollbar{
   bottom:auto;
 }
 .submit-overlay.guide-active .github-guide-tile,
-.submit-overlay.guide-flipping .github-guide-tile{min-height:116px;}
+.submit-overlay.guide-flipping .github-guide-tile{min-height:96px;}
 .submit-overlay.guide-active .github-guide-tile p,
 .submit-overlay.guide-flipping .github-guide-tile p{font-size:16px;line-height:1.55;}
 .submit-overlay.guide-active .github-guide-intro,
