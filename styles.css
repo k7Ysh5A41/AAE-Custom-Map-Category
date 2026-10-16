@@ -4546,9 +4546,9 @@ html.aae-scroll-enhanced #catalog::-webkit-scrollbar{
 }
 
 
-/* The 300ms unified form morph retains 120ms of visibly slowing
-   travel after 60%. The backdrop follows the same normalized easing.
-   The larger GitHub guide keeps its separate timing and curve. */
+/* Highly legible 300ms submission motion: quick midflight, strong braking
+   from the 60% mark through the last 120ms. Keep the flat backdrop
+   synchronized with the same physical stage progress and direction. */
 .submit-overlay:not(.github-help-overlay)[data-motion="enter"]::before{
   animation:aaeModalLateBrakeBackdropIn 300ms linear both!important;
 }
@@ -4557,48 +4557,48 @@ html.aae-scroll-enhanced #catalog::-webkit-scrollbar{
 }
 @keyframes aaeModalLateBrakeBackdropIn{
   0%{opacity:0.000000;}
-  5%{opacity:0.006487;}
-  10%{opacity:0.025231;}
-  15%{opacity:0.055156;}
-  20%{opacity:0.095185;}
-  25%{opacity:0.144242;}
-  30%{opacity:0.201250;}
-  35%{opacity:0.265133;}
-  40%{opacity:0.334815;}
-  45%{opacity:0.409219;}
-  50%{opacity:0.487269;}
-  55%{opacity:0.567888;}
-  60%{opacity:0.650000;}
-  65%{opacity:0.728203;}
-  70%{opacity:0.797500;}
-  75%{opacity:0.857422;}
-  80%{opacity:0.907500;}
-  85%{opacity:0.947266;}
-  90%{opacity:0.976250;}
-  95%{opacity:0.993984;}
+  5%{opacity:0.015243;}
+  10%{opacity:0.031944;}
+  15%{opacity:0.051562;}
+  20%{opacity:0.075556;}
+  25%{opacity:0.105382;}
+  30%{opacity:0.142500;}
+  35%{opacity:0.188368;}
+  40%{opacity:0.244444;}
+  45%{opacity:0.312188;}
+  50%{opacity:0.393056;}
+  55%{opacity:0.488507;}
+  60%{opacity:0.600000;}
+  65%{opacity:0.709678;}
+  70%{opacity:0.799457;}
+  75%{opacity:0.870529;}
+  80%{opacity:0.924214;}
+  85%{opacity:0.962004;}
+  90%{opacity:0.985641;}
+  95%{opacity:0.997280;}
   100%{opacity:1.000000;}
 }
 @keyframes aaeModalLateBrakeBackdropOut{
   0%{opacity:1.000000;}
-  5%{opacity:0.993513;}
-  10%{opacity:0.974769;}
-  15%{opacity:0.944844;}
-  20%{opacity:0.904815;}
-  25%{opacity:0.855758;}
-  30%{opacity:0.798750;}
-  35%{opacity:0.734867;}
-  40%{opacity:0.665185;}
-  45%{opacity:0.590781;}
-  50%{opacity:0.512731;}
-  55%{opacity:0.432112;}
-  60%{opacity:0.350000;}
-  65%{opacity:0.271797;}
-  70%{opacity:0.202500;}
-  75%{opacity:0.142578;}
-  80%{opacity:0.092500;}
-  85%{opacity:0.052734;}
-  90%{opacity:0.023750;}
-  95%{opacity:0.006016;}
+  5%{opacity:0.984757;}
+  10%{opacity:0.968056;}
+  15%{opacity:0.948438;}
+  20%{opacity:0.924444;}
+  25%{opacity:0.894618;}
+  30%{opacity:0.857500;}
+  35%{opacity:0.811632;}
+  40%{opacity:0.755556;}
+  45%{opacity:0.687812;}
+  50%{opacity:0.606944;}
+  55%{opacity:0.511493;}
+  60%{opacity:0.400000;}
+  65%{opacity:0.290322;}
+  70%{opacity:0.200543;}
+  75%{opacity:0.129471;}
+  80%{opacity:0.075786;}
+  85%{opacity:0.037996;}
+  90%{opacity:0.014359;}
+  95%{opacity:0.002720;}
   100%{opacity:0.000000;}
 }
 @media(prefers-reduced-motion:reduce){
