@@ -877,6 +877,157 @@ function selectCategory(value) {
     render(); // Automatically selects the first map in the new category.
     animateCategoryList(previousScroll);
 }
+
+/* Decorative but fully operable custom scrollbars. The original two list
+   elements still perform native scrolling; these rails only visualize and
+   control scrollTop. Native thumbs remain the fallback if initialization
+   is unsupported. No timers or animations poll the scroll position. */
+function setupAnimatedScrollbars(){
+    const configurations=[
+        {id:"categoryNav",label:"Category list scrollbar",railClass:"aae-rail-category"},
+        {id:"catalog",label:"Map list scrollbar",railClass:"aae-rail-maps"}
+    ];
+    const controls=[];
+    for(const entry of configurations){
+        const list=$(entry.id);
+        const parent=list.parentElement;
+        const rail=document.createElement("div");
+        rail.className="aae-scroll-rail "+entry.railClass;
+        rail.tabIndex=0;
+        rail.setAttribute("role","scrollbar");
+        rail.setAttribute("aria-orientation","vertical");
+        rail.setAttribute("aria-controls",entry.id);
+        rail.setAttribute("aria-label",entry.label);
+        rail.setAttribute("aria-valuemin","0");
+        rail.setAttribute("aria-valuemax","100");
+        rail.setAttribute("aria-valuenow","0");
+        rail.innerHTML=
+            '<span class="aae-rail-channel" aria-hidden="true"></span>'+
+            '<span class="aae-rail-progress" aria-hidden="true"></span>'+
+            '<span class="aae-rail-thumb" aria-hidden="true">'+
+              '<span class="aae-rail-thumb-core"></span>'+
+              '<span class="aae-rail-thumb-sheen"></span>'+
+              '<span class="aae-rail-thumb-grip"></span>'+
+            '</span>'+
+            '<span class="aae-rail-beacon" aria-hidden="true"></span>';
+        parent.appendChild(rail);
+        const thumb=rail.querySelector(".aae-rail-thumb");
+        let raf=0,settle=0,drag=null,prevTop=list.scrollTop;
+        let thumbHeight=36,usableHeight=1,maxScroll=0;
+        const sync=()=>{
+            raf=0;
+            const area=list.getBoundingClientRect();
+            const frame=parent.getBoundingClientRect();
+            rail.style.top=(area.top-frame.top-parent.clientTop)+"px";
+            rail.style.height=Math.max(0,area.height)+"px";
+            usableHeight=Math.max(1,rail.clientHeight-16);
+            maxScroll=Math.max(0,list.scrollHeight-list.clientHeight);
+            const available=maxScroll>1;
+            rail.classList.toggle("is-empty",!available);
+            thumbHeight=available ?
+                Math.max(34,Math.min(usableHeight,
+                    Math.round(usableHeight*list.clientHeight/Math.max(1,list.scrollHeight)))) :
+                usableHeight;
+            const progress=available ?
+                Math.min(1,Math.max(0,list.scrollTop/maxScroll)) : 0;
+            const travel=Math.max(0,usableHeight-thumbHeight);
+            thumb.style.height=thumbHeight+"px";
+            thumb.style.transform="translate3d(0,"+(travel*progress)+"px,0)";
+            rail.style.setProperty("--aae-rail-progress",(100*progress)+"%");
+            rail.setAttribute("aria-valuenow",String(Math.round(progress*100)));
+            rail.setAttribute("aria-valuetext",Math.round(progress*100)+"%");
+        };
+        const queueSync=()=>{
+            if(!raf)raf=requestAnimationFrame(sync);
+        };
+        const markMovement=()=>{
+            rail.classList.add("is-moving");
+            if(settle)clearTimeout(settle);
+            settle=setTimeout(()=>rail.classList.remove("is-moving"),220);
+        };
+        list.addEventListener("scroll",()=>{
+            if(Math.abs(list.scrollTop-prevTop)>.5){
+                prevTop=list.scrollTop;
+                markMovement();
+            }
+            queueSync();
+        },{passive:true});
+        const scrollFromPointer=event=>{
+            const bounds=rail.getBoundingClientRect();
+            const center=event.clientY-bounds.top-8-drag.offset;
+            const room=Math.max(1,usableHeight-thumbHeight);
+            list.scrollTop=Math.min(maxScroll,Math.max(0,center/room*maxScroll));
+            markMovement();
+            queueSync();
+        };
+        rail.addEventListener("pointerdown",event=>{
+            if(event.button!==0||maxScroll<=1)return;
+            event.preventDefault();
+            const thumbBounds=thumb.getBoundingClientRect();
+            const thumbHit=thumb.contains(event.target);
+            drag={
+                pointerId:event.pointerId,
+                offset:thumbHit?event.clientY-thumbBounds.top:thumbHeight/2
+            };
+            rail.classList.add("is-dragging");
+            rail.setPointerCapture(event.pointerId);
+            scrollFromPointer(event);
+        });
+        rail.addEventListener("pointermove",event=>{
+            if(!drag||drag.pointerId!==event.pointerId)return;
+            event.preventDefault();
+            scrollFromPointer(event);
+        });
+        const endDrag=event=>{
+            if(!drag||drag.pointerId!==event.pointerId)return;
+            drag=null;
+            rail.classList.remove("is-dragging");
+            if(rail.hasPointerCapture(event.pointerId))
+                rail.releasePointerCapture(event.pointerId);
+            queueSync();
+        };
+        rail.addEventListener("pointerup",endDrag);
+        rail.addEventListener("pointercancel",endDrag);
+        rail.addEventListener("lostpointercapture",()=>{
+            drag=null;
+            rail.classList.remove("is-dragging");
+        });
+        rail.addEventListener("keydown",event=>{
+            if(maxScroll<=1)return;
+            let increment=null;
+            switch(event.key){
+                case "ArrowUp":increment=-56;break;
+                case "ArrowDown":increment=56;break;
+                case "PageUp":increment=-list.clientHeight*.86;break;
+                case "PageDown":increment=list.clientHeight*.86;break;
+                case "Home":increment=-maxScroll;break;
+                case "End":increment=maxScroll;break;
+                default:return;
+            }
+            event.preventDefault();
+            list.scrollTop+=increment;
+            markMovement();
+            queueSync();
+        });
+        if(typeof ResizeObserver==="function"){
+            const sizes=new ResizeObserver(queueSync);
+            sizes.observe(list);
+            sizes.observe(parent);
+        }
+        if(typeof MutationObserver==="function"){
+            const changes=new MutationObserver(queueSync);
+            changes.observe(list,{childList:true,subtree:true,characterData:true});
+        }
+        window.addEventListener("resize",queueSync,{passive:true});
+        controls.push({rail,queueSync,sync});
+    }
+    // Switch away from native scrollbars only after BOTH enhanced rails exist.
+    document.documentElement.classList.add("aae-scroll-enhanced");
+    for(const control of controls)control.sync();
+    if(document.fonts?.ready)
+        document.fonts.ready.then(()=>controls.forEach(c=>c.queueSync()));
+}
+
 function bind() {
     applyUiText();
     bindLanguagePicker();
@@ -1036,6 +1187,7 @@ function bind() {
     });
     updateSearchVisualState(filtered().length);
     bindMapSubmission();
+    setupAnimatedScrollbars();
 }
 
 // An authenticated GitHub Issue hands a validated proposal to PR automation.
@@ -1139,7 +1291,7 @@ function runModalMotion(overlay,opening,onComplete=()=>{}){
     label.style.opacity="0";
     label.style.transform="none";
 
-    const duration=opening?360:170;
+    const duration=overlay.id==="githubGuideOverlay" ? (opening?360:170) : 170;
     overlay.dataset.motion=opening?"enter":"exit";
     stage.inert=true;
 

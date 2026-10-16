@@ -4334,3 +4334,238 @@ html,body {
   transform-style:preserve-3d;
   transform-origin:50% 50%;
 }
+
+/* Custom AAE scroll interfaces: separate controls for categories and maps.
+   Native scroll behavior is retained underneath. Native scrollbar styling
+   remains as a fallback until JS successfully installs both controls. */
+html.aae-scroll-enhanced .game-content .sidebar #categoryNav,
+html.aae-scroll-enhanced .game-content .selection-panel .catalog{
+  scrollbar-width:none!important;
+  scrollbar-gutter:auto!important;
+  padding-right:20px;
+}
+html.aae-scroll-enhanced #categoryNav::-webkit-scrollbar,
+html.aae-scroll-enhanced #catalog::-webkit-scrollbar{
+  width:0!important;
+  height:0!important;
+  display:none!important;
+}
+.aae-scroll-rail{
+  position:absolute;
+  box-sizing:border-box;
+  z-index:8;
+  right:2px;
+  width:19px;
+  min-height:0;
+  border:1px solid rgba(255,140,69,.27);
+  background:linear-gradient(90deg,rgba(7,9,12,.95),rgba(39,20,16,.92));
+  box-shadow:inset 0 0 0 1px rgba(255,185,114,.06),0 0 10px rgba(225,73,30,.12);
+  cursor:pointer;
+  outline:none;
+  touch-action:none;
+  user-select:none;
+  -webkit-user-select:none;
+  overflow:hidden;
+  transition:border-color .20s ease,box-shadow .24s ease;
+}
+.aae-scroll-rail::before{
+  content:"";
+  position:absolute;
+  z-index:1;
+  top:0;
+  left:1px;
+  right:1px;
+  height:25%;
+  pointer-events:none;
+  opacity:.24;
+  background:linear-gradient(180deg,transparent,rgba(255,167,90,.38),transparent);
+  animation:aaeRailEnergyDrift 3.8s linear infinite;
+}
+.aae-scroll-rail::after{
+  content:"";
+  position:absolute;
+  z-index:1;
+  top:5px;
+  bottom:5px;
+  right:1px;
+  width:1px;
+  opacity:.52;
+  pointer-events:none;
+  background:repeating-linear-gradient(180deg,rgba(255,183,103,.65) 0 4px,transparent 4px 12px);
+  animation:aaeRailTicksShift 2.6s linear infinite;
+}
+.aae-rail-channel{
+  position:absolute;
+  top:8px;bottom:8px;
+  left:4px;right:5px;
+  pointer-events:none;
+  border:1px solid rgba(255,121,57,.18);
+  background:linear-gradient(90deg,#100e10,#291610);
+}
+.aae-rail-progress{
+  position:absolute;
+  z-index:2;
+  left:3px;
+  right:4px;
+  top:8px;
+  height:var(--aae-rail-progress,0%);
+  min-height:0;
+  pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,188,107,.22),rgba(255,110,42,.46));
+  border-right:1px solid rgba(255,189,111,.58);
+  transition:height 65ms linear;
+}
+.aae-rail-thumb{
+  position:absolute;
+  z-index:4;
+  top:8px;
+  left:2px;
+  right:3px;
+  box-sizing:border-box;
+  min-height:0;
+  border:1px solid #ffc08a;
+  border-left:2px solid #ffe9b1;
+  background:linear-gradient(100deg,#fba36e,#f26935 48%,#b94523);
+  box-shadow:0 0 9px rgba(248,99,42,.32),inset 0 1px rgba(255,240,201,.35);
+  pointer-events:auto;
+  will-change:transform;
+  transition:box-shadow .17s ease,border-color .18s ease;
+  overflow:hidden;
+}
+.aae-rail-thumb::before,
+.aae-rail-thumb::after{
+  content:"";
+  position:absolute;
+  z-index:1;
+  pointer-events:none;
+  width:100%;
+  height:3px;
+  left:0;
+  background:rgba(255,235,193,.81);
+}
+.aae-rail-thumb::before{top:2px;}
+.aae-rail-thumb::after{bottom:2px;opacity:.67;}
+.aae-rail-thumb-core{
+  position:absolute;
+  inset:5px 2px;
+  pointer-events:none;
+  background:repeating-linear-gradient(180deg,
+    transparent 0 5px,rgba(88,30,15,.34) 5px 7px,transparent 7px 12px);
+  opacity:.61;
+}
+.aae-rail-thumb-sheen{
+  position:absolute;
+  inset:-50% -100%;
+  pointer-events:none;
+  transform:translate3d(-55%,0,0) rotate(15deg);
+  background:linear-gradient(90deg,transparent 42%,rgba(255,251,205,.73) 50%,transparent 58%);
+  opacity:.43;
+  animation:aaeRailThumbScan 2.8s ease-in-out infinite;
+}
+.aae-rail-thumb-grip{
+  position:absolute;
+  top:50%;
+  left:50%;
+  height:18px;
+  width:6px;
+  pointer-events:none;
+  transform:translate(-50%,-50%);
+  border-left:1px solid rgba(74,26,15,.72);
+  border-right:1px solid rgba(255,242,192,.72);
+}
+.aae-rail-beacon{
+  position:absolute;
+  z-index:3;
+  left:50%;
+  bottom:2px;
+  width:5px;
+  height:5px;
+  transform:translateX(-50%) rotate(45deg);
+  pointer-events:none;
+  border:1px solid #ffd8a3;
+  background:#f47639;
+  opacity:.38;
+  animation:aaeRailBeacon 2.2s ease-in-out infinite;
+}
+.aae-scroll-rail:hover,
+.aae-scroll-rail:focus-visible,
+.aae-scroll-rail.is-dragging{
+  border-color:#ffe0a3;
+  box-shadow:0 0 13px rgba(255,135,60,.44),
+    inset 0 0 11px rgba(255,156,74,.13);
+}
+.aae-scroll-rail:focus-visible{
+  outline:2px solid #fff0bf;
+  outline-offset:1px;
+}
+.aae-scroll-rail.is-moving .aae-rail-thumb,
+.aae-scroll-rail:hover .aae-rail-thumb,
+.aae-scroll-rail.is-dragging .aae-rail-thumb{
+  border-color:#fff1bc;
+  box-shadow:0 0 17px rgba(255,169,78,.75),0 0 31px rgba(248,90,40,.24);
+}
+.aae-scroll-rail.is-moving .aae-rail-thumb-sheen{
+  animation-duration:.60s;
+  opacity:.95;
+}
+.aae-scroll-rail.is-moving .aae-rail-beacon{
+  background:#ffcf90;
+  opacity:1;
+  animation-duration:.7s;
+}
+.aae-scroll-rail.is-dragging .aae-rail-thumb{
+  background:linear-gradient(100deg,#ffdfa4,#ff9756 48%,#e86330);
+}
+.aae-scroll-rail.is-empty{
+  opacity:.34;
+  pointer-events:none;
+}
+.aae-scroll-rail.is-empty .aae-rail-thumb,
+.aae-scroll-rail.is-empty .aae-rail-progress,
+.aae-scroll-rail.is-empty .aae-rail-beacon{
+  visibility:hidden;
+}
+.aae-rail-category .aae-rail-thumb{
+  background:linear-gradient(100deg,#ffc18a,#ef8749 48%,#a94c2c);
+}
+.aae-rail-maps .aae-rail-thumb{
+  background:linear-gradient(100deg,#ffe0a4,#fc9451 43%,#bb4927);
+}
+@keyframes aaeRailEnergyDrift{
+  from{transform:translateY(-110%);opacity:0;}
+  20%{opacity:.32;}
+  80%{opacity:.32;}
+  to{transform:translateY(510%);opacity:0;}
+}
+@keyframes aaeRailTicksShift{
+  from{background-position:0 0;}
+  to{background-position:0 72px;}
+}
+@keyframes aaeRailThumbScan{
+  0%,14%{transform:translate3d(-55%,0,0) rotate(15deg);opacity:.18;}
+  50%{opacity:.65;}
+  85%,100%{transform:translate3d(55%,0,0) rotate(15deg);opacity:.18;}
+}
+@keyframes aaeRailBeacon{
+  0%,100%{opacity:.25;}
+  50%{opacity:.92;}
+}
+@media(max-width:650px){
+  .aae-scroll-rail{width:16px;right:1px;}
+  html.aae-scroll-enhanced .game-content .sidebar #categoryNav,
+  html.aae-scroll-enhanced .game-content .selection-panel .catalog{
+    padding-right:16px;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .aae-scroll-rail,
+  .aae-scroll-rail::before,
+  .aae-scroll-rail::after,
+  .aae-scroll-rail *,
+  .aae-scroll-rail *::before,
+  .aae-scroll-rail *::after{
+    animation:none!important;
+    transition:none!important;
+  }
+  .aae-scroll-rail .aae-rail-thumb{will-change:auto;}
+}
