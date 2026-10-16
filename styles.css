@@ -4547,12 +4547,12 @@ html.aae-scroll-enhanced #catalog::-webkit-scrollbar{
 
 
 /* Immediate, continuously decelerating cubic ease-out on the SAME
-   300ms timeline as the 3D stage. No delayed 60% braking handoff. */
+   450ms timeline as the 3D stage. No delayed 60% braking handoff. */
 .submit-overlay:not(.github-help-overlay)[data-motion="enter"]::before{
-  animation:aaeModalEaseOutBackdropIn 300ms linear both!important;
+  animation:aaeModalEaseOutBackdropIn 450ms linear both!important;
 }
 .submit-overlay:not(.github-help-overlay)[data-motion="exit"]::before{
-  animation:aaeModalEaseOutBackdropOut 300ms linear both!important;
+  animation:aaeModalEaseOutBackdropOut 450ms linear both!important;
 }
 @keyframes aaeModalEaseOutBackdropIn{
   0%{opacity:0.000000;}
