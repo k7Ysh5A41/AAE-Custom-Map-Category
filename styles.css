@@ -4256,10 +4256,10 @@ html,body {
   background:rgba(3,3,5,.89);
 }
 .submit-overlay[data-motion="enter"]::before{
-  animation:aaeUnifiedModalBackdropIn 430ms ease-out both!important;
+  animation:aaeUnifiedModalBackdropIn 360ms ease-out both!important;
 }
 .submit-overlay[data-motion="exit"]::before{
-  animation:aaeUnifiedModalBackdropOut 275ms ease-in both!important;
+  animation:aaeUnifiedModalBackdropOut 170ms ease-in both!important;
 }
 @keyframes aaeUnifiedModalBackdropIn{
   from{opacity:0;}
