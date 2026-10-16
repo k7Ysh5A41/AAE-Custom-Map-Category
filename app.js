@@ -1826,18 +1826,12 @@ let githubGuideMode = null;
 let githubGuideReturnFocus = null;
 let githubGuideDestination = null;
 function githubGuideStepKeys() {
-    const change = githubGuideMode === "change";
+    // Only four actions for first-time players. No PR or Actions knowledge needed.
     return [
         "githubGuideLogin",
-        change ? "githubGuideTitleChange" : "githubGuideTitleNew",
-        change ? "githubGuideBodyChange" : "githubGuideBodyNew",
-        "githubGuideKeepFields",
+        githubGuideMode==="change" ? "githubGuideBodyChange" : "githubGuideBodyNew",
         "githubGuideSubmitIssue",
-        "githubGuideIssueCreated",
-        change ? "githubGuideAutomationChange" : "githubGuideAutomationNew",
-        "githubGuidePR",
-        "githubGuideReview",
-        "githubGuideTrouble"
+        "githubGuideReview"
     ];
 }
 function renderGithubGuide() {

@@ -5156,3 +5156,36 @@ html.aae-scroll-enhanced #catalog::-webkit-scrollbar{
 .submit-overlay.guide-flipping > .modal-flip-stage > .submit-dialog:not(.github-help-dialog) *::after{
   transition:none!important;
 }
+
+
+/* Four beginner steps. Isolate the guide's back-face painting so the
+   browser has less work when the card crosses 90 degrees. */
+.submit-overlay.guide-flipping > .modal-flip-stage > .github-help-dialog{
+  contain:layout paint;
+  will-change:transform;
+  isolation:isolate;
+}
+.submit-overlay.guide-flipping .github-guide-tile::after{
+  display:none!important;
+  animation:none!important;
+}
+.submit-overlay.guide-flipping .github-guide-actions{
+  position:relative;
+  bottom:auto;
+}
+.submit-overlay.guide-active .github-guide-tile,
+.submit-overlay.guide-flipping .github-guide-tile{min-height:116px;}
+.submit-overlay.guide-active .github-guide-tile p,
+.submit-overlay.guide-flipping .github-guide-tile p{font-size:16px;line-height:1.55;}
+.submit-overlay.guide-active .github-guide-intro,
+.submit-overlay.guide-flipping .github-guide-intro{font-size:17px;line-height:1.55;}
+.submit-overlay.guide-active .github-guide-note,
+.submit-overlay.guide-flipping .github-guide-note{
+  margin:18px 0;padding:14px 17px;font-size:15px;line-height:1.55;
+}
+@media(max-width:740px){
+  .submit-overlay.guide-active .github-guide-tile,
+  .submit-overlay.guide-flipping .github-guide-tile{min-height:94px;}
+  .submit-overlay.guide-active .github-guide-tile p,
+  .submit-overlay.guide-flipping .github-guide-tile p{font-size:14px;}
+}
