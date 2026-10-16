@@ -1123,7 +1123,7 @@ function runModalMotion(overlay,opening,onComplete=()=>{}){
     // Correct only the hidden front-facing button shell to the source button
     // rectangle. Counter-transform its label, so both faces keep legible text.
     const fx=sx/scale,fy=sy/scale;
-    front.style.transform=`rotateY(180deg) translateZ(1px) scale(${fx},${fy})`;
+    front.style.transform="rotateY(180deg) translateZ(1px) scale(1,1)";
     label.style.transform=`scale(${1/sx},${1/sy})`;
     // A live, visual duplicate of the clicked button face is used at the
     // origin so its icon and caption vanish before the growing card flips.
@@ -1142,34 +1142,69 @@ function runModalMotion(overlay,opening,onComplete=()=>{}){
     }
     label.style.font=source.font;
     const duration=opening?560:290;
+    const fastButton=overlay.id==="submitMapOverlay"||
+        overlay.id==="changeMapOverlay";
     overlay.dataset.motion=opening?"enter":"exit";
     stage.inert=true;
     if(source.trigger?.isConnected)source.trigger.classList.add("modal-origin-occupied");
-    // Real 3D faces: the original trigger is the front, the fully laid-out
-    // interactive dialog is the reverse. The whole object flips and scales.
-    const stageAnimation=stage.animate(opening?[
-        {transform:atButton},{transform:atWindow}
+
+    // A single continuous 3D surface moves from the clicked button to
+    // the already-laid-out window. Its size reaches 100% BEFORE the
+    // reverse/dialog face passes 90 degrees and becomes visible.
+    // The whole card uses UNIFORM scaling to keep form fonts undistorted.
+    const halfway=`translate3d(${dx*.31}px,${dy*.31}px,0) rotateY(132deg) scale(${scale+(1-scale)*.78})`;
+    const fullBeforeTurn="translate3d(0px,0px,0px) rotateY(95deg) scale(1)";
+    const closeHalfway=`translate3d(${dx*.31}px,${dy*.31}px,0) rotateY(132deg) scale(${scale+(1-scale)*.78})`;
+    const openingFrames=[
+        {transform:atButton,offset:0},
+        {transform:halfway,offset:.34},
+        {transform:fullBeforeTurn,offset:.58},
+        {transform:atWindow,offset:1}
+    ];
+    const closingFrames=[
+        {transform:atWindow,offset:0},
+        {transform:fullBeforeTurn,offset:.42},
+        {transform:closeHalfway,offset:.66},
+        {transform:atButton,offset:1}
+    ];
+    const stageAnimation=stage.animate(opening?openingFrames:closingFrames,{
+        duration,fill:"both",easing:opening?
+            "cubic-bezier(.34,.1,.26,1)":"cubic-bezier(.59,.02,.75,.73)"
+    });
+
+    // The front face itself expands FROM the button's actual aspect ratio
+    // TO the full dialog rectangle while turning. Both faces therefore
+    // occupy the SAME final card silhouette at the handoff.
+    const frontAtButton=`rotateY(180deg) translateZ(1px) scale(${fx},${fy})`;
+    const frontAtWindow="rotateY(180deg) translateZ(1px) scale(1,1)";
+    const frontFrames=opening?[
+        {transform:frontAtButton,offset:0},
+        {transform:frontAtWindow,offset:.58},
+        {transform:frontAtWindow,offset:1}
     ]:[
-        {transform:atWindow},{transform:atButton}
-    ],{duration,fill:"both",easing:opening?
-        "cubic-bezier(.19,.75,.22,1)":"cubic-bezier(.57,.08,.78,.32)"});
-    // The two entry buttons shed all icon/text content within ~100 ms.
-    // Only the button FRAME keeps expanding and turning into the reverse
-    // dialog; the form itself is shown after the 3-D face crosses 90 degrees.
-    const fastButton=overlay.id==="submitMapOverlay"||
-        overlay.id==="changeMapOverlay";
+        {transform:frontAtWindow,offset:0},
+        {transform:frontAtWindow,offset:.42},
+        {transform:frontAtButton,offset:1}
+    ];
+    const frontAnimation=front.animate(frontFrames,{
+        duration,fill:"both",easing:"cubic-bezier(.3,.1,.28,1)"
+    });
+
+    // Hide the button's actual contents almost immediately, keeping only
+    // its frame throughout the expansion; restore the words at the very
+    // end of the reverse motion after the card has shrunk back.
     const labelAnimation=label.animate(opening?[
         {opacity:1,offset:0},
-        {opacity:1,offset:fastButton?.012:.10},
-        {opacity:0,offset:fastButton?.18:.32},
+        {opacity:1,offset:fastButton?.01:.08},
+        {opacity:0,offset:fastButton?.16:.28},
         {opacity:0,offset:1}
     ]:[
         {opacity:0,offset:0},
-        {opacity:0,offset:fastButton?.72:.64},
-        {opacity:1,offset:fastButton?.91:.92},
+        {opacity:0,offset:fastButton?.78:.68},
+        {opacity:1,offset:.97},
         {opacity:1,offset:1}
     ],{duration,fill:"both",easing:"ease-out"});
-    modalMotions.set(overlay,[stageAnimation,labelAnimation]);
+    modalMotions.set(overlay,[stageAnimation,frontAnimation,labelAnimation]);
     stageAnimation.finished.then(()=>{
         if(modalMotions.get(overlay)?.[0]!==stageAnimation)return;
         stopModalMotion(overlay);

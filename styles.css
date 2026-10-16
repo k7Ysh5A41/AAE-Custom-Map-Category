@@ -4227,3 +4227,68 @@ html,body {
   .social-link:focus-visible .social-brand-svg{transform:none!important;}
   .submit-overlay .modal-flip-front-label{will-change:auto;}
 }
+
+
+/* Seamless button-to-dialog morph. Keep the backdrop on a separate flat
+   opacity layer; the ONE card remains fully visible during its entire
+   size+flip motion. No blur, no forced repaint per animation frame. */
+.submit-overlay,.submit-overlay.github-help-overlay{
+  background:transparent!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+}
+.submit-overlay:not([hidden]){
+  isolation:isolate;
+  perspective:1500px;
+}
+.submit-overlay:not([hidden])::before{
+  content:"";
+  display:block!important;
+  position:absolute;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  background:rgba(3,3,5,.81);
+  opacity:1;
+  animation:none!important;
+}
+.submit-overlay.github-help-overlay:not([hidden])::before{
+  background:rgba(3,3,5,.89);
+}
+.submit-overlay[data-motion="enter"]::before{
+  animation:aaeUnifiedModalBackdropIn 430ms ease-out both!important;
+}
+.submit-overlay[data-motion="exit"]::before{
+  animation:aaeUnifiedModalBackdropOut 275ms ease-in both!important;
+}
+@keyframes aaeUnifiedModalBackdropIn{
+  from{opacity:0;}
+  to{opacity:1;}
+}
+@keyframes aaeUnifiedModalBackdropOut{
+  from{opacity:1;}
+  to{opacity:0;}
+}
+.submit-overlay .modal-flip-stage{
+  z-index:1;
+  transform-style:preserve-3d;
+}
+.submit-overlay .modal-flip-stage > .submit-dialog{
+  -webkit-backface-visibility:hidden;
+  backface-visibility:hidden;
+}
+.submit-overlay .modal-flip-front{
+  -webkit-backface-visibility:hidden;
+  backface-visibility:hidden;
+  transform-origin:50% 50%;
+  background-clip:padding-box;
+}
+.submit-overlay .modal-flip-front-label{
+  pointer-events:none;
+}
+@media(prefers-reduced-motion:reduce){
+  .submit-overlay:not([hidden])::before{
+    animation:none!important;
+    opacity:1;
+  }
+}
