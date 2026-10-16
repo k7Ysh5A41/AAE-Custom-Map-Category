@@ -1291,13 +1291,16 @@ function runModalMotion(overlay,opening,onComplete=()=>{}){
     label.style.opacity="0";
     label.style.transform="none";
 
-    const duration=overlay.id==="githubGuideOverlay" ? (opening?360:170) : 170;
+    const duration=overlay.id==="githubGuideOverlay" ? (opening?360:170) : 210;
     overlay.dataset.motion=opening?"enter":"exit";
     stage.inert=true;
 
     // Rotation, position and BOTH size axes use this ONE progress curve.
     // None can reach the finished state before any of the others.
-    const smooth=t=>t*t*(3-2*t);
+    // Stronger quintic ease-in-out: one shared progress value controls
+    // translation, X/Y expansion and the entire 180-degree rotation.
+    // Opening and closing use the same curve, reversed in time.
+    const smooth=t=>t*t*t*(t*(t*6-15)+10);
     const frame=t=>{
         const progress=smooth(t);
         const remaining=1-progress;

@@ -4531,3 +4531,16 @@ html.aae-scroll-enhanced #catalog::-webkit-scrollbar{
   }
   .aae-scroll-rail .aae-rail-thumb{will-change:auto;}
 }
+
+
+/* Sharper ease-in/out with a slightly longer 210ms travel time.
+   Both submission entry points use exactly the same duration in either
+   direction, including the flat backdrop. The GitHub guide is unchanged. */
+.submit-overlay:not(.github-help-overlay)[data-motion="enter"]::before{
+  animation-duration:210ms!important;
+  animation-timing-function:cubic-bezier(.65,0,.35,1)!important;
+}
+.submit-overlay:not(.github-help-overlay)[data-motion="exit"]::before{
+  animation-duration:210ms!important;
+  animation-timing-function:cubic-bezier(.65,0,.35,1)!important;
+}
