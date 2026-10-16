@@ -100,8 +100,15 @@ function applyUiText() {
         el.hidden = !showChineseChannels;
     }
     // Keep the second-level GitHub guide translated when locale changes.
-    if (githubGuideMode) renderGithubGuide();
-    if (categoryPickerSource) renderCategoryPicker();
+    if(githubGuideMode){
+        renderGithubGuide();
+        const parent=githubParentOverlay();
+        if(parent.classList.contains("guide-active"))
+            fitGithubGuideToCard($("githubGuideDialog"));
+    }
+    if(categoryPickerSource)renderCategoryPicker();
+    if($("submitCategory"))syncCategoryChoice("submitCategory");
+    if($("changeTargetCategory"))syncCategoryChoice("changeTargetCategory");
 }
 const state = {
     categories: [], maps: [], selected: null, liteOnly: false,
@@ -1036,22 +1043,27 @@ let categoryPickerClosing=false;
 let categoryPickerExit=null;
 function syncCategoryChoice(selectId){
     const select=$(selectId);
-    const button=$(selectId==="submitCategory"?"categoryPickerSubmit":"categoryPickerChange");
+    const isSubmission=selectId==="submitCategory";
+    const button=$(isSubmission?"categoryPickerSubmit":"categoryPickerChange");
     const display=button.querySelector(".category-picker-value");
+    const locked=$(isSubmission?"submitIncompatible":"changeIncompatible").checked;
     const selected=select.options[select.selectedIndex];
     const hasCategory=Boolean(select.value&&selected);
-    display.textContent=hasCategory?selected.textContent:t("selectCategory");
-    button.classList.toggle("has-selection",hasCategory);
-    button.setAttribute("aria-label",t("selectCategory")+
-        (hasCategory?" · "+selected.textContent:""));
+    display.textContent=locked?t("categoryLockedIncompatible"):
+        hasCategory?selected.textContent:t("selectCategory");
+    button.disabled=locked;
+    button.classList.toggle("is-locked",locked);
+    button.classList.toggle("has-selection",locked||hasCategory);
+    button.setAttribute("aria-disabled",String(locked));
+    button.setAttribute("aria-haspopup",locked?"false":"dialog");
+    button.setAttribute("aria-label",display.textContent);
 }
 function updateSubmissionCategoryAction(){
-    const incompatible=$("submitIncompatible").checked;
-    $("submitCategoryLabel").hidden=incompatible;
-    $("submitCategoryField").hidden=incompatible;
-    $("categoryPickerSubmit").disabled=incompatible;
-    // The real hidden SELECT continues to store the ordinary category.
-    // Incompatible submissions override it only when building the request.
+    // Incompatible mode displays a locked destination; the last ordinary
+    // choice stays in the SELECT so switching modes restores it.
+    $("submitCategoryLabel").hidden=false;
+    $("submitCategoryField").hidden=false;
+    syncCategoryChoice("submitCategory");
 }
 function renderCategoryPicker(){
     if(!categoryPickerSource)return;
@@ -1672,10 +1684,10 @@ function setChangePending(pending) {
     btn.textContent = t(pending ? "changeChecking" : "submitRequest");
 }
 function updateChangeAction() {
-    const incompatible = $("changeIncompatible").checked;
-    $("changeTargetLabel").hidden = incompatible;
-    $("changeCategoryField").hidden = incompatible;
-    $("changeTargetCategory").required = false;
+    $("changeTargetLabel").hidden=false;
+    $("changeCategoryField").hidden=false;
+    $("changeTargetCategory").required=false;
+    syncCategoryChoice("changeTargetCategory");
 }
 function openChangeRequest(id,trigger) {
     if (!$("changeMapOverlay").hidden || !$("submitMapOverlay").hidden) return;
@@ -1838,11 +1850,16 @@ function renderGithubGuide() {
     if (!githubGuideMode) return;
     $("githubGuideIntro").textContent =
         t(githubGuideMode === "change" ? "githubGuideIntroChange" : "githubGuideIntroNew");
-    $("githubGuideSteps").innerHTML = githubGuideStepKeys().map((key,index) =>
-        '<li class="github-guide-tile" style="--step-index:' + index + '">' +
-        '<span class="github-guide-step-number" aria-hidden="true">' +
-        String(index+1).padStart(2,"0") + '</span>' +
-        '<p>' + escapeHtml(t(key)) + '</p></li>').join("");
+    $("githubGuideSteps").innerHTML=githubGuideStepKeys().map((key,index)=>
+        '<li class="github-guide-tile" style="--step-index:'+index+'">'+
+          '<span class="github-guide-step-number" aria-hidden="true">'+
+            String(index+1).padStart(2,"0")+'</span>'+
+          '<div class="github-guide-step-copy">'+
+            '<strong class="github-guide-step-title">'+
+              escapeHtml(t("githubGuideStepTitle"+(index+1)))+'</strong>'+
+            '<p>'+escapeHtml(t(key))+'</p>'+
+          '</div>'+
+        '</li>').join("");
     $("githubGuideProceed").hidden = !githubGuideDestination;
 }
 /* The GitHub guide is the actual reverse face of the existing form.
