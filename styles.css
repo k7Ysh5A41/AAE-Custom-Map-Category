@@ -5165,113 +5165,256 @@ html.aae-scroll-enhanced #catalog::-webkit-scrollbar{
 
 
 
-/* Compact editor-style guide. The original form and reverse face share
-   dimensions; four content-sized steps replace stretched quarter-height cards. */
+
+/* Expanded four-step guide: the steps now use the full available middle
+   area, with substantially larger typography and 4 balanced timeline rows.
+   The guide remains exactly as large as its originating submission form.
+   Density modes are selected via the existing overflow measurements. */
 .submit-overlay:is(.guide-active,.guide-flipping) > .modal-flip-stage > .github-help-dialog{
- --gpad:16px;--ggap:9px;--grow:10px;--gtext:13px;--gtitle:12px;
- display:flex!important;flex-direction:column;gap:var(--ggap);
- box-sizing:border-box;padding:var(--gpad)!important;overflow:hidden!important;
- scrollbar-width:none!important;scrollbar-gutter:auto!important;
- color:#f4e8d6;
+  --gpad:clamp(18px,2.3vw,27px);
+  --ggap:clamp(11px,1.5vh,16px);
+  --grow:clamp(15px,2vh,23px);
+  --gtext:18px;
+  --gtitle:20px;
+  --gintro:16px;
+  --gnote:14px;
+  --gbutton:15px;
+  --gbadge:52px;
+  --gbadge-font:25px;
+  --gtile-gap:22px;
+  --gline-left:33px;
+  display:flex!important;
+  flex-direction:column;
+  box-sizing:border-box;
+  min-height:0;
+  padding:var(--gpad)!important;
+  gap:var(--ggap);
+  overflow:hidden!important;
+  scrollbar-width:none!important;
+  scrollbar-gutter:auto!important;
+  color:#f6e8d6;
 }
-.submit-overlay:is(.guide-active,.guide-flipping) .github-help-dialog::-webkit-scrollbar{display:none!important;}
+.submit-overlay:is(.guide-active,.guide-flipping) .github-help-dialog::-webkit-scrollbar{
+  display:none!important;
+}
 .submit-overlay:is(.guide-active,.guide-flipping) .github-help-dialog .submit-heading{
- flex:0 0 auto;display:flex;align-items:center;gap:13px;
- margin:0!important;padding:0 0 12px!important;
- border-bottom:1px solid rgba(255,185,113,.30);
+  flex:0 0 auto;
+  display:flex;
+  align-items:center;
+  gap:15px;
+  min-width:0;
+  margin:0!important;
+  padding:0 0 14px!important;
+  border-bottom:1px solid rgba(255,188,113,.34);
 }
 .github-guide-headline{flex:1;min-width:0;}
-.github-guide-eyebrow{display:block;margin-bottom:4px;color:#eba873;font:800 10px/1.3 "Segoe UI",sans-serif;letter-spacing:.14em;}
+.github-guide-eyebrow{
+  display:block;
+  margin-bottom:6px;
+  color:#efae79;
+  font:800 11px/1.3 "Segoe UI",Arial,sans-serif;
+  letter-spacing:.14em;
+}
 .submit-overlay:is(.guide-active,.guide-flipping) .github-help-dialog .submit-heading h2{
- margin:0!important;color:#ffecd3;
- font-size:clamp(18px,2.6vw,26px)!important;line-height:1.15;
- text-shadow:0 0 15px rgba(240,120,52,.16);
+  margin:0!important;
+  font-size:clamp(22px,3.1vw,31px)!important;
+  line-height:1.18;
+  color:#ffefd8;
+  text-shadow:0 0 15px rgba(240,120,52,.16);
 }
 .submit-overlay:is(.guide-active,.guide-flipping) .github-guide-intro{
- flex:0 0 auto;margin:0!important;color:#c9b9a9;
- font:550 13px/1.45 "Segoe UI",sans-serif!important;
+  flex:0 0 auto;
+  margin:0!important;
+  padding:0;
+  color:#d7c0ac;
+  font:550 var(--gintro)/1.48 "Segoe UI",Arial,sans-serif!important;
 }
 .submit-overlay:is(.guide-active,.guide-flipping) .github-guide-steps{
- position:relative;display:flex!important;flex-direction:column;
- flex:0 1 auto;min-height:0;align-content:flex-start;
- gap:6px!important;margin:0!important;padding:3px 0!important;
- grid-template-rows:none!important;
+  display:grid!important;
+  position:relative;
+  flex:1 1 auto;
+  min-height:0;
+  min-width:0;
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:repeat(4,minmax(0,1fr))!important;
+  gap:clamp(9px,1.35vh,15px)!important;
+  align-items:stretch;
+  align-content:stretch;
+  margin:0!important;
+  padding:3px 0!important;
+  list-style:none;
 }
 .submit-overlay:is(.guide-active,.guide-flipping) .github-guide-steps::before{
- content:"";position:absolute;z-index:0;top:20px;bottom:20px;left:22px;width:1px;
- pointer-events:none;background:linear-gradient(180deg,#ca8453,rgba(247,132,72,.13));
+  content:"";
+  position:absolute;
+  top:23px;
+  bottom:23px;
+  left:var(--gline-left);
+  z-index:0;
+  width:2px;
+  pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,190,119,.79),rgba(244,117,53,.49) 62%,rgba(255,195,118,.2));
 }
 .submit-overlay:is(.guide-active,.guide-flipping) .github-guide-steps .github-guide-tile{
- position:relative;display:flex!important;flex:0 0 auto;align-items:center;
- flex-direction:row;gap:14px!important;height:auto!important;min-height:0!important;
- min-width:0;padding:var(--grow) 13px var(--grow) 8px!important;margin:0!important;
- border:1px solid rgba(236,147,90,.25);border-left:1px solid rgba(255,192,130,.55);
- background:linear-gradient(100deg,rgba(135,70,43,.19),rgba(22,20,22,.89));
- box-shadow:inset 0 1px rgba(255,198,143,.07);
- transform:none;transition:border-color .2s ease,box-shadow .2s ease;
+  position:relative;
+  box-sizing:border-box;
+  display:flex!important;
+  flex-direction:row;
+  flex:0 1 auto;
+  align-items:center;
+  justify-content:flex-start;
+  min-width:0;
+  min-height:0!important;
+  height:100%!important;
+  gap:var(--gtile-gap)!important;
+  margin:0!important;
+  padding:var(--grow) clamp(13px,2vw,23px) var(--grow) 8px!important;
+  border:1px solid rgba(244,151,94,.36);
+  border-left:2px solid rgba(255,186,115,.66);
+  background:linear-gradient(105deg,rgba(122,63,41,.35),rgba(36,26,27,.84) 45%,rgba(16,17,21,.95));
+  box-shadow:inset 0 1px rgba(255,211,163,.11),inset 0 -1px rgba(0,0,0,.18);
+  transform:none!important;
+  transition:border-color .2s ease,box-shadow .2s ease;
 }
 .submit-overlay:is(.guide-active,.guide-flipping) .github-guide-steps .github-guide-tile:hover{
- transform:none;border-color:rgba(255,210,158,.62);
- box-shadow:inset 2px 0 rgba(255,154,86,.5),0 0 11px rgba(255,122,57,.1);
+  transform:none!important;
+  border-color:rgba(255,208,158,.78);
+  box-shadow:inset 3px 0 rgba(255,159,92,.68),0 0 15px rgba(245,117,57,.14);
 }
 .submit-overlay:is(.guide-active,.guide-flipping) .github-guide-tile::after{display:none!important;}
 .submit-overlay:is(.guide-active,.guide-flipping) .github-guide-steps .github-guide-step-number{
- display:grid;place-items:center;flex:0 0 29px;width:29px;height:29px;
- grid-column:auto;grid-row:auto;
- border:1px solid rgba(255,193,128,.72);background:linear-gradient(140deg,#603327,#241a1b);
- box-shadow:0 0 0 3px #1c1819;
- color:#ffdcad;font:850 15px/1 Consolas,monospace!important;text-shadow:none;
+  position:relative;
+  z-index:1;
+  display:grid;
+  place-items:center;
+  flex:0 0 var(--gbadge);
+  grid-row:auto;
+  grid-column:auto;
+  box-sizing:border-box;
+  width:var(--gbadge);
+  height:var(--gbadge);
+  border:1px solid rgba(255,207,151,.87);
+  background:linear-gradient(135deg,#874629,#3c251e 60%,#241c1c);
+  box-shadow:0 0 0 4px #201a1a,0 0 14px rgba(255,146,62,.22);
+  color:#ffe5b8;
+  font:850 var(--gbadge-font)/1 Consolas,monospace!important;
+  text-shadow:0 0 8px rgba(254,178,111,.27);
 }
-.github-guide-step-copy{display:flex;flex-direction:column;flex:1 1 auto;min-width:0;gap:3px;}
+.github-guide-step-copy{
+  display:flex;
+  flex:1 1 auto;
+  flex-direction:column;
+  justify-content:center;
+  min-width:0;
+  gap:9px;
+}
 .submit-overlay:is(.guide-active,.guide-flipping) .github-guide-step-title{
- display:block;color:#ffce9b;font:800 var(--gtitle)/1.3 "Segoe UI",sans-serif;letter-spacing:.02em;
+  display:block;
+  color:#ffdaa8;
+  font:800 var(--gtitle)/1.24 "Segoe UI",Arial,sans-serif;
+  letter-spacing:.01em;
 }
 .submit-overlay:is(.guide-active,.guide-flipping) .github-guide-steps .github-guide-tile p{
- display:block;grid-row:auto;grid-column:auto;margin:0!important;padding:0!important;
- color:#d4c5b5;font:500 var(--gtext)/1.43 "Segoe UI",sans-serif!important;
- overflow-wrap:break-word;
+  display:block;
+  grid-column:auto;
+  grid-row:auto;
+  min-width:0;
+  margin:0!important;
+  padding:0!important;
+  color:#e5d7c8;
+  font:500 var(--gtext)/1.48 "Segoe UI",Arial,sans-serif!important;
+  overflow-wrap:break-word;
 }
-.github-guide-footer{display:flex;flex:0 0 auto;flex-direction:column;gap:9px;
- margin-top:auto;padding-top:10px;border-top:1px solid rgba(253,159,80,.28);}
+.github-guide-footer{
+  display:flex;
+  flex:0 0 auto;
+  flex-direction:column;
+  gap:12px;
+  margin-top:0;
+  padding-top:12px;
+  border-top:1px solid rgba(253,165,90,.34);
+}
 .submit-overlay:is(.guide-active,.guide-flipping) .github-guide-note{
- display:block;flex:0 0 auto;margin:0!important;padding:9px 11px!important;
- color:#f0cba9;border:1px solid rgba(255,156,88,.30);border-left:3px solid #f69a5c;
- background:linear-gradient(110deg,rgba(140,72,37,.16),rgba(18,18,21,.6));
- font:600 12px/1.4 "Segoe UI",sans-serif!important;
+  display:block;
+  flex:0 0 auto;
+  margin:0!important;
+  padding:12px 14px!important;
+  color:#f5cfac;
+  border:1px solid rgba(255,164,92,.32);
+  border-left:3px solid #ff9c55;
+  background:linear-gradient(115deg,rgba(134,68,40,.2),rgba(18,19,22,.68));
+  font:600 var(--gnote)/1.42 "Segoe UI",Arial,sans-serif!important;
 }
 .submit-overlay:is(.guide-active,.guide-flipping) .github-guide-actions{
- display:flex;position:relative!important;flex:0 0 auto;
- flex-flow:row nowrap;align-items:center;justify-content:space-between;
- gap:8px;margin:0!important;padding:0!important;bottom:auto!important;background:none!important;
+  display:flex;
+  position:relative!important;
+  flex:0 0 auto;
+  flex-flow:row nowrap;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin:0!important;
+  padding:0!important;
+  bottom:auto!important;
+  background:none!important;
 }
 .submit-overlay:is(.guide-active,.guide-flipping) .github-guide-actions button{
- min-width:0;min-height:39px!important;padding:8px 12px!important;
- font:800 12px/1.25 "Segoe UI",sans-serif!important;white-space:normal;
+  flex:0 1 auto;
+  min-width:0;
+  min-height:44px!important;
+  padding:10px 14px!important;
+  font:800 var(--gbutton)/1.3 "Segoe UI",Arial,sans-serif!important;
+  white-space:normal;
 }
 .submit-overlay:is(.guide-active,.guide-flipping) #githubGuideBack{
- border:1px solid rgba(251,180,115,.48);color:#e7cfbc;background:#201e20;
+  border:1px solid rgba(251,184,117,.54);
+  color:#f3dbbf;
+  background:#292124;
 }
 .submit-overlay:is(.guide-active,.guide-flipping) #githubGuideProceed{
- background:linear-gradient(115deg,#ffcca0,#ff8b49 65%,#f0622e);
- color:#24120a;border:1px solid #ffc48d;box-shadow:0 2px 13px rgba(245,108,43,.24);
+  background:linear-gradient(115deg,#ffd4a4,#ff944f 60%,#f16836);
+  color:#271409;
+  border:1px solid #ffcb98;
+  box-shadow:0 3px 16px rgba(248,113,47,.26);
 }
-/* Five measured density modes keep the timeline legible across languages. */
+/* Fit modes keep four complete rows visible on shorter windows and across
+   all translated UI strings. They preserve space for the footer. */
 .submit-overlay:is(.guide-active,.guide-flipping) .github-help-dialog[data-fit="compact"]{
- --gpad:13px;--ggap:7px;--grow:8px;--gtext:12.5px;--gtitle:11.5px;
+  --gpad:16px;--ggap:10px;--grow:12px;
+  --gtext:16px;--gtitle:18px;--gintro:14px;
+  --gnote:13px;--gbutton:14px;--gbadge:44px;
+  --gbadge-font:22px;--gtile-gap:17px;--gline-left:29px;
 }
 .submit-overlay:is(.guide-active,.guide-flipping) .github-help-dialog[data-fit="dense"]{
- --gpad:10px;--ggap:5px;--grow:6px;--gtext:12px;--gtitle:11px;
+  --gpad:13px;--ggap:7px;--grow:8px;
+  --gtext:14px;--gtitle:16px;--gintro:13px;
+  --gnote:12px;--gbutton:12px;--gbadge:37px;
+  --gbadge-font:19px;--gtile-gap:12px;--gline-left:25px;
 }
 .submit-overlay:is(.guide-active,.guide-flipping) .github-help-dialog[data-fit="tight"]{
- --gpad:8px;--ggap:4px;--grow:4px;--gtext:11.5px;--gtitle:11px;
+  --gpad:10px;--ggap:5px;--grow:5px;
+  --gtext:12px;--gtitle:14px;--gintro:12px;
+  --gnote:11px;--gbutton:11px;--gbadge:31px;
+  --gbadge-font:16px;--gtile-gap:9px;--gline-left:22px;
 }
 .submit-overlay:is(.guide-active,.guide-flipping) .github-help-dialog[data-fit="minimal"]{
- --gpad:6px;--ggap:3px;--grow:3px;--gtext:11px;--gtitle:10.5px;
+  --gpad:8px;--ggap:4px;--grow:3px;
+  --gtext:11px;--gtitle:12px;--gintro:11px;
+  --gnote:10px;--gbutton:10px;--gbadge:27px;
+  --gbadge-font:14px;--gtile-gap:7px;--gline-left:20px;
 }
-.submit-overlay:is(.guide-active,.guide-flipping) .github-help-dialog[data-fit="minimal"] .github-guide-note{display:none!important;}
-@media(max-width:480px){
- .submit-overlay:is(.guide-active,.guide-flipping) .github-guide-actions button{padding:7px 7px!important;font-size:11px!important;}
- .submit-overlay:is(.guide-active,.guide-flipping) .github-guide-steps .github-guide-tile{gap:9px!important;padding-right:7px!important;}
+.submit-overlay:is(.guide-active,.guide-flipping) .github-help-dialog[data-fit="minimal"] .github-guide-note{
+  display:none!important;
+}
+@media(max-width:540px){
+  .submit-overlay:is(.guide-active,.guide-flipping) .github-guide-actions button{
+    flex:1 1 45%;
+    padding:9px 8px!important;
+  }
+  .submit-overlay:is(.guide-active,.guide-flipping) .github-guide-steps .github-guide-tile{
+    padding-right:10px!important;
+  }
+  .github-guide-step-copy{gap:5px;}
 }
 .category-choice-trigger .category-choice-lock{display:none;}
 .category-choice-trigger.is-locked{
