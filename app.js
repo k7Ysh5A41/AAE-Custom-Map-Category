@@ -1295,17 +1295,16 @@ function runModalMotion(overlay,opening,onComplete=()=>{}){
     overlay.dataset.motion=opening?"enter":"exit";
     stage.inert=true;
 
-    // Continuous ease-out from the FIRST frame: highest initial speed,
-    // then progressively slower until a true zero-velocity stop.
-    // Translation, Y rotation and both scale axes share this ONE curve.
-    // Closing applies the same easing in its own direction instead of
-    // reversing elapsed time, so it also slows from its first frame.
+    // One continuous transformation: opening eases out (fast to slow),
+    // while closing eases in (slow to fast) from the very first frame.
+    // Translation, rotation and both scale axes share the same progress.
+    // GitHub guide timing and easing remain unchanged.
     const motionProgress=t=>{
         const value=Math.min(1,Math.max(0,t));
         if(overlay.id==="githubGuideOverlay"){
             return value*value*value*(value*(value*6-15)+10);
         }
-        return 1-Math.pow(1-value,3);
+        return opening ? 1-Math.pow(1-value,3) : value*value*value;
     };
     const frame=(t,expanding)=>{
         // Closing must use its OWN eased travel, not reversed timestamps.

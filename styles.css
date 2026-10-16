@@ -4546,13 +4546,14 @@ html.aae-scroll-enhanced #catalog::-webkit-scrollbar{
 }
 
 
-/* Immediate, continuously decelerating cubic ease-out on the SAME
-   450ms timeline as the 3D stage. No delayed 60% braking handoff. */
+/* Directional cubic motion on one synchronized 450ms timeline:
+   opening starts fast and brakes, closing starts slow and accelerates.
+   Both card and backdrop travel are paired without any blur. */
 .submit-overlay:not(.github-help-overlay)[data-motion="enter"]::before{
   animation:aaeModalEaseOutBackdropIn 450ms linear both!important;
 }
 .submit-overlay:not(.github-help-overlay)[data-motion="exit"]::before{
-  animation:aaeModalEaseOutBackdropOut 450ms linear both!important;
+  animation:aaeModalEaseInBackdropOut 450ms linear both!important;
 }
 @keyframes aaeModalEaseOutBackdropIn{
   0%{opacity:0.000000;}
@@ -4577,27 +4578,27 @@ html.aae-scroll-enhanced #catalog::-webkit-scrollbar{
   95%{opacity:0.999875;}
   100%{opacity:1.000000;}
 }
-@keyframes aaeModalEaseOutBackdropOut{
+@keyframes aaeModalEaseInBackdropOut{
   0%{opacity:1.000000;}
-  5%{opacity:0.857375;}
-  10%{opacity:0.729000;}
-  15%{opacity:0.614125;}
-  20%{opacity:0.512000;}
-  25%{opacity:0.421875;}
-  30%{opacity:0.343000;}
-  35%{opacity:0.274625;}
-  40%{opacity:0.216000;}
-  45%{opacity:0.166375;}
-  50%{opacity:0.125000;}
-  55%{opacity:0.091125;}
-  60%{opacity:0.064000;}
-  65%{opacity:0.042875;}
-  70%{opacity:0.027000;}
-  75%{opacity:0.015625;}
-  80%{opacity:0.008000;}
-  85%{opacity:0.003375;}
-  90%{opacity:0.001000;}
-  95%{opacity:0.000125;}
+  5%{opacity:0.999875;}
+  10%{opacity:0.999000;}
+  15%{opacity:0.996625;}
+  20%{opacity:0.992000;}
+  25%{opacity:0.984375;}
+  30%{opacity:0.973000;}
+  35%{opacity:0.957125;}
+  40%{opacity:0.936000;}
+  45%{opacity:0.908875;}
+  50%{opacity:0.875000;}
+  55%{opacity:0.833625;}
+  60%{opacity:0.784000;}
+  65%{opacity:0.725375;}
+  70%{opacity:0.657000;}
+  75%{opacity:0.578125;}
+  80%{opacity:0.488000;}
+  85%{opacity:0.385875;}
+  90%{opacity:0.271000;}
+  95%{opacity:0.142625;}
   100%{opacity:0.000000;}
 }
 @media(prefers-reduced-motion:reduce){
