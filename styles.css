@@ -4152,3 +4152,78 @@ html,body {
     transform:none!important;
   }
 }
+
+
+/* Genuine platform brand vector paths (Simple Icons): Discord, Steam,
+   QQ and Bilibili. Inline SVG avoids extra downloads and font fallbacks. */
+.social-icon .social-brand-svg{
+  display:block;
+  width:17px;
+  height:17px;
+  max-width:100%;
+  max-height:100%;
+  fill:currentColor;
+  transition:transform .27s cubic-bezier(.16,.8,.24,1),opacity .18s ease;
+}
+.social-link:hover .social-brand-svg,
+.social-link:focus-visible .social-brand-svg{
+  transform:scale(1.12) rotate(-5deg);
+}
+.social-discord .social-icon{
+  border-color:rgba(88,101,242,.77);
+  color:#8992ff;
+  background:rgba(88,101,242,.12);
+}
+.social-steam .social-icon{
+  border-color:rgba(189,212,230,.53);
+  color:#edf4ff;
+  background:rgba(63,111,141,.17);
+}
+.social-qq .social-icon{
+  border-color:rgba(235,25,35,.60);
+  color:#ff7778;
+  background:rgba(235,25,35,.12);
+}
+.social-bilibili .social-icon{
+  border-color:rgba(251,114,153,.77);
+  color:#ff9dbd;
+  background:rgba(251,114,153,.12);
+}
+/* The front face contains an exact child-structure clone of the trigger
+   button. Both logos and label disappear immediately; no blur is used. */
+.submit-overlay .modal-flip-front-label{
+  display:flex;
+  flex-flow:row nowrap;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  min-width:0;
+  max-width:89%;
+  width:max-content;
+  overflow:visible;
+  white-space:nowrap;
+  will-change:opacity;
+}
+.submit-overlay .modal-flip-front-label .submit-trigger-icon{
+  flex:0 0 36px;
+}
+.submit-overlay .modal-flip-front-label .submit-trigger-copy{
+  flex:0 1 auto;
+  min-width:0;
+}
+.submit-overlay .modal-flip-front-label .submit-trigger-copy strong{
+  color:inherit;
+}
+.submit-overlay .modal-flip-front-label .submit-trigger-chevron{
+  flex:0 0 auto;
+  margin:0;
+}
+.submit-overlay .modal-flip-front-label > span{
+  white-space:nowrap;
+}
+@media(prefers-reduced-motion:reduce){
+  .social-icon .social-brand-svg{transition:none!important;}
+  .social-link:hover .social-brand-svg,
+  .social-link:focus-visible .social-brand-svg{transform:none!important;}
+  .submit-overlay .modal-flip-front-label{will-change:auto;}
+}

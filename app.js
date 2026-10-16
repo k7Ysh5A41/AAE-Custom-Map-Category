@@ -1080,7 +1080,9 @@ function rememberModalOrigin(overlay,trigger) {
         trigger,rect:{left:box.left,top:box.top,width:Math.max(1,box.width),
             height:Math.max(1,box.height)},
         label:(trigger.textContent||"").trim().replace(/\s+/g," "),
-        background:style.background,color:style.color,font:style.font
+        background:style.background,color:style.color,font:style.font,
+        border:style.border,borderLeft:style.borderLeft,
+        shadow:style.boxShadow
     });
 }
 function stopModalMotion(overlay){
@@ -1123,9 +1125,21 @@ function runModalMotion(overlay,opening,onComplete=()=>{}){
     const fx=sx/scale,fy=sy/scale;
     front.style.transform=`rotateY(180deg) translateZ(1px) scale(${fx},${fy})`;
     label.style.transform=`scale(${1/sx},${1/sy})`;
+    // A live, visual duplicate of the clicked button face is used at the
+    // origin so its icon and caption vanish before the growing card flips.
+    // The reverse is still the actual laid-out form, never a screenshot.
     front.style.background=source.background;
     front.style.color=source.color;
-    label.textContent=source.label;
+    front.style.border=source.border;
+    front.style.borderLeft=source.borderLeft;
+    front.style.boxShadow=source.shadow;
+    label.replaceChildren();
+    if(source.trigger?.isConnected){
+        for(const child of source.trigger.childNodes)
+            label.appendChild(child.cloneNode(true));
+    }else{
+        label.textContent=source.label;
+    }
     label.style.font=source.font;
     const duration=opening?560:290;
     overlay.dataset.motion=opening?"enter":"exit";
@@ -1139,19 +1153,22 @@ function runModalMotion(overlay,opening,onComplete=()=>{}){
         {transform:atWindow},{transform:atButton}
     ],{duration,fill:"both",easing:opening?
         "cubic-bezier(.19,.75,.22,1)":"cubic-bezier(.57,.08,.78,.32)"});
-    // The front label remains correctly proportioned and fades before the
-    // shell grows; the reverse-side form shows only near its final dimensions.
+    // The two entry buttons shed all icon/text content within ~100 ms.
+    // Only the button FRAME keeps expanding and turning into the reverse
+    // dialog; the form itself is shown after the 3-D face crosses 90 degrees.
+    const fastButton=overlay.id==="submitMapOverlay"||
+        overlay.id==="changeMapOverlay";
     const labelAnimation=label.animate(opening?[
         {opacity:1,offset:0},
-        {opacity:1,offset:.12},
-        {opacity:0,offset:.34},
+        {opacity:1,offset:fastButton?.012:.10},
+        {opacity:0,offset:fastButton?.18:.32},
         {opacity:0,offset:1}
     ]:[
         {opacity:0,offset:0},
-        {opacity:0,offset:.64},
-        {opacity:1,offset:.92},
+        {opacity:0,offset:fastButton?.72:.64},
+        {opacity:1,offset:fastButton?.91:.92},
         {opacity:1,offset:1}
-    ],{duration,fill:"both",easing:"ease-in-out"});
+    ],{duration,fill:"both",easing:"ease-out"});
     modalMotions.set(overlay,[stageAnimation,labelAnimation]);
     stageAnimation.finished.then(()=>{
         if(modalMotions.get(overlay)?.[0]!==stageAnimation)return;
