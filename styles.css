@@ -4990,118 +4990,116 @@ html.aae-scroll-enhanced #catalog::-webkit-scrollbar{
   .category-picker-status{font-size:9px;letter-spacing:.04em;}
 }
 
-/* GitHub guide is the back face of the CURRENT submission card.
-   Its target geometry is computed before animating; only the 3D transform
-   runs per frame. Wider two-column steps replace cramped narrow tiles. */
+/* Four-step GitHub guide occupies the EXACT SAME card geometry as
+   either map-submission form. Front/back are one fixed-size 3D object.
+   No scale, width animation, or relayout during the face crossover. */
 .submit-overlay.guide-flipping > .modal-flip-stage,
 .submit-overlay.guide-active > .modal-flip-stage{
-  width:min(100%,1000px);
   max-height:none;
   transform-style:preserve-3d;
+  transform-origin:50% 50%;
 }
 .submit-overlay.guide-flipping > .modal-flip-stage{
   will-change:transform;
   contain:layout;
 }
 .submit-overlay.guide-active > .modal-flip-stage{
-  will-change:auto!important;
   transform:none!important;
+  will-change:auto!important;
 }
 .submit-overlay.guide-flipping .modal-flip-front,
 .submit-overlay.guide-active .modal-flip-front{display:none!important;}
-.submit-overlay.guide-flipping > .modal-flip-stage > .submit-dialog:not(.github-help-dialog){
-  position:absolute;
-  left:50%;
-  top:50%;
-  box-sizing:border-box;
-  width:var(--aae-guide-form-width,620px)!important;
-  height:var(--aae-guide-form-height,auto)!important;
-  max-width:none!important;
-  max-height:var(--aae-guide-form-height,none)!important;
-  overflow-y:auto;
-  transform-origin:50% 50%;
-  transform:translate3d(-50%,-50%,1px)
-    scale3d(var(--aae-guide-counter-x,1),var(--aae-guide-counter-y,1),1)!important;
-  backface-visibility:hidden;
-  -webkit-backface-visibility:hidden;
-  animation:none!important;
-}
+.submit-overlay.guide-flipping > .modal-flip-stage > .submit-dialog:not(.github-help-dialog),
 .submit-overlay.guide-flipping > .modal-flip-stage > .github-help-dialog{
   position:absolute;
   inset:0;
+  box-sizing:border-box;
   width:100%;
   height:100%;
+  max-width:100%;
   max-height:100%;
-  box-sizing:border-box;
   overflow-y:auto;
-  transform:rotateY(180deg) translateZ(1px)!important;
-  backface-visibility:hidden;
+  transform-origin:50% 50%;
   -webkit-backface-visibility:hidden;
+  backface-visibility:hidden;
+  transition:none!important;
   animation:none!important;
 }
-.submit-overlay.guide-active > .modal-flip-stage > .submit-dialog:not(.github-help-dialog){display:none!important;}
+.submit-overlay.guide-flipping > .modal-flip-stage > .submit-dialog:not(.github-help-dialog){
+  transform:translateZ(1px)!important;
+}
+.submit-overlay.guide-flipping > .modal-flip-stage > .github-help-dialog{
+  transform:rotateY(180deg) translateZ(1px)!important;
+}
+.submit-overlay.guide-active > .modal-flip-stage > .submit-dialog:not(.github-help-dialog){
+  display:none!important;
+}
 .submit-overlay.guide-active > .modal-flip-stage > .github-help-dialog{
   position:relative;
+  display:block;
   box-sizing:border-box;
   width:100%;
   height:100%;
+  max-width:100%;
   max-height:100%;
   overflow-y:auto;
   transform:none!important;
-  backface-visibility:visible;
   -webkit-backface-visibility:visible;
+  backface-visibility:visible;
   will-change:auto!important;
 }
 .submit-overlay.guide-flipping .github-help-dialog,
 .submit-overlay.guide-active .github-help-dialog{
-  padding:clamp(18px,2.1vw,29px);
+  padding:clamp(16px,2vw,24px);
 }
 .submit-overlay.guide-flipping .github-guide-steps,
 .submit-overlay.guide-active .github-guide-steps{
+  display:grid;
   grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:12px;
+  gap:9px;
 }
 .submit-overlay.guide-flipping .github-guide-tile,
 .submit-overlay.guide-active .github-guide-tile{
-  min-height:131px;
-  padding:17px 18px;
-  gap:12px;
+  min-height:102px;
+  padding:11px 13px;
+  gap:7px;
 }
 .submit-overlay.guide-flipping .github-guide-tile p,
 .submit-overlay.guide-active .github-guide-tile p{
-  font-size:15px;
-  line-height:1.58;
+  font-size:14px;
+  line-height:1.47;
 }
 .submit-overlay.guide-flipping .github-guide-tile .github-guide-step-number,
-.submit-overlay.guide-active .github-guide-tile .github-guide-step-number{font-size:43px;}
+.submit-overlay.guide-active .github-guide-tile .github-guide-step-number{
+  font-size:31px;
+}
 .submit-overlay.guide-flipping .github-guide-intro,
 .submit-overlay.guide-active .github-guide-intro{
-  font-size:16px;
-  line-height:1.65;
-  margin:16px 0;
+  font-size:14px;
+  line-height:1.5;
+  margin:12px 0;
 }
-.submit-overlay.guide-flipping .github-guide-details,
-.submit-overlay.guide-active .github-guide-details{
-  gap:12px;
-  margin-top:17px;
+.submit-overlay.guide-flipping .github-guide-note,
+.submit-overlay.guide-active .github-guide-note{
+  margin:10px 0;
+  padding:10px 12px;
+  font-size:13px;
 }
-.submit-overlay.guide-flipping .github-guide-details > *,
-.submit-overlay.guide-active .github-guide-details > *{padding:16px 18px;}
+.submit-overlay.guide-flipping .github-guide-actions,
+.submit-overlay.guide-active .github-guide-actions{
+  position:relative;
+  bottom:auto;
+  margin-top:10px;
+}
 @media(max-width:740px){
   .submit-overlay.guide-flipping .github-guide-steps,
-  .submit-overlay.guide-active .github-guide-steps,
-  .submit-overlay.guide-flipping .github-guide-details,
-  .submit-overlay.guide-active .github-guide-details{
+  .submit-overlay.guide-active .github-guide-steps{
     grid-template-columns:minmax(0,1fr);
   }
   .submit-overlay.guide-flipping .github-guide-tile,
   .submit-overlay.guide-active .github-guide-tile{
-    min-height:95px;
-    padding:12px 14px;
-  }
-  .submit-overlay.guide-flipping .github-guide-tile p,
-  .submit-overlay.guide-active .github-guide-tile p{
-    font-size:14px;
+    min-height:0;
+    padding:10px 12px;
   }
 }
 @media(prefers-reduced-motion:reduce){
@@ -5132,31 +5130,6 @@ html.aae-scroll-enhanced #catalog::-webkit-scrollbar{
 .category-picker-panel:not([hidden]){
   backface-visibility:visible;
 }
-
-/* Keep the guide/form edges aligned on a single physical 3D stage.
-   Dimension changes are compositor-only; no height animation or repaint
-   is introduced at the exact backface crossover. */
-.submit-overlay.guide-flipping > .modal-flip-stage{
-  transform-origin:50% 50%;
-  transform-style:preserve-3d;
-}
-.submit-overlay.guide-flipping > .modal-flip-stage > .github-help-dialog,
-.submit-overlay.guide-flipping > .modal-flip-stage > .submit-dialog:not(.github-help-dialog){
-  transform-origin:50% 50%;
-  transition:none!important;
-}
-
-/* At the first guide-flip frame the wide stage is scaled down, but
-   its form face is rendered at the ORIGINAL 620px layout with matching
-   static inverse scale. The two transforms cancel exactly at t=0.
-   At the 90deg crossover both faces have smoothly approached the same
-   wide silhouette. No layout changes occur inside the visible front. */
-.submit-overlay.guide-flipping > .modal-flip-stage > .submit-dialog:not(.github-help-dialog) *,
-.submit-overlay.guide-flipping > .modal-flip-stage > .submit-dialog:not(.github-help-dialog) *::before,
-.submit-overlay.guide-flipping > .modal-flip-stage > .submit-dialog:not(.github-help-dialog) *::after{
-  transition:none!important;
-}
-
 
 /* Four beginner steps. Isolate the guide's back-face painting so the
    browser has less work when the card crosses 90 degrees. */

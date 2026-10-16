@@ -1868,9 +1868,6 @@ function resetGithubGuide(parent,restoreFocus){
     stage.style.width="";
     stage.style.maxHeight="";
     stage.style.transform="";
-    for(const name of ["--aae-guide-form-width","--aae-guide-form-height",
-        "--aae-guide-counter-x","--aae-guide-counter-y"])
-        stage.style.removeProperty(name);
     delete stage.dataset.formWidth;
     delete stage.dataset.formHeight;
     guide.inert=true;
@@ -1895,53 +1892,28 @@ function flipGithubGuide(parent,opening,finished){
     }
 
     const reduced=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    // Measure both dimensions ONCE before animation. Animating height/width
-    // alongside 3D rotation forced layout every frame in the old version.
-    const bounds=parent.getBoundingClientRect();
-    const style=getComputedStyle(parent);
-    const horizontalPadding=(parseFloat(style.paddingLeft)||0)+(parseFloat(style.paddingRight)||0);
-    const availableWidth=Math.max(1,bounds.width-horizontalPadding);
-    const wideWidth=Math.min(1000,availableWidth);
-    const formWidth=opening ? form.getBoundingClientRect().width :
-        Number(stage.dataset.formWidth)||Math.min(620,availableWidth);
-    const formHeight=opening ? form.getBoundingClientRect().height :
-        Number(stage.dataset.formHeight)||Math.min(window.innerHeight*.92,800);
+    // The four-step guide uses the EXACT dimensions of the current form.
+    // Store them once before the first flip. The face layout never changes
+    // halfway through a turn, and neither scaling nor height animation runs.
+    const formRect=opening?form.getBoundingClientRect():null;
+    const formWidth=opening?formRect.width:Number(stage.dataset.formWidth);
+    const formHeight=opening?formRect.height:Number(stage.dataset.formHeight);
+    if(!Number.isFinite(formWidth)||!Number.isFinite(formHeight)||
+       formWidth<=0||formHeight<=0)return;
     if(opening){
         stage.dataset.formWidth=String(formWidth);
         stage.dataset.formHeight=String(formHeight);
     }
-    // Never shrink an already-tall form as soon as the flip begins.
-    // Both faces retain a stable maximum height through the crossover.
-    const fullHeight=Math.max(formHeight,Math.min(window.innerHeight*.88,900));
-    const narrowX=Math.min(1,formWidth/wideWidth);
-    const narrowY=Math.min(1,formHeight/fullHeight);
-    const startX=opening?narrowX:1;
-    const endX=opening?1:narrowX;
-    const startY=opening?narrowY:1;
-    const endY=opening?1:narrowY;
-    // Preserve the EXACT pre-flip form layout on the entire front face.
-    // The card is pre-sized for the wide guide, but the old form keeps its
-    // original width and font metrics. A static counter-scale compensates
-    // the stage's initial shrink, so the first painted frame is unchanged.
-    // The inverse scales remain fixed: only ONE stage transform is animated.
-    stage.style.setProperty("--aae-guide-form-width",formWidth+"px");
-    stage.style.setProperty("--aae-guide-form-height",formHeight+"px");
-    stage.style.setProperty("--aae-guide-counter-x",String(1/narrowX));
-    stage.style.setProperty("--aae-guide-counter-y",String(1/narrowY));
     const startAngle=opening?0:180;
     const endAngle=opening?180:0;
-    const startPose=`rotateY(${startAngle}deg) scale3d(${startX},${startY},1)`;
-    const endPose=`rotateY(${endAngle}deg) scale3d(${endX},${endY},1)`;
-
-    // The larger target is set once. Only transform changes per frame,
-    // keeping the same real card and eliminating expensive reflows.
-    stage.style.width=wideWidth+"px";
-    stage.style.height=fullHeight+"px";
+    // Lock the physical card at its existing dimensions before the flip.
+    stage.style.width=formWidth+"px";
+    stage.style.height=formHeight+"px";
     stage.style.maxHeight="none";
     parent.classList.remove("guide-active");
     parent.classList.add("guide-flipping");
     parent.dataset.guideMotion=opening?"enter":"exit";
-    stage.style.transform=startPose;
+    stage.style.transform=`rotateY(${startAngle}deg)`;
     form.inert=true;
     guide.inert=true;
 
@@ -1960,34 +1932,18 @@ function flipGithubGuide(parent,opening,finished){
         settle();
         return;
     }
-    // The old ease-out rotation passed edge-on (~90 degrees) at 20.6%
-    // elapsed. The back face then appeared abruptly at a much larger
-    // apparent size. Keep the edge-on crossover at the actual timeline
-    // midpoint, and ease the size toward its final geometry BEFORE that
-    // transition. Both properties still run for the same full 480 ms.
-    //
-    // Opening/closing use mirrored size curves: when either face changes
-    // at 90 degrees, the stage is already near its full reading dimensions.
-    const turnProgress=t=>t*t*(3-2*t);
-    const sizeProgress=t=>opening ? 1-Math.pow(1-t,2.35) :
-        Math.pow(t,2.35);
-    const frames=Array.from({length:97},(_,i)=>{
-        const t=i/96;
-        const rotation=turnProgress(t);
-        const growth=sizeProgress(t);
-        const angle=startAngle+(endAngle-startAngle)*rotation;
-        const x=startX+(endX-startX)*growth;
-        const y=startY+(endY-startY)*growth;
-        return {
-            offset:t,
-            transform:`rotateY(${angle}deg) scale3d(${x},${y},1)`
-        };
+    // A single compositor-only 180-degree rotation. The guide and form
+    // occupy identical surfaces, so there is no mid-flip resize or reflow.
+    const progress=t=>t*t*(3-2*t);
+    const frames=Array.from({length:65},(_,i)=>{
+        const t=i/64;
+        const angle=startAngle+(endAngle-startAngle)*progress(t);
+        return {offset:t,transform:`rotateY(${angle}deg)`};
     });
     const animation=stage.animate(frames,{duration:480,easing:"linear",fill:"both"});
     inPlaceGuideAnimation=animation;
     animation.finished.then(()=>{
         if(inPlaceGuideAnimation!==animation)return;
-        // Remove WAAPI fill AFTER selecting the final static card face.
         settle();
         inPlaceGuideAnimation=null;
         animation.cancel();
