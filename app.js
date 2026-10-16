@@ -704,7 +704,6 @@ function renderPreview() {
     $("previewContent").innerHTML =
         '<div class="preview-topline"></div>' + squareCover(info.preview_url, true) +
         '<div class="preview-title-band">' + escapeHtml(info.title) + '</div>' +
-        reviewCategoryHtml(map, true) +
         (newMapTag(map) ?
             '<div class="preview-pr-status"><span class="preview-new-tag">' +
             newMapTag(map) + '</span></div>' : '') +
@@ -736,18 +735,19 @@ function renderPreview() {
         '<span class="map-intel-cell-symbol" aria-hidden="true">#</span>' +
         '<div class="map-intel-cell-copy"><span class="map-intel-label">' +
         escapeHtml(t("workshopId")) + '</span><strong class="map-intel-value map-intel-digits">' +
-        escapeHtml(map.id) + '</strong></div></div>' +
-        '</div>' +
-        '<div class="preview-buttons map-intel-actions">' +
-        '<button type="button" class="map-action map-action-copy" data-copy="' +
-        escapeHtml(map.id) + '" aria-label="' + escapeHtml(t("copyId")) + '">' +
-        '<span class="map-action-icon" aria-hidden="true">' +
-        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' +
+        escapeHtml(map.id) + '</strong></div>' +
+        '<button type="button" class="map-intel-copy-button" data-copy="' +
+        escapeHtml(map.id) + '" aria-label="' + escapeHtml(t("copyId")) +
+        '" title="' + escapeHtml(t("copyId")) + '">' +
+        '<svg class="map-intel-copy-svg" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' +
         '<rect x="8" y="8" width="11" height="11" rx="1"></rect>' +
         '<path d="M15 8V5.5C15 4.7 14.3 4 13.5 4h-8C4.7 4 4 4.7 4 5.5v8C4 14.3 4.7 15 5.5 15H8"></path>' +
-        '</svg></span><span class="map-action-label" data-copy-label>' +
-        escapeHtml(t("copyId")) + '</span><span class="map-action-end" aria-hidden="true">+</span>' +
-        '<span class="map-action-sweep" aria-hidden="true"></span></button>' +
+        '</svg><svg class="map-intel-check-svg" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">' +
+        '<path d="M4.5 12.5l5 5L20 7"></path></svg>' +
+        '<span class="sr-only" data-copy-label>' + escapeHtml(t("copyId")) +
+        '</span></button></div>' +
+        '</div>' +
+        '<div class="preview-buttons map-intel-actions">' +
         '<a class="map-action map-action-workshop" href="' + escapeHtml(url) +
         '" target="_blank" rel="noopener noreferrer" aria-label="' +
         escapeHtml(t("openWorkshop")) + '">' +
@@ -936,6 +936,8 @@ function bind() {
         btn.classList.remove("is-copying");
         btn.classList.toggle("is-copied",success);
         btn.classList.toggle("is-copy-error",!success);
+        btn.setAttribute("aria-label",success?t("copied"):t("copyId"));
+        btn.title=success?t("copied"):t("copyId");
         if (success) {
             if(label)label.textContent=t("copied");
             if(status)status.textContent=t("copied");
@@ -944,6 +946,8 @@ function bind() {
             setTimeout(() => {
                 if (!btn.isConnected || btn.copyFeedbackId!==uid) return;
                 btn.classList.remove("is-copied","is-copy-error");
+                btn.setAttribute("aria-label",t("copyId"));
+                btn.title=t("copyId");
                 if(label)label.textContent=t("copyId");
                 if(status)status.textContent="";
             },1900);
