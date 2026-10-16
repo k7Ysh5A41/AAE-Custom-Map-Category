@@ -6,10 +6,10 @@
 <meta name="theme-color" content="#050507">
 <meta name="description" content="All-Around Enhancement — a Black Ops III Zombies-style catalog of public Steam Workshop maps.">
 <title>All-Around Enhancement — Map Catalog</title>
-<link rel="stylesheet" href="styles.css?v=aae-directional-ease-v30-20261016">
+<link rel="stylesheet" href="styles.css?v=aae-grid-chooser-inplace-guide-v31-20261016">
 <script src="translations.js?v=5d480e9eeb3fa6f8ed56e48832f6be01cf080774" defer></script>
 <script src="ambient-background.js?v=aae-continuous-particles-v10-20261015" defer></script>
-<script src="app.js?v=aae-directional-ease-v30-20261016" defer></script>
+<script src="app.js?v=aae-grid-chooser-inplace-guide-v31-20261016" defer></script>
 </head>
 <body>
 <canvas id="ambientBackground" class="ambient-background" aria-hidden="true"></canvas>
@@ -137,8 +137,15 @@
           <label><input id="changeMove" type="radio" name="changeAction" value="move" checked><span data-i18n="changeMove">MOVE TO ANOTHER CATEGORY</span></label>
           <label><input id="changeIncompatible" type="radio" name="changeAction" value="incompatible"><span data-i18n="changeIncompatible">SUBMIT TO INCOMPATIBLE CATEGORY</span></label>
         </div>
-        <label for="changeTargetCategory" id="changeTargetLabel" data-i18n="changeTarget">NEW CATEGORY</label>
-        <select id="changeTargetCategory" name="category" required></select>
+        <label for="categoryPickerChange" id="changeTargetLabel" data-i18n="changeTarget">NEW CATEGORY</label>
+        <div id="changeCategoryField" class="category-choice-field">
+          <button id="categoryPickerChange" class="category-choice-trigger" type="button" aria-haspopup="dialog" aria-controls="categoryPickerOverlay">
+            <span class="category-choice-glyph" aria-hidden="true">▦</span>
+            <span class="category-picker-value">SELECT CATEGORY</span>
+            <span class="category-choice-chevron" aria-hidden="true">↗</span>
+          </button>
+        </div>
+        <select id="changeTargetCategory" class="category-value-store" name="category" tabindex="-1" aria-hidden="true"></select>
         <label class="lite-form-option" for="changeLiteOnly"><input id="changeLiteOnly" name="liteOnly" type="checkbox"><span data-i18n="liteSubmissionLabel">AAE Lite Version Only</span></label>
         <label for="changeReason" data-i18n="changeReason">REASON FOR REQUEST</label>
         <textarea id="changeReason" name="reason" maxlength="400" minlength="5" rows="4" required data-i18n-placeholder="changeReasonPlaceholder" placeholder="Explain why this map should be recategorized"></textarea>
@@ -165,8 +172,15 @@
         <label for="submitWorkshopId" data-i18n="fieldWorkshop">STEAM WORKSHOP URL OR ID</label>
         <input id="submitWorkshopId" name="workshopId" type="text" required autocomplete="off"
           placeholder="https://steamcommunity.com/sharedfiles/filedetails/?id=…" maxlength="250">
-        <label for="submitCategory" data-i18n="fieldCategory">MAP CATEGORY</label>
-        <select id="submitCategory" name="category" required><option value="" data-i18n="selectCategory">SELECT CATEGORY</option></select>
+        <label for="categoryPickerSubmit" data-i18n="fieldCategory">MAP CATEGORY</label>
+        <div class="category-choice-field">
+          <button id="categoryPickerSubmit" class="category-choice-trigger" type="button" aria-haspopup="dialog" aria-controls="categoryPickerOverlay">
+            <span class="category-choice-glyph" aria-hidden="true">▦</span>
+            <span class="category-picker-value">SELECT CATEGORY</span>
+            <span class="category-choice-chevron" aria-hidden="true">↗</span>
+          </button>
+        </div>
+        <select id="submitCategory" class="category-value-store" name="category" tabindex="-1" aria-hidden="true"><option value="">SELECT CATEGORY</option></select>
         <label class="lite-form-option" for="submitLiteOnly"><input id="submitLiteOnly" name="liteOnly" type="checkbox"><span data-i18n="liteSubmissionLabel">AAE Lite Version Only</span></label>
         <label for="submitNotes"><span data-i18n="fieldNotes">ADDITIONAL NOTES</span> <span data-i18n="optional">(OPTIONAL)</span></label>
         <textarea id="submitNotes" name="notes" rows="3" maxlength="400" placeholder="Optional information for the reviewer" data-i18n-placeholder="notesPlaceholder"></textarea>
@@ -179,6 +193,27 @@
         </div>
       </form>
     </div>
+    </div>
+  </section>
+  <section id="categoryPickerOverlay" class="category-picker-overlay" role="presentation" hidden>
+    <div id="categoryPickerPanel" class="category-picker-panel" role="dialog" aria-modal="true"
+         aria-labelledby="categoryPickerHeading" aria-describedby="categoryPickerSubtitle">
+      <div class="category-picker-header">
+        <div class="category-picker-identity">
+          <span class="category-picker-kicker">AAE / CLASSIFICATION SYSTEM</span>
+          <h2 id="categoryPickerHeading">MAP CATEGORY</h2>
+          <p id="categoryPickerSubtitle">SELECT CATEGORY</p>
+        </div>
+        <div class="category-picker-heading-end">
+          <span class="category-picker-count" id="categoryPickerCount">00</span>
+          <button type="button" id="categoryPickerClose" class="category-picker-close" aria-label="Close category selector">×</button>
+        </div>
+      </div>
+      <div class="category-picker-grid" id="categoryPickerGrid" role="group" aria-label="Map categories"></div>
+      <div class="category-picker-bottom">
+        <span class="category-picker-status" aria-hidden="true"><span class="category-picker-status-dot"></span> CATEGORY DATABASE / ONLINE</span>
+        <button type="button" id="categoryPickerCancel" class="category-picker-back" data-i18n="cancel">CANCEL</button>
+      </div>
     </div>
   </section>
   <section class="submit-overlay github-help-overlay" id="githubGuideOverlay" hidden role="presentation">

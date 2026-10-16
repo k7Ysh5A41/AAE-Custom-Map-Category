@@ -100,9 +100,8 @@ function applyUiText() {
         el.hidden = !showChineseChannels;
     }
     // Keep the second-level GitHub guide translated when locale changes.
-    if ($("githubGuideOverlay") && !$("githubGuideOverlay").hidden) {
-        renderGithubGuide();
-    }
+    if (githubGuideMode) renderGithubGuide();
+    if (categoryPickerSource) renderCategoryPicker();
 }
 const state = {
     categories: [], maps: [], selected: null, liteOnly: false,
@@ -1028,11 +1027,148 @@ function setupAnimatedScrollbars(){
         document.fonts.ready.then(()=>controls.forEach(c=>c.queueSync()));
 }
 
+
+/* All category requests use one accessible grid dialog. The original hidden
+   select elements remain the canonical data source for submission validation. */
+let categoryPickerSource=null;
+let categoryPickerTrigger=null;
+let categoryPickerClosing=false;
+let categoryPickerExit=null;
+function syncCategoryChoice(selectId){
+    const select=$(selectId);
+    const button=$(selectId==="submitCategory"?"categoryPickerSubmit":"categoryPickerChange");
+    const display=button.querySelector(".category-picker-value");
+    const selected=select.options[select.selectedIndex];
+    const hasCategory=Boolean(select.value&&selected);
+    display.textContent=hasCategory?selected.textContent:t("selectCategory");
+    button.classList.toggle("has-selection",hasCategory);
+    button.setAttribute("aria-label",t("selectCategory")+
+        (hasCategory?" · "+selected.textContent:""));
+}
+function renderCategoryPicker(){
+    if(!categoryPickerSource)return;
+    const select=$(categoryPickerSource);
+    const isChange=categoryPickerSource==="changeTargetCategory";
+    $("categoryPickerHeading").textContent=t(isChange?"changeTarget":"fieldCategory");
+    $("categoryPickerSubtitle").textContent=t("selectCategory");
+    const allowed=new Set([...select.options].filter(o=>o.value).map(o=>o.value));
+    const matching=state.categories.filter(category=>allowed.has(category.button));
+    $("categoryPickerCount").textContent=String(matching.length).padStart(2,"0");
+    const markup=matching.map((category,index)=>{
+        const chosen=category.button===select.value;
+        const count=categoryMaps(category).length;
+        return '<button type="button" class="category-grid-tile'+
+            (chosen?' is-selected':'')+
+            (category.button===INCOMPATIBLE_CATEGORY?' is-incompatible':'')+
+            '" data-pick-category="'+escapeHtml(category.button)+'"'+
+            ' style="--tile-order:'+Math.min(index,18)+'"'+
+            ' aria-pressed="'+String(chosen)+'"'+
+            ' title="'+escapeHtml(category.summary||category.name)+'">'+
+            '<span class="category-tile-number">'+String(index+1).padStart(2,"0")+'</span>'+
+            '<span class="category-tile-indicator" aria-hidden="true">✓</span>'+
+            '<strong class="category-tile-name">'+escapeHtml(category.name)+'</strong>'+
+            '<span class="category-tile-description">'+escapeHtml(category.summary||"")+'</span>'+
+            '<span class="category-tile-footer"><span>'+count.toLocaleString("en-US")+
+            ' '+escapeHtml(t("maps"))+'</span><span class="category-tile-arrow" aria-hidden="true">↗</span></span>'+
+            '</button>';
+    }).join("");
+    $("categoryPickerGrid").innerHTML=markup;
+}
+function openCategoryPicker(selectId){
+    const overlay=$("categoryPickerOverlay");
+    const parent=$(selectId==="submitCategory"?"submitMapOverlay":"changeMapOverlay");
+    if(!overlay.hidden||parent.hidden||parent.dataset.motion||githubGuideMode)return;
+    if(selectId==="changeTargetCategory"&&$("changeIncompatible").checked)return;
+    categoryPickerSource=selectId;
+    categoryPickerTrigger=$(selectId==="submitCategory"?"categoryPickerSubmit":"categoryPickerChange");
+    const mainDialog=parent.querySelector(".submit-dialog");
+    mainDialog.inert=true;
+    mainDialog.setAttribute("aria-hidden","true");
+    categoryPickerClosing=false;
+    overlay.classList.remove("is-leaving");
+    renderCategoryPicker();
+    overlay.hidden=false;
+    const selected=$("categoryPickerGrid").querySelector(".is-selected");
+    (selected||$("categoryPickerClose")).focus({preventScroll:true});
+}
+function closeCategoryPicker(instant=false){
+    const overlay=$("categoryPickerOverlay");
+    if(overlay.hidden||categoryPickerClosing)return;
+    categoryPickerClosing=true;
+    const savedSource=categoryPickerSource;
+    const savedTrigger=categoryPickerTrigger;
+    const finish=()=>{
+        overlay.hidden=true;
+        overlay.classList.remove("is-leaving");
+        categoryPickerSource=null;
+        categoryPickerTrigger=null;
+        categoryPickerClosing=false;
+        categoryPickerExit=null;
+        const parent=$(savedSource==="submitCategory"?"submitMapOverlay":"changeMapOverlay");
+        const form=parent.querySelector(".submit-dialog");
+        form.inert=false;
+        form.removeAttribute("aria-hidden");
+        if(!parent.hidden&&savedTrigger?.isConnected)
+            savedTrigger.focus({preventScroll:true});
+    };
+    if(categoryPickerExit){categoryPickerExit.cancel();categoryPickerExit=null;}
+    if(instant||window.matchMedia("(prefers-reduced-motion: reduce)").matches||
+       typeof overlay.animate!=="function"){finish();return;}
+    overlay.classList.add("is-leaving");
+    const panel=$("categoryPickerPanel");
+    categoryPickerExit=panel.animate([
+        {opacity:1,transform:"translateY(0) scale(1)"},
+        {opacity:0,transform:"translateY(13px) scale(.975)"}
+    ],{duration:210,easing:"cubic-bezier(.5,0,1,.55)",fill:"both"});
+    categoryPickerExit.finished.then(finish,finish);
+}
+function bindCategoryPicker(){
+    $("categoryPickerSubmit").addEventListener("click",()=>openCategoryPicker("submitCategory"));
+    $("categoryPickerChange").addEventListener("click",()=>openCategoryPicker("changeTargetCategory"));
+    $("categoryPickerClose").addEventListener("click",()=>closeCategoryPicker());
+    $("categoryPickerCancel").addEventListener("click",()=>closeCategoryPicker());
+    $("categoryPickerOverlay").addEventListener("click",event=>{
+        if(event.target===$("categoryPickerOverlay"))closeCategoryPicker();
+    });
+    $("categoryPickerGrid").addEventListener("click",event=>{
+        const tile=event.target.closest("[data-pick-category]");
+        if(!tile||!categoryPickerSource||categoryPickerClosing)return;
+        const select=$(categoryPickerSource);
+        if(![...select.options].some(o=>o.value===tile.dataset.pickCategory))return;
+        select.value=tile.dataset.pickCategory;
+        select.dispatchEvent(new Event("change",{bubbles:true}));
+        syncCategoryChoice(categoryPickerSource);
+        tile.classList.add("is-committed");
+        closeCategoryPicker();
+    });
+    $("categoryPickerOverlay").addEventListener("keydown",event=>{
+        if(event.key==="Escape"){event.preventDefault();event.stopPropagation();closeCategoryPicker();return;}
+        const tiles=[...$("categoryPickerGrid").querySelectorAll("button:not([disabled])")];
+        const current=tiles.indexOf(document.activeElement);
+        if(current>=0&&["ArrowDown","ArrowUp","ArrowLeft","ArrowRight","Home","End"].includes(event.key)){
+            event.preventDefault();
+            const cols=Math.max(1,getComputedStyle($("categoryPickerGrid")).gridTemplateColumns.split(" ").length);
+            const delta=event.key==="ArrowDown"?cols:event.key==="ArrowUp"?-cols:
+                event.key==="ArrowRight"?1:event.key==="ArrowLeft"?-1:0;
+            const next=event.key==="Home"?0:event.key==="End"?tiles.length-1:
+                Math.max(0,Math.min(tiles.length-1,current+delta));
+            tiles[next]?.focus({preventScroll:false});
+        }
+        if(event.key==="Tab"){
+            const focusable=[$("categoryPickerClose"),...tiles,$("categoryPickerCancel")];
+            const first=focusable[0],last=focusable[focusable.length-1];
+            if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}
+            else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
+        }
+    });
+}
+
 function bind() {
     applyUiText();
     bindLanguagePicker();
     bindChangeRequests();
     bindGithubGuide();
+    bindCategoryPicker();
     $("previewPane").addEventListener("click", event => {
         const button = event.target.closest("[data-request-change]");
         if (button) openChangeRequest(button.dataset.requestChange,button);
@@ -1165,7 +1301,7 @@ function bind() {
     document.addEventListener("keydown", event => {
         if (!($("submitMapOverlay").hidden &&
               $("changeMapOverlay").hidden &&
-              $("githubGuideOverlay").hidden)) return;
+              !categoryPickerSource && !githubGuideMode)) return;
         const el = document.activeElement;
         const editing = el && (el.isContentEditable ||
             /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName));
@@ -1345,7 +1481,8 @@ function runModalMotion(overlay,opening,onComplete=()=>{}){
 function closeSubmission() {
     const overlay=$("submitMapOverlay");
     if (overlay.hidden || overlay.dataset.motion==="exit") return;
-    if (!$("githubGuideOverlay").hidden) closeGithubGuide(true,false);
+    if(categoryPickerSource)closeCategoryPicker(true);
+    if(githubGuideMode)closeGithubGuide(true,false);
     submissionValidationId++;
     setSubmissionPending(false);
     runModalMotion(overlay,false,() => {
@@ -1370,9 +1507,11 @@ function openSubmission() {
         state.categories.map(cat => '<option value="' +
         escapeHtml(cat.button) + '">' + escapeHtml(cat.name) + '</option>').join("");
     $("submitMapForm").reset();
+    syncCategoryChoice("submitCategory");
     // A new submission must start without a category even if a category
     // (including Zombies Chronicles 2) is currently selected in the catalog.
     select.value = "";
+    syncCategoryChoice("submitCategory");
     $("submitLiteOnly").checked = false;
     setSubmissionError("");
     submissionScrollY = window.scrollY || window.pageYOffset || 0;
@@ -1496,8 +1635,8 @@ function setChangePending(pending) {
 function updateChangeAction() {
     const incompatible = $("changeIncompatible").checked;
     $("changeTargetLabel").hidden = incompatible;
-    $("changeTargetCategory").hidden = incompatible;
-    $("changeTargetCategory").required = !incompatible;
+    $("changeCategoryField").hidden = incompatible;
+    $("changeTargetCategory").required = false;
 }
 function openChangeRequest(id,trigger) {
     if (!$("changeMapOverlay").hidden || !$("submitMapOverlay").hidden) return;
@@ -1523,6 +1662,7 @@ function openChangeRequest(id,trigger) {
             escapeHtml(c.name) + '</option>').join("");
     setChangeError("");
     updateChangeAction();
+    syncCategoryChoice("changeTargetCategory");
     changeScrollY = window.scrollY || window.pageYOffset || 0;
     changePreviousTop = document.body.style.top;
     document.body.style.top = -changeScrollY + "px";
@@ -1539,7 +1679,8 @@ function openChangeRequest(id,trigger) {
 function closeChangeRequest() {
     const overlay=$("changeMapOverlay");
     if (overlay.hidden || overlay.dataset.motion==="exit") return;
-    if (!$("githubGuideOverlay").hidden) closeGithubGuide(true,false);
+    if(categoryPickerSource)closeCategoryPicker(true);
+    if(githubGuideMode)closeGithubGuide(true,false);
     changeValidationToken++;
     setChangePending(false);
     runModalMotion(overlay,false,() => {
@@ -1628,10 +1769,12 @@ function bindChangeRequests() {
     $("changeMapClose").addEventListener("click", closeChangeRequest);
     $("changeMapCancel").addEventListener("click", closeChangeRequest);
     $("changeMapOverlay").addEventListener("click", event => {
-        if (event.target === $("changeMapOverlay")) closeChangeRequest();
+        if(event.target !== $("changeMapOverlay"))return;
+        if(githubGuideMode)closeGithubGuide();
+        else closeChangeRequest();
     });
     document.addEventListener("keydown", event => {
-        if (event.key === "Escape" && $("githubGuideOverlay").hidden && !$("changeMapOverlay").hidden) {
+        if (event.key === "Escape" && !categoryPickerSource && !githubGuideMode && !$("changeMapOverlay").hidden) {
             event.preventDefault();
             closeChangeRequest();
         }
@@ -1669,87 +1812,154 @@ function renderGithubGuide() {
         '<p>' + escapeHtml(t(key)) + '</p></li>').join("");
     $("githubGuideProceed").hidden = !githubGuideDestination;
 }
-function openGithubGuide(mode, destination) {
-    if (!["new","change"].includes(mode) || !destination || !$("githubGuideOverlay").hidden) return;
-    const parentId = mode === "change" ? "changeMapOverlay" : "submitMapOverlay";
-    const parent = $(parentId);
-    if (parent.hidden) return;
-    githubGuideMode = mode;
-    githubGuideDestination = destination;
-    githubGuideReturnFocus = mode === "change"
-        ? $("changeMapSubmit") : $("submitMapForm").querySelector(".submit-confirm");
-    renderGithubGuide();
-    const parentDialog = parent.querySelector(".submit-dialog");
-    parentDialog.inert = true;
-    parentDialog.setAttribute("aria-hidden", "true");
-    const overlay=$("githubGuideOverlay");
-    rememberModalOrigin(overlay,githubGuideReturnFocus);
-    overlay.style.visibility="hidden";
-    overlay.hidden=false;
-    $("githubGuideDialog").scrollTop=0;
-    runModalMotion(overlay,true,()=>{
-        if(!overlay.hidden)$("githubGuideClose").focus({preventScroll:true});
-    });
+/* The GitHub guide is the actual reverse face of the existing form.
+   It is parked in the hidden legacy host when unused, never opened as
+   another overlay. A single 3D stage turns from form to guide and back. */
+let inPlaceGuideAnimation=null;
+function githubParentOverlay(){
+    return $(githubGuideMode==="change"?"changeMapOverlay":"submitMapOverlay");
 }
-function closeGithubGuide(instant=false,restoreFocus=true) {
-    const overlay=$("githubGuideOverlay");
-    if (overlay.hidden || (!instant && overlay.dataset.motion==="exit")) return;
-    const parent=githubGuideMode==="change" ? $("changeMapOverlay") : $("submitMapOverlay");
-    const target=githubGuideReturnFocus;
-    const finalize=() => {
-        overlay.hidden=true;
-        const parentDialog=parent.querySelector(".submit-dialog");
-        parentDialog.inert=false;
-        parentDialog.removeAttribute("aria-hidden");
-        githubGuideMode=null;
-        githubGuideReturnFocus=null;
-        githubGuideDestination=null;
-        if (restoreFocus && !parent.hidden && target) target.focus({preventScroll:true});
-    };
-    if (instant) {
-        stopModalMotion(overlay);
-        releaseModalOrigin(overlay);
-        finalize();
-    } else {
-        runModalMotion(overlay,false,finalize);
+function resetGithubGuide(parent,restoreFocus){
+    if(inPlaceGuideAnimation){
+        inPlaceGuideAnimation.cancel();
+        inPlaceGuideAnimation=null;
     }
+    if(!parent)return;
+    const stage=parent.querySelector(".modal-flip-stage");
+    const form=stage.querySelector(".submit-dialog:not(.github-help-dialog)");
+    const guide=$("githubGuideDialog");
+    const legacyHost=$("githubGuideOverlay").querySelector(".modal-flip-stage");
+    parent.classList.remove("guide-active","guide-flipping");
+    delete parent.dataset.guideMotion;
+    stage.style.height="";
+    stage.style.transform="";
+    guide.inert=true;
+    guide.style.transform="";
+    form.inert=false;
+    form.removeAttribute("aria-hidden");
+    legacyHost.appendChild(guide);
+    const target=githubGuideReturnFocus;
+    githubGuideMode=null;
+    githubGuideReturnFocus=null;
+    githubGuideDestination=null;
+    if(restoreFocus&&!parent.hidden&&target?.isConnected)
+        target.focus({preventScroll:true});
 }
-function bindGithubGuide() {
-    $("githubGuideClose").addEventListener("click", () => closeGithubGuide());
-    $("githubGuideBack").addEventListener("click", () => closeGithubGuide());
-    $("githubGuideProceed").addEventListener("click", () => {
-        if (!githubGuideDestination) return;
-        const destination = githubGuideDestination;
-        const mode = githubGuideMode;
-        window.open(destination, "_blank", "noopener,noreferrer");
+function flipGithubGuide(parent,opening,finished){
+    const stage=parent.querySelector(".modal-flip-stage");
+    const form=stage.querySelector(".submit-dialog:not(.github-help-dialog)");
+    const guide=$("githubGuideDialog");
+    if(inPlaceGuideAnimation){
+        inPlaceGuideAnimation.cancel();
+        inPlaceGuideAnimation=null;
+    }
+    const reduced=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const originalHeight=Math.ceil(form.getBoundingClientRect().height);
+    const formHeight=opening?originalHeight:(Number(stage.dataset.formHeight)||originalHeight);
+    const guideHeight=Math.max(1,Math.min(
+        Math.floor(window.innerHeight*.88),
+        Math.max(formHeight,700)
+    ));
+    if(opening)stage.dataset.formHeight=String(formHeight);
+    const beginHeight=opening?formHeight:Math.ceil(stage.getBoundingClientRect().height);
+    const targetHeight=opening?guideHeight:formHeight;
+    const startAngle=opening?0:180,endAngle=opening?180:0;
+    stage.style.height=beginHeight+"px";
+    stage.style.transform="rotateY("+startAngle+"deg)";
+    parent.classList.remove("guide-active");
+    parent.classList.add("guide-flipping");
+    parent.dataset.guideMotion=opening?"enter":"exit";
+    guide.inert=true;
+    form.inert=true;
+    if(reduced||typeof stage.animate!=="function"){
+        stage.style.height=targetHeight+"px";
+        parent.classList.remove("guide-flipping");
+        delete parent.dataset.guideMotion;
+        parent.classList.toggle("guide-active",opening);
+        stage.style.transform="";
+        finished();
+        return;
+    }
+    inPlaceGuideAnimation=stage.animate([
+        {transform:"rotateY("+startAngle+"deg)",height:beginHeight+"px"},
+        {transform:"rotateY("+endAngle+"deg)",height:targetHeight+"px"}
+    ],{
+        duration:460,fill:"both",
+        easing:opening?"cubic-bezier(.18,.87,.22,1)":"cubic-bezier(.7,0,.92,.3)"
+    });
+    const animation=inPlaceGuideAnimation;
+    animation.finished.then(()=>{
+        if(inPlaceGuideAnimation!==animation)return;
+        stage.style.height=targetHeight+"px";
+        parent.classList.remove("guide-flipping");
+        delete parent.dataset.guideMotion;
+        parent.classList.toggle("guide-active",opening);
+        stage.style.transform="";
+        inPlaceGuideAnimation=null;
+        animation.cancel();
+        finished();
+    },()=>{});
+}
+function openGithubGuide(mode,destination){
+    if(!["new","change"].includes(mode)||!destination||githubGuideMode||
+       categoryPickerSource)return;
+    const parent=$(mode==="change"?"changeMapOverlay":"submitMapOverlay");
+    if(parent.hidden||parent.dataset.motion)return;
+    githubGuideMode=mode;
+    githubGuideDestination=destination;
+    githubGuideReturnFocus=mode==="change"
+        ? $("changeMapSubmit"):$("submitMapForm").querySelector(".submit-confirm");
+    renderGithubGuide();
+    const stage=parent.querySelector(".modal-flip-stage");
+    const form=stage.querySelector(".submit-dialog:not(.github-help-dialog)");
+    const guide=$("githubGuideDialog");
+    form.setAttribute("aria-hidden","true");
+    guide.scrollTop=0;
+    stage.appendChild(guide);
+    flipGithubGuide(parent,true,()=>{
+        guide.inert=false;
+        guide.focus({preventScroll:true});
+    });
+}
+function closeGithubGuide(instant=false,restoreFocus=true){
+    if(!githubGuideMode)return;
+    const parent=githubParentOverlay();
+    const done=()=>resetGithubGuide(parent,restoreFocus);
+    if(instant){
+        done();
+        return;
+    }
+    if(parent.dataset.guideMotion)return;
+    flipGithubGuide(parent,false,done);
+}
+function bindGithubGuide(){
+    $("githubGuideClose").addEventListener("click",()=>closeGithubGuide());
+    $("githubGuideBack").addEventListener("click",()=>closeGithubGuide());
+    $("githubGuideProceed").addEventListener("click",()=>{
+        if(!githubGuideDestination||!githubGuideMode)return;
+        const destination=githubGuideDestination,mode=githubGuideMode;
+        window.open(destination,"_blank","noopener,noreferrer");
         closeGithubGuide(true,false);
-        if (mode === "change") {
-            closeChangeRequest();
-        } else {
-            closeSubmission();
-        }
+        if(mode==="change")closeChangeRequest();
+        else closeSubmission();
     });
-    $("githubGuideOverlay").addEventListener("click", event => {
-        if (event.target === $("githubGuideOverlay")) closeGithubGuide();
-    });
-    document.addEventListener("keydown", event => {
-        if ($("githubGuideOverlay").hidden) return;
-        if (event.key === "Escape") {
+    document.addEventListener("keydown",event=>{
+        if(!githubGuideMode||categoryPickerSource)return;
+        if(event.key==="Escape"){
             event.preventDefault();
             closeGithubGuide();
             return;
         }
-        if (event.key !== "Tab") return;
-        // The form underneath is inert; cycle focus within the guide.
-        const focusable = [...$("githubGuideDialog").querySelectorAll(
-            "button:not([disabled]),a[href],input:not([disabled]),[tabindex]:not([tabindex='-1'])"
-        )].filter(el => !el.hidden);
-        if (!focusable.length) return;
-        const first = focusable[0], last = focusable[focusable.length-1];
-        if (event.shiftKey && document.activeElement === first) {
-            event.preventDefault(); last.focus();
-        } else if (!event.shiftKey && document.activeElement === last) {
-            event.preventDefault(); first.focus();
+        if(event.key!=="Tab")return;
+        const focusable=[...$("githubGuideDialog").querySelectorAll(
+            'button:not([disabled]):not([hidden]),a[href],[tabindex]:not([tabindex="-1"])'
+        )].filter(el=>!el.hidden);
+        if(!focusable.length)return;
+        const first=focusable[0],last=focusable[focusable.length-1];
+        if(event.shiftKey&&document.activeElement===first){
+            event.preventDefault();last.focus();
+        }else if(!event.shiftKey&&document.activeElement===last){
+            event.preventDefault();first.focus();
         }
     });
 }
@@ -1759,10 +1969,12 @@ function bindMapSubmission() {
     $("submitMapClose").addEventListener("click", closeSubmission);
     $("submitMapCancel").addEventListener("click", closeSubmission);
     $("submitMapOverlay").addEventListener("click", event => {
-        if (event.target === $("submitMapOverlay")) closeSubmission();
+        if(event.target !== $("submitMapOverlay"))return;
+        if(githubGuideMode)closeGithubGuide();
+        else closeSubmission();
     });
     document.addEventListener("keydown", event => {
-        if (event.key === "Escape" && $("githubGuideOverlay").hidden && !$("submitMapOverlay").hidden) {
+        if (event.key === "Escape" && !categoryPickerSource && !githubGuideMode && !$("submitMapOverlay").hidden) {
             event.preventDefault();
             closeSubmission();
         }

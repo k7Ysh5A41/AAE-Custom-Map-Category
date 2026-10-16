@@ -4607,3 +4607,465 @@ html.aae-scroll-enhanced #catalog::-webkit-scrollbar{
     animation:none!important;
   }
 }
+
+/* Crisp text when the morph is idle: avoid permanent 3D raster layers.
+   3D transforms are retained only while the card is actually animating. */
+.submit-overlay:not([data-motion]):not([data-guide-motion]) > .modal-flip-stage{
+  transform:none!important;
+  will-change:auto!important;
+}
+.submit-overlay:not([data-motion]):not([data-guide-motion]) > .modal-flip-stage > .submit-dialog:not(.github-help-dialog){
+  transform:none!important;
+}
+.submit-overlay > .modal-flip-stage > .submit-dialog{
+  -webkit-font-smoothing:auto;
+}
+
+/* Shared category picker button: the hidden SELECT remains the source of
+   category IDs, while the button opens a keyboard-accessible grid. */
+.category-value-store{display:none!important;}
+.submit-dialog form > .category-choice-field{margin:0 0 1px;}
+.category-choice-trigger{
+  box-sizing:border-box;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  width:100%;
+  min-height:54px;
+  padding:8px 13px;
+  text-align:left;
+  color:#c4b4a6;
+  cursor:pointer;
+  border:1px solid rgba(255,151,87,.51);
+  border-left:3px solid rgba(255,163,92,.83);
+  background:linear-gradient(110deg,#201719 5%,#32221e 52%,#181415);
+  box-shadow:inset 0 1px rgba(255,219,155,.10),0 0 8px rgba(255,95,33,.06);
+  transition:border-color .19s ease,box-shadow .23s ease,transform .22s ease,color .18s ease;
+}
+.category-choice-glyph{
+  display:grid;place-items:center;
+  flex:0 0 37px;width:37px;height:37px;
+  border:1px solid rgba(255,192,127,.45);
+  font-size:22px;
+  color:#ffbf80;
+  background:rgba(255,131,53,.10);
+  transition:transform .3s ease;
+}
+.category-choice-trigger .category-picker-value{
+  flex:1;min-width:0;
+  font-size:clamp(13px,1.15vw,16px);
+  font-weight:750;
+  line-height:1.3;
+  overflow-wrap:anywhere;
+}
+.category-choice-trigger .category-choice-chevron{
+  flex:0 0 auto;
+  color:#ffb16e;
+  font-size:22px;
+  transition:transform .27s ease;
+}
+.category-choice-trigger.has-selection{color:#ffebd1;border-color:rgba(255,200,131,.73);}
+.category-choice-trigger:hover,.category-choice-trigger:focus-visible{
+  outline:2px solid #ffe6b5;outline-offset:1px;
+  border-color:#ffe8b0;
+  color:#fff0db;
+  transform:translateY(-2px);
+  box-shadow:inset 0 0 15px rgba(245,118,48,.13),0 0 17px rgba(244,120,54,.27);
+}
+.category-choice-trigger:hover .category-choice-glyph{transform:rotate(-12deg) scale(1.09);}
+.category-choice-trigger:hover .category-choice-chevron{transform:translate3d(3px,-3px,0);}
+.category-picker-overlay{
+  position:fixed;
+  inset:0;
+  z-index:1400;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  box-sizing:border-box;
+  padding:clamp(10px,2.7vw,28px);
+  background:rgba(3,3,5,.84);
+  isolation:isolate;
+  overflow:hidden;
+  animation:aaeCategoryOverlayReveal 280ms ease-out both;
+}
+.category-picker-overlay[hidden]{display:none!important;}
+.category-picker-overlay.is-leaving{animation:aaeCategoryOverlayDismiss 210ms ease-in both;}
+.category-picker-panel{
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  box-sizing:border-box;
+  width:min(100%,1060px);
+  max-height:min(90dvh,940px);
+  min-height:0;
+  border:1px solid #ffb57b;
+  border-top:3px solid #ffdaa6;
+  color:#f9e6d2;
+  background:linear-gradient(155deg,#211718,#0b0d11 43%,#211614);
+  box-shadow:0 20px 70px rgba(0,0,0,.77),0 0 55px rgba(255,104,35,.20),
+    inset 0 1px rgba(255,232,183,.18);
+  overflow:hidden;
+  animation:aaeCategoryPanelEnter 470ms cubic-bezier(.16,.8,.2,1) both;
+}
+.category-picker-panel::before{
+  content:"";
+  position:absolute;
+  pointer-events:none;
+  top:0;left:0;right:0;
+  height:2px;
+  z-index:4;
+  background:linear-gradient(90deg,transparent 10%,#ffb76f 45%,#fff0c5 52%,transparent 90%);
+  background-size:220% 100%;
+  animation:aaeCategoryHeaderSweep 3.7s ease-in-out infinite;
+}
+.category-picker-header{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:15px;
+  flex:0 0 auto;
+  padding:24px clamp(17px,2.4vw,29px) 19px;
+  background:linear-gradient(100deg,rgba(255,131,52,.13),transparent 72%);
+  border-bottom:1px solid rgba(255,177,94,.34);
+}
+.category-picker-identity{min-width:0;}
+.category-picker-kicker{
+  display:block;
+  font:800 11px/1.4 "Segoe UI",sans-serif;
+  letter-spacing:.16em;
+  color:#ffb77d;
+}
+.category-picker-header h2{
+  margin:5px 0;
+  color:#ffecd1;
+  font-size:clamp(22px,3vw,35px);
+  letter-spacing:.045em;
+}
+.category-picker-header p{
+  margin:0;
+  color:#d3a68b;
+  letter-spacing:.06em;
+  font:700 12px/1.5 "Segoe UI",sans-serif;
+}
+.category-picker-heading-end{display:flex;align-items:center;gap:15px;}
+.category-picker-count{
+  color:#ffc589;
+  font:900 clamp(26px,3.5vw,44px)/1 "Cascadia Code",Consolas,monospace;
+  letter-spacing:-.06em;
+}
+.category-picker-close{
+  display:grid;place-items:center;
+  width:43px;height:43px;flex:0 0 43px;
+  border:1px solid rgba(255,179,105,.48);
+  background:rgba(255,126,63,.08);
+  color:#ffd3ab;cursor:pointer;
+  font-size:32px;
+  transition:transform .28s ease,border-color .2s ease,box-shadow .22s ease;
+}
+.category-picker-close:hover,.category-picker-close:focus-visible{
+  outline:2px solid #ffdbab;
+  transform:rotate(90deg);
+  border-color:#ffdcaa;
+  box-shadow:0 0 17px rgba(255,134,54,.36);
+}
+.category-picker-grid{
+  min-height:0;
+  flex:1 1 auto;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  align-content:start;
+  gap:12px;
+  padding:clamp(14px,2.3vw,23px);
+  scrollbar-color:#e78650 #231512;
+  scrollbar-width:thin;
+}
+.category-grid-tile{
+  position:relative;
+  isolation:isolate;
+  box-sizing:border-box;
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  min-width:0;
+  min-height:172px;
+  padding:16px 17px 14px;
+  overflow:hidden;
+  text-align:left;
+  cursor:pointer;
+  border:1px solid rgba(255,145,79,.32);
+  border-left:3px solid rgba(255,169,92,.60);
+  background:linear-gradient(138deg,rgba(255,130,51,.16),rgba(22,17,20,.96) 48%,rgba(9,12,16,.98));
+  color:#fcebd8;
+  box-shadow:inset 0 1px rgba(255,208,139,.10),0 6px 17px rgba(0,0,0,.15);
+  transition:transform .3s cubic-bezier(.12,.85,.22,1),border-color .25s ease,
+    background-color .2s ease,box-shadow .28s ease;
+  animation:aaeCategoryTileRise 540ms cubic-bezier(.18,.8,.18,1) both;
+  animation-delay:calc(var(--tile-order,0)*27ms);
+}
+.category-grid-tile::before{
+  content:"";
+  position:absolute;inset:0;
+  z-index:-1;
+  pointer-events:none;
+  background:linear-gradient(110deg,transparent 26%,rgba(255,220,163,.20) 50%,transparent 75%);
+  transform:translateX(-125%) skewX(-13deg);
+  opacity:0;
+}
+.category-grid-tile:hover::before,.category-grid-tile:focus-visible::before{
+  animation:aaeCategoryTileLight .73s ease-out both;
+}
+.category-grid-tile::after{
+  content:"";
+  position:absolute;
+  pointer-events:none;
+  right:12px;top:12px;
+  width:7px;height:7px;
+  border:1px solid rgba(255,203,140,.58);
+  transform:rotate(45deg);
+  opacity:.43;
+  animation:aaeCategoryTileBeacon 2.8s ease-in-out infinite;
+  animation-delay:calc(var(--tile-order,0)*-130ms);
+}
+.category-tile-number{color:#ffa973;font:800 12px/1.3 Consolas,monospace;}
+.category-tile-indicator{
+  position:absolute;top:14px;right:14px;
+  color:#ffe4b6;
+  font-size:17px;
+  opacity:0;
+  transform:scale(.4) rotate(-45deg);
+  transition:transform .27s cubic-bezier(.2,.9,.3,1),opacity .2s ease;
+}
+.category-tile-name{
+  display:block;
+  margin:15px 0 8px;
+  font-size:clamp(15px,1.35vw,19px);
+  line-height:1.28;
+  color:#ffecd6;
+  overflow-wrap:anywhere;
+}
+.category-tile-description{
+  display:block;
+  flex:1;
+  font:500 12px/1.43 "Segoe UI",sans-serif;
+  color:#bc9d8c;
+  overflow-wrap:anywhere;
+}
+.category-tile-footer{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:9px;
+  margin-top:17px;
+  padding-top:10px;
+  border-top:1px solid rgba(255,166,85,.25);
+  color:#ffd09a;
+  font:750 11px/1.2 "Segoe UI",sans-serif;
+  letter-spacing:.06em;
+}
+.category-tile-arrow{
+  font-size:18px;
+  transition:transform .23s ease;
+}
+.category-grid-tile:hover,.category-grid-tile:focus-visible{
+  outline:1px solid #ffe0ad;
+  outline-offset:0;
+  transform:translate3d(0,-5px,0) scale(1.018);
+  border-color:#ffd6a1;
+  box-shadow:0 13px 25px rgba(0,0,0,.39),0 0 22px rgba(255,115,55,.34),
+    inset 0 1px rgba(255,238,192,.27);
+}
+.category-grid-tile:hover .category-tile-arrow{transform:translate3d(3px,-3px,0) rotate(7deg);}
+.category-grid-tile.is-selected{
+  border-color:#ffe2a1;
+  background:linear-gradient(134deg,rgba(255,178,88,.31),rgba(99,52,32,.70) 48%,rgba(27,22,24,.96));
+  box-shadow:inset 0 0 15px rgba(255,179,105,.12),0 0 19px rgba(255,126,47,.20);
+}
+.category-grid-tile.is-selected .category-tile-indicator,
+.category-grid-tile.is-committed .category-tile-indicator{
+  opacity:1;
+  transform:scale(1) rotate(0);
+}
+.category-grid-tile.is-committed{
+  border-color:#fff4bb;
+  box-shadow:0 0 31px rgba(255,178,89,.85),inset 0 0 19px rgba(255,209,143,.25);
+}
+.category-grid-tile.is-incompatible{border-left-color:#f27860;}
+.category-picker-bottom{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:15px;
+  flex:0 0 auto;
+  padding:14px 24px;
+  border-top:1px solid rgba(255,185,102,.25);
+  background:linear-gradient(100deg,rgba(255,144,59,.08),rgba(7,9,12,.94));
+}
+.category-picker-status{
+  display:flex;align-items:center;gap:9px;
+  color:#c39d82;
+  font:750 10px/1.5 "Segoe UI",sans-serif;
+  letter-spacing:.12em;
+}
+.category-picker-status-dot{
+  width:6px;height:6px;
+  background:#ffbc73;
+  transform:rotate(45deg);
+  animation:aaeCategoryTileBeacon 1.8s ease-in-out infinite;
+}
+.category-picker-back{
+  flex:0 0 auto;
+  min-height:38px;padding:8px 17px;
+  border:1px solid #ffba84;
+  color:#ffddba;
+  background:rgba(255,129,54,.10);
+  cursor:pointer;
+  letter-spacing:.08em;
+  transition:background-color .2s ease,box-shadow .2s ease;
+}
+.category-picker-back:hover,.category-picker-back:focus-visible{
+  outline:1px solid #ffe2b8;
+  background:rgba(255,137,60,.30);
+  box-shadow:0 0 15px rgba(255,134,45,.25);
+}
+@keyframes aaeCategoryOverlayReveal{
+  from{opacity:0;}
+  to{opacity:1;}
+}
+@keyframes aaeCategoryOverlayDismiss{
+  from{opacity:1;}
+  to{opacity:0;}
+}
+@keyframes aaeCategoryPanelEnter{
+  from{opacity:0;transform:translate3d(0,24px,0) scale(.945);}
+  to{opacity:1;transform:translate3d(0,0,0) scale(1);}
+}
+@keyframes aaeCategoryTileRise{
+  from{opacity:0;transform:translate3d(0,22px,0) rotateX(-13deg) scale(.96);}
+  to{opacity:1;transform:translate3d(0,0,0) rotateX(0deg) scale(1);}
+}
+@keyframes aaeCategoryTileLight{
+  from{transform:translateX(-125%) skewX(-13deg);opacity:0;}
+  20%{opacity:.85;}
+  to{transform:translateX(170%) skewX(-13deg);opacity:0;}
+}
+@keyframes aaeCategoryTileBeacon{
+  0%,100%{opacity:.25;}
+  50%{opacity:.88;}
+}
+@keyframes aaeCategoryHeaderSweep{
+  from{background-position:150% 0;}
+  to{background-position:-80% 0;}
+}
+@media(max-width:950px){
+  .category-picker-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+}
+@media(max-width:590px){
+  .category-picker-grid{grid-template-columns:minmax(0,1fr);gap:9px;}
+  .category-grid-tile{min-height:128px;padding:12px 13px;}
+  .category-tile-name{margin:10px 0 6px;}
+  .category-picker-header{padding:15px 13px 12px;}
+  .category-picker-bottom{padding:10px 13px;}
+  .category-picker-status{font-size:9px;letter-spacing:.04em;}
+}
+
+/* GitHub guide mounted on the back of the EXISTING submission card.
+   It never opens the old external #githubGuideOverlay. At rest the active
+   face has NO 3D transform, preventing blurred rasterized text. */
+.submit-overlay.guide-flipping > .modal-flip-stage,
+.submit-overlay.guide-active > .modal-flip-stage{
+  width:min(100%,620px);
+}
+.submit-overlay.guide-flipping > .modal-flip-stage{
+  transform-style:preserve-3d;
+  will-change:transform,height;
+}
+.submit-overlay.guide-flipping .modal-flip-front,
+.submit-overlay.guide-active .modal-flip-front{
+  display:none!important;
+}
+.submit-overlay.guide-flipping > .modal-flip-stage > .submit-dialog:not(.github-help-dialog){
+  position:absolute;
+  top:50%;
+  left:0;
+  width:100%;
+  max-height:100%;
+  transform:translate3d(0,-50%,1px)!important;
+  -webkit-backface-visibility:hidden;
+  backface-visibility:hidden;
+  overflow-y:auto;
+}
+.submit-overlay.guide-flipping > .modal-flip-stage > .github-help-dialog{
+  position:absolute;
+  inset:0;
+  box-sizing:border-box;
+  width:100%;
+  height:100%;
+  max-height:100%;
+  overflow-y:auto;
+  transform:rotateY(180deg) translateZ(1px)!important;
+  -webkit-backface-visibility:hidden;
+  backface-visibility:hidden;
+}
+.submit-overlay.guide-active > .modal-flip-stage > .submit-dialog:not(.github-help-dialog){
+  display:none!important;
+}
+.submit-overlay.guide-active > .modal-flip-stage > .github-help-dialog{
+  position:relative;
+  box-sizing:border-box;
+  width:100%;
+  max-height:100%;
+  height:100%;
+  overflow-y:auto;
+  transform:none!important;
+  -webkit-backface-visibility:visible;
+  backface-visibility:visible;
+  will-change:auto!important;
+}
+.submit-overlay.guide-flipping .github-guide-steps,
+.submit-overlay.guide-active .github-guide-steps{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+}
+.submit-overlay.guide-flipping .github-guide-tile,
+.submit-overlay.guide-active .github-guide-tile{
+  min-height:102px;
+  padding:12px 11px;
+  gap:7px;
+}
+.submit-overlay.guide-flipping .github-guide-tile p,
+.submit-overlay.guide-active .github-guide-tile p{
+  font-size:12px;
+  line-height:1.42;
+}
+.submit-overlay.guide-flipping .github-guide-tile .github-guide-step-number,
+.submit-overlay.guide-active .github-guide-tile .github-guide-step-number{
+  font-size:32px;
+}
+.submit-overlay.guide-flipping .github-guide-intro,
+.submit-overlay.guide-active .github-guide-intro{
+  font-size:13px;
+  margin:11px 0;
+}
+.submit-overlay.guide-flipping .github-guide-details,
+.submit-overlay.guide-active .github-guide-details{gap:8px;margin-top:10px;}
+.submit-overlay.guide-flipping .github-help-dialog,
+.submit-overlay.guide-active .github-help-dialog{padding:17px;}
+.submit-overlay.guide-flipping .github-guide-details > *,
+.submit-overlay.guide-active .github-guide-details > *{padding:10px;}
+@media(max-width:590px){
+  .submit-overlay.guide-flipping .github-guide-steps,
+  .submit-overlay.guide-active .github-guide-steps,
+  .submit-overlay.guide-flipping .github-guide-details,
+  .submit-overlay.guide-active .github-guide-details{
+    grid-template-columns:minmax(0,1fr);
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .category-picker-overlay,
+  .category-picker-panel,
+  .category-grid-tile,
+  .category-grid-tile::before,
+  .category-grid-tile::after,
+  .category-picker-panel::before,
+  .category-picker-status-dot{
+    animation:none!important;
+    transition:none!important;
+  }
+  .submit-overlay.guide-flipping > .modal-flip-stage{will-change:auto;}
+}
