@@ -1913,7 +1913,9 @@ function flipGithubGuide(parent,opening,finished){
         stage.dataset.formWidth=String(formWidth);
         stage.dataset.formHeight=String(formHeight);
     }
-    const fullHeight=Math.max(1,Math.min(window.innerHeight*.88,900));
+    // Never shrink an already-tall form as soon as the flip begins.
+    // Both faces retain a stable maximum height through the crossover.
+    const fullHeight=Math.max(formHeight,Math.min(window.innerHeight*.88,900));
     const startX=opening?Math.min(1,formWidth/wideWidth):1;
     const endX=opening?1:Math.min(1,formWidth/wideWidth);
     const startY=opening?Math.min(1,formHeight/fullHeight):1;
@@ -1950,14 +1952,26 @@ function flipGithubGuide(parent,opening,finished){
         settle();
         return;
     }
-    const animateProgress=t=>opening ? 1-Math.pow(1-t,3) : t*t*t;
-    const frames=Array.from({length:65},(_,i)=>{
-        const p=animateProgress(i/64);
-        const angle=startAngle+(endAngle-startAngle)*p;
-        const x=startX+(endX-startX)*p;
-        const y=startY+(endY-startY)*p;
+    // The old ease-out rotation passed edge-on (~90 degrees) at 20.6%
+    // elapsed. The back face then appeared abruptly at a much larger
+    // apparent size. Keep the edge-on crossover at the actual timeline
+    // midpoint, and ease the size toward its final geometry BEFORE that
+    // transition. Both properties still run for the same full 480 ms.
+    //
+    // Opening/closing use mirrored size curves: when either face changes
+    // at 90 degrees, the stage is already near its full reading dimensions.
+    const turnProgress=t=>t*t*(3-2*t);
+    const sizeProgress=t=>opening ? 1-Math.pow(1-t,2.35) :
+        Math.pow(t,2.35);
+    const frames=Array.from({length:97},(_,i)=>{
+        const t=i/96;
+        const rotation=turnProgress(t);
+        const growth=sizeProgress(t);
+        const angle=startAngle+(endAngle-startAngle)*rotation;
+        const x=startX+(endX-startX)*growth;
+        const y=startY+(endY-startY)*growth;
         return {
-            offset:i/64,
+            offset:t,
             transform:`rotateY(${angle}deg) scale3d(${x},${y},1)`
         };
     });

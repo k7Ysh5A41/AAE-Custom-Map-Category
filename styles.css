@@ -5127,3 +5127,16 @@ html.aae-scroll-enhanced #catalog::-webkit-scrollbar{
 .category-picker-panel:not([hidden]){
   backface-visibility:visible;
 }
+
+/* Keep the guide/form edges aligned on a single physical 3D stage.
+   Dimension changes are compositor-only; no height animation or repaint
+   is introduced at the exact backface crossover. */
+.submit-overlay.guide-flipping > .modal-flip-stage{
+  transform-origin:50% 50%;
+  transform-style:preserve-3d;
+}
+.submit-overlay.guide-flipping > .modal-flip-stage > .github-help-dialog,
+.submit-overlay.guide-flipping > .modal-flip-stage > .submit-dialog:not(.github-help-dialog){
+  transform-origin:50% 50%;
+  transition:none!important;
+}
