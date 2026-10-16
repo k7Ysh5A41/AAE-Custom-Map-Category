@@ -1872,6 +1872,7 @@ function resetGithubGuide(parent,restoreFocus){
     delete stage.dataset.formHeight;
     guide.inert=true;
     guide.style.transform="";
+    delete guide.dataset.fit;
     form.inert=false;
     form.removeAttribute("aria-hidden");
     legacyHost.appendChild(guide);
@@ -1881,6 +1882,32 @@ function resetGithubGuide(parent,restoreFocus){
     githubGuideDestination=null;
     if(restoreFocus&&!parent.hidden&&target?.isConnected)
         target.focus({preventScroll:true});
+}
+
+/* Fit all four beginner steps within the current form's fixed card size.
+   Measure only while the flip initializes, never on individual animation
+   frames. Density classes preserve all four steps and both action buttons. */
+function fitGithubGuideToCard(guide){
+    const steps=[...guide.querySelectorAll(".github-guide-tile")];
+    const choices=["regular","compact","dense","tight","minimal"];
+    const fits=()=>{
+        if(!guide.clientHeight||guide.scrollHeight>guide.clientHeight+1)return false;
+        if(steps.some(tile=>tile.scrollHeight>tile.clientHeight+1))return false;
+        const sections=[guide.querySelector(".submit-heading"),
+            guide.querySelector(".github-guide-intro"),
+            guide.querySelector(".github-guide-steps"),
+            guide.querySelector(".github-guide-note"),
+            guide.querySelector(".github-guide-actions")].filter(Boolean);
+        return sections.every((section,index)=>{
+            const next=sections[index+1];
+            return !next||section.getBoundingClientRect().bottom<=
+                next.getBoundingClientRect().top+1;
+        });
+    };
+    for(const choice of choices){
+        guide.dataset.fit=choice;
+        if(fits())return;
+    }
 }
 function flipGithubGuide(parent,opening,finished){
     const stage=parent.querySelector(".modal-flip-stage");
@@ -1914,6 +1941,7 @@ function flipGithubGuide(parent,opening,finished){
     parent.classList.add("guide-flipping");
     parent.dataset.guideMotion=opening?"enter":"exit";
     stage.style.transform=`rotateY(${startAngle}deg)`;
+    if(opening)fitGithubGuideToCard(guide);
     form.inert=true;
     guide.inert=true;
 

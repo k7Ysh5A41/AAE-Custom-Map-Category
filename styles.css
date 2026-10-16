@@ -5162,3 +5162,189 @@ html.aae-scroll-enhanced #catalog::-webkit-scrollbar{
   .submit-overlay.guide-active .github-guide-tile p,
   .submit-overlay.guide-flipping .github-guide-tile p{font-size:14px;}
 }
+
+
+/* Size-aware, scroll-free GitHub guide. Four rows divide the real space
+   remaining after the heading, short introduction, notice and actions.
+   No clipping shortcuts: the JS fitter selects a denser layout if the
+   measured content needs more room. */
+.submit-overlay.guide-flipping > .modal-flip-stage > .github-help-dialog,
+.submit-overlay.guide-active > .modal-flip-stage > .github-help-dialog{
+  --guide-gap:8px;
+  --guide-pad:16px;
+  --guide-tile-pad-y:9px;
+  --guide-tile-pad-x:13px;
+  --guide-step-font:14px;
+  --guide-step-line:1.45;
+  --guide-number-font:29px;
+  --guide-intro-font:14px;
+  --guide-note-font:13px;
+  --guide-action-font:13px;
+  box-sizing:border-box;
+  display:flex!important;
+  flex-direction:column;
+  justify-content:flex-start;
+  gap:var(--guide-gap);
+  padding:var(--guide-pad)!important;
+  overflow:hidden!important;
+  overscroll-behavior:none;
+  scrollbar-width:none!important;
+  scrollbar-gutter:auto!important;
+}
+.submit-overlay.guide-flipping > .modal-flip-stage > .github-help-dialog::-webkit-scrollbar,
+.submit-overlay.guide-active > .modal-flip-stage > .github-help-dialog::-webkit-scrollbar{
+  display:none!important;
+}
+.submit-overlay .github-help-dialog .submit-heading{
+  flex:0 0 auto;
+  min-width:0;
+  margin:0!important;
+  padding:0 0 9px!important;
+}
+.submit-overlay.guide-flipping .github-help-dialog .submit-heading h2,
+.submit-overlay.guide-active .github-help-dialog .submit-heading h2{
+  font-size:clamp(17px,2.6vw,27px)!important;
+  line-height:1.14;
+  margin:0!important;
+}
+.submit-overlay.guide-flipping .github-guide-intro,
+.submit-overlay.guide-active .github-guide-intro{
+  flex:0 0 auto;
+  margin:0!important;
+  padding:0;
+  font-size:var(--guide-intro-font)!important;
+  line-height:1.37!important;
+}
+.submit-overlay.guide-flipping .github-guide-steps,
+.submit-overlay.guide-active .github-guide-steps{
+  display:grid!important;
+  flex:1 1 auto;
+  min-height:0;
+  min-width:0;
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:repeat(4,minmax(min-content,1fr));
+  align-content:stretch;
+  gap:var(--guide-gap)!important;
+  padding:0!important;
+  margin:0!important;
+}
+.submit-overlay.guide-flipping .github-guide-steps .github-guide-tile,
+.submit-overlay.guide-active .github-guide-steps .github-guide-tile{
+  box-sizing:border-box;
+  display:grid!important;
+  grid-template-columns:clamp(31px,5vw,48px) minmax(0,1fr);
+  grid-template-rows:minmax(0,1fr);
+  align-items:center;
+  min-height:0!important;
+  height:auto;
+  margin:0;
+  padding:var(--guide-tile-pad-y) var(--guide-tile-pad-x)!important;
+  gap:9px;
+}
+.submit-overlay.guide-flipping .github-guide-tile .github-guide-step-number,
+.submit-overlay.guide-active .github-guide-tile .github-guide-step-number{
+  font-size:var(--guide-number-font)!important;
+  line-height:1;
+}
+.submit-overlay.guide-flipping .github-guide-tile p,
+.submit-overlay.guide-active .github-guide-tile p{
+  margin:0;
+  padding:0;
+  font-size:var(--guide-step-font)!important;
+  line-height:var(--guide-step-line)!important;
+}
+.submit-overlay.guide-flipping .github-guide-note,
+.submit-overlay.guide-active .github-guide-note{
+  flex:0 0 auto;
+  margin:0!important;
+  padding:9px 11px!important;
+  font-size:var(--guide-note-font)!important;
+  line-height:1.35!important;
+}
+.submit-overlay.guide-flipping .github-guide-actions,
+.submit-overlay.guide-active .github-guide-actions{
+  position:relative!important;
+  flex:0 0 auto;
+  bottom:auto;
+  z-index:1;
+  display:flex;
+  flex-flow:row wrap;
+  align-items:center;
+  justify-content:space-between;
+  gap:7px;
+  margin:0!important;
+  padding:0!important;
+  background:none;
+}
+.submit-overlay.guide-flipping .github-guide-actions button,
+.submit-overlay.guide-active .github-guide-actions button{
+  flex:0 1 auto;
+  min-width:0;
+  min-height:36px!important;
+  padding:8px 11px!important;
+  font-size:var(--guide-action-font)!important;
+  line-height:1.25!important;
+  white-space:normal;
+}
+.submit-overlay.guide-flipping .github-help-dialog[data-fit="compact"],
+.submit-overlay.guide-active .github-help-dialog[data-fit="compact"]{
+  --guide-gap:6px;--guide-pad:13px;--guide-tile-pad-y:6px;
+  --guide-step-font:13px;--guide-number-font:27px;
+  --guide-intro-font:13px;--guide-note-font:12px;
+}
+.submit-overlay.guide-flipping .github-help-dialog[data-fit="dense"],
+.submit-overlay.guide-active .github-help-dialog[data-fit="dense"]{
+  --guide-gap:4px;--guide-pad:11px;--guide-tile-pad-y:4px;
+  --guide-tile-pad-x:9px;--guide-step-font:12px;
+  --guide-step-line:1.28;--guide-number-font:24px;
+  --guide-intro-font:12px;--guide-note-font:11px;
+  --guide-action-font:12px;
+}
+.submit-overlay.guide-flipping .github-help-dialog[data-fit="tight"],
+.submit-overlay.guide-active .github-help-dialog[data-fit="tight"]{
+  --guide-gap:3px;--guide-pad:9px;--guide-tile-pad-y:3px;
+  --guide-tile-pad-x:7px;--guide-step-font:11.5px;
+  --guide-step-line:1.2;--guide-number-font:21px;
+  --guide-intro-font:11px;--guide-note-font:10.5px;
+  --guide-action-font:11px;
+}
+.submit-overlay.guide-flipping .github-help-dialog[data-fit="minimal"],
+.submit-overlay.guide-active .github-help-dialog[data-fit="minimal"]{
+  --guide-gap:2px;--guide-pad:7px;--guide-tile-pad-y:2px;
+  --guide-tile-pad-x:6px;--guide-step-font:11px;
+  --guide-step-line:1.15;--guide-number-font:19px;
+  --guide-intro-font:11px;--guide-note-font:10px;
+  --guide-action-font:10.5px;
+}
+.submit-overlay.guide-flipping .github-help-dialog[data-fit="dense"] .github-guide-note,
+.submit-overlay.guide-active .github-help-dialog[data-fit="dense"] .github-guide-note,
+.submit-overlay.guide-flipping .github-help-dialog[data-fit="tight"] .github-guide-note,
+.submit-overlay.guide-active .github-help-dialog[data-fit="tight"] .github-guide-note,
+.submit-overlay.guide-flipping .github-help-dialog[data-fit="minimal"] .github-guide-note,
+.submit-overlay.guide-active .github-help-dialog[data-fit="minimal"] .github-guide-note{
+  padding:5px 8px!important;
+}
+/* In exceptionally short layouts the note repeats step 03. Omit only
+   this redundant warning rather than truncate the four actual steps. */
+.submit-overlay.guide-flipping .github-help-dialog[data-fit="minimal"] .github-guide-note,
+.submit-overlay.guide-active .github-help-dialog[data-fit="minimal"] .github-guide-note{
+  display:none!important;
+}
+.submit-overlay.guide-flipping .github-help-dialog[data-fit="tight"] .github-guide-actions button,
+.submit-overlay.guide-active .github-help-dialog[data-fit="tight"] .github-guide-actions button,
+.submit-overlay.guide-flipping .github-help-dialog[data-fit="minimal"] .github-guide-actions button,
+.submit-overlay.guide-active .github-help-dialog[data-fit="minimal"] .github-guide-actions button{
+  min-height:30px!important;
+  padding:5px 7px!important;
+}
+@media(max-width:480px){
+  .submit-overlay.guide-flipping .github-guide-actions button,
+  .submit-overlay.guide-active .github-guide-actions button{
+    flex:1 1 130px;
+  }
+  .submit-overlay.guide-flipping .github-guide-steps .github-guide-tile,
+  .submit-overlay.guide-active .github-guide-steps .github-guide-tile{
+    grid-template-columns:30px minmax(0,1fr);
+    gap:6px;
+  }
+}
