@@ -6,10 +6,10 @@
 <meta name="theme-color" content="#050507">
 <meta name="description" content="All-Around Enhancement — a Black Ops III Zombies-style catalog of public Steam Workshop maps.">
 <title>All-Around Enhancement — Map Catalog</title>
-<link rel="stylesheet" href="styles.css?v=aae-picker-visibility-and-icon-v32-20261016">
+<link rel="stylesheet" href="styles.css?v=aae-wide-guide-flip-incompatible-v33-20261016">
 <script src="translations.js?v=5d480e9eeb3fa6f8ed56e48832f6be01cf080774" defer></script>
 <script src="ambient-background.js?v=aae-continuous-particles-v10-20261015" defer></script>
-<script src="app.js?v=aae-picker-visibility-and-icon-v32-20261016" defer></script>
+<script src="app.js?v=aae-wide-guide-flip-incompatible-v33-20261016" defer></script>
 </head>
 <body>
 <canvas id="ambientBackground" class="ambient-background" aria-hidden="true"></canvas>
@@ -172,8 +172,13 @@
         <label for="submitWorkshopId" data-i18n="fieldWorkshop">STEAM WORKSHOP URL OR ID</label>
         <input id="submitWorkshopId" name="workshopId" type="text" required autocomplete="off"
           placeholder="https://steamcommunity.com/sharedfiles/filedetails/?id=…" maxlength="250">
-        <label for="categoryPickerSubmit" data-i18n="fieldCategory">MAP CATEGORY</label>
-        <div class="category-choice-field">
+        <label data-i18n="changeAction">REQUEST TYPE</label>
+        <div class="change-types submit-category-types" role="group" aria-label="Map category type">
+          <label><input id="submitChooseCategory" type="radio" name="submitCategoryMode" value="category" checked><span data-i18n="selectCategory">SELECT CATEGORY</span></label>
+          <label><input id="submitIncompatible" type="radio" name="submitCategoryMode" value="incompatible"><span data-i18n="changeIncompatible">SUBMIT TO INCOMPATIBLE CATEGORY</span></label>
+        </div>
+        <label for="categoryPickerSubmit" id="submitCategoryLabel" data-i18n="fieldCategory">MAP CATEGORY</label>
+        <div class="category-choice-field" id="submitCategoryField">
           <button id="categoryPickerSubmit" class="category-choice-trigger" type="button" aria-haspopup="dialog" aria-controls="categoryPickerOverlay">
             <span class="category-choice-glyph" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><rect x="2.5" y="2.5" width="8" height="8"/><rect x="13.5" y="2.5" width="8" height="8"/><rect x="2.5" y="13.5" width="8" height="8"/><rect x="13.5" y="13.5" width="8" height="8"/></svg></span>
             <span class="category-picker-value">SELECT CATEGORY</span>

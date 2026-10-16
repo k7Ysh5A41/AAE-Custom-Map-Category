@@ -4990,109 +4990,116 @@ html.aae-scroll-enhanced #catalog::-webkit-scrollbar{
   .category-picker-status{font-size:9px;letter-spacing:.04em;}
 }
 
-/* GitHub guide mounted on the back of the EXISTING submission card.
-   It never opens the old external #githubGuideOverlay. At rest the active
-   face has NO 3D transform, preventing blurred rasterized text. */
+/* GitHub guide is the back face of the CURRENT submission card.
+   Its target geometry is computed before animating; only the 3D transform
+   runs per frame. Wider two-column steps replace cramped narrow tiles. */
 .submit-overlay.guide-flipping > .modal-flip-stage,
 .submit-overlay.guide-active > .modal-flip-stage{
-  width:min(100%,620px);
+  width:min(100%,1000px);
+  max-height:none;
+  transform-style:preserve-3d;
 }
 .submit-overlay.guide-flipping > .modal-flip-stage{
-  transform-style:preserve-3d;
-  will-change:transform,height;
+  will-change:transform;
+  contain:layout;
+}
+.submit-overlay.guide-active > .modal-flip-stage{
+  will-change:auto!important;
+  transform:none!important;
 }
 .submit-overlay.guide-flipping .modal-flip-front,
-.submit-overlay.guide-active .modal-flip-front{
-  display:none!important;
-}
+.submit-overlay.guide-active .modal-flip-front{display:none!important;}
 .submit-overlay.guide-flipping > .modal-flip-stage > .submit-dialog:not(.github-help-dialog){
   position:absolute;
-  top:50%;
   left:0;
+  top:50%;
   width:100%;
   max-height:100%;
-  transform:translate3d(0,-50%,1px)!important;
-  -webkit-backface-visibility:hidden;
-  backface-visibility:hidden;
   overflow-y:auto;
+  transform:translate3d(0,-50%,1px)!important;
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+  animation:none!important;
 }
 .submit-overlay.guide-flipping > .modal-flip-stage > .github-help-dialog{
   position:absolute;
   inset:0;
-  box-sizing:border-box;
   width:100%;
   height:100%;
   max-height:100%;
+  box-sizing:border-box;
   overflow-y:auto;
   transform:rotateY(180deg) translateZ(1px)!important;
-  -webkit-backface-visibility:hidden;
   backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+  animation:none!important;
 }
-.submit-overlay.guide-active > .modal-flip-stage > .submit-dialog:not(.github-help-dialog){
-  display:none!important;
-}
+.submit-overlay.guide-active > .modal-flip-stage > .submit-dialog:not(.github-help-dialog){display:none!important;}
 .submit-overlay.guide-active > .modal-flip-stage > .github-help-dialog{
   position:relative;
   box-sizing:border-box;
   width:100%;
-  max-height:100%;
   height:100%;
+  max-height:100%;
   overflow-y:auto;
   transform:none!important;
-  -webkit-backface-visibility:visible;
   backface-visibility:visible;
+  -webkit-backface-visibility:visible;
   will-change:auto!important;
+}
+.submit-overlay.guide-flipping .github-help-dialog,
+.submit-overlay.guide-active .github-help-dialog{
+  padding:clamp(18px,2.1vw,29px);
 }
 .submit-overlay.guide-flipping .github-guide-steps,
 .submit-overlay.guide-active .github-guide-steps{
   grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:8px;
+  gap:12px;
 }
 .submit-overlay.guide-flipping .github-guide-tile,
 .submit-overlay.guide-active .github-guide-tile{
-  min-height:102px;
-  padding:12px 11px;
-  gap:7px;
+  min-height:131px;
+  padding:17px 18px;
+  gap:12px;
 }
 .submit-overlay.guide-flipping .github-guide-tile p,
 .submit-overlay.guide-active .github-guide-tile p{
-  font-size:12px;
-  line-height:1.42;
+  font-size:15px;
+  line-height:1.58;
 }
 .submit-overlay.guide-flipping .github-guide-tile .github-guide-step-number,
-.submit-overlay.guide-active .github-guide-tile .github-guide-step-number{
-  font-size:32px;
-}
+.submit-overlay.guide-active .github-guide-tile .github-guide-step-number{font-size:43px;}
 .submit-overlay.guide-flipping .github-guide-intro,
 .submit-overlay.guide-active .github-guide-intro{
-  font-size:13px;
-  margin:11px 0;
+  font-size:16px;
+  line-height:1.65;
+  margin:16px 0;
 }
 .submit-overlay.guide-flipping .github-guide-details,
-.submit-overlay.guide-active .github-guide-details{gap:8px;margin-top:10px;}
-.submit-overlay.guide-flipping .github-help-dialog,
-.submit-overlay.guide-active .github-help-dialog{padding:17px;}
+.submit-overlay.guide-active .github-guide-details{
+  gap:12px;
+  margin-top:17px;
+}
 .submit-overlay.guide-flipping .github-guide-details > *,
-.submit-overlay.guide-active .github-guide-details > *{padding:10px;}
-@media(max-width:590px){
+.submit-overlay.guide-active .github-guide-details > *{padding:16px 18px;}
+@media(max-width:740px){
   .submit-overlay.guide-flipping .github-guide-steps,
   .submit-overlay.guide-active .github-guide-steps,
   .submit-overlay.guide-flipping .github-guide-details,
   .submit-overlay.guide-active .github-guide-details{
     grid-template-columns:minmax(0,1fr);
   }
+  .submit-overlay.guide-flipping .github-guide-tile,
+  .submit-overlay.guide-active .github-guide-tile{
+    min-height:95px;
+    padding:12px 14px;
+  }
+  .submit-overlay.guide-flipping .github-guide-tile p,
+  .submit-overlay.guide-active .github-guide-tile p{
+    font-size:14px;
+  }
 }
 @media(prefers-reduced-motion:reduce){
-  .category-picker-overlay,
-  .category-picker-panel,
-  .category-grid-tile,
-  .category-grid-tile::before,
-  .category-grid-tile::after,
-  .category-picker-panel::before,
-  .category-picker-status-dot{
-    animation:none!important;
-    transition:none!important;
-  }
   .submit-overlay.guide-flipping > .modal-flip-stage{will-change:auto;}
 }
 

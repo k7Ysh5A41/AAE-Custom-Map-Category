@@ -1045,6 +1045,14 @@ function syncCategoryChoice(selectId){
     button.setAttribute("aria-label",t("selectCategory")+
         (hasCategory?" · "+selected.textContent:""));
 }
+function updateSubmissionCategoryAction(){
+    const incompatible=$("submitIncompatible").checked;
+    $("submitCategoryLabel").hidden=incompatible;
+    $("submitCategoryField").hidden=incompatible;
+    $("categoryPickerSubmit").disabled=incompatible;
+    // The real hidden SELECT continues to store the ordinary category.
+    // Incompatible submissions override it only when building the request.
+}
 function renderCategoryPicker(){
     if(!categoryPickerSource)return;
     const select=$(categoryPickerSource);
@@ -1079,6 +1087,7 @@ function openCategoryPicker(selectId){
     const parent=$(selectId==="submitCategory"?"submitMapOverlay":"changeMapOverlay");
     if(!overlay.hidden||parent.hidden||parent.dataset.motion||githubGuideMode)return;
     if(selectId==="changeTargetCategory"&&$("changeIncompatible").checked)return;
+    if(selectId==="submitCategory"&&$("submitIncompatible").checked)return;
     categoryPickerSource=selectId;
     categoryPickerTrigger=$(selectId==="submitCategory"?"categoryPickerSubmit":"categoryPickerChange");
     const mainDialog=parent.querySelector(".submit-dialog");
@@ -1526,11 +1535,16 @@ function openSubmission() {
         setSubmissionError(t("loadingCatalog"));
         return;
     }
-    const select = $("submitCategory");
-    select.innerHTML = '<option value="">' + escapeHtml(t("selectCategory")) + '</option>' +
-        state.categories.map(cat => '<option value="' +
-        escapeHtml(cat.button) + '">' + escapeHtml(cat.name) + '</option>').join("");
+    const select=$("submitCategory");
+    select.innerHTML='<option value="">'+escapeHtml(t("selectCategory"))+'</option>'+
+        state.categories.filter(cat=>cat.button!==INCOMPATIBLE_CATEGORY).map(cat=>
+            '<option value="'+escapeHtml(cat.button)+'">'+escapeHtml(cat.name)+'</option>').join("");
     $("submitMapForm").reset();
+    $("submitChooseCategory").checked=true;
+    const incompatibleOption=$("submitIncompatible");
+    incompatibleOption.disabled=!state.categories.some(cat=>cat.button===INCOMPATIBLE_CATEGORY);
+    incompatibleOption.closest("label").hidden=incompatibleOption.disabled;
+    updateSubmissionCategoryAction();
     syncCategoryChoice("submitCategory");
     // A new submission must start without a category even if a category
     // (including Zombies Chronicles 2) is currently selected in the catalog.
@@ -1596,8 +1610,9 @@ async function submitMapProposal(event) {
     event.preventDefault();
     if (submissionValidationPending) return;
     const id = parseWorkshopId($("submitWorkshopId").value);
-    const selectedKey = $("submitCategory").value;
-    const category = state.categories.find(cat => cat.button === selectedKey);
+    const selectedKey=$("submitIncompatible").checked
+        ? INCOMPATIBLE_CATEGORY : $("submitCategory").value;
+    const category=state.categories.find(cat=>cat.button===selectedKey);
     if (!id) return setSubmissionError(t("invalidWorkshop"));
     if (!category) return setSubmissionError(t("invalidCategory"));
     if (state.maps.some(map => map.id === id))
@@ -1856,7 +1871,11 @@ function resetGithubGuide(parent,restoreFocus){
     parent.classList.remove("guide-active","guide-flipping");
     delete parent.dataset.guideMotion;
     stage.style.height="";
+    stage.style.width="";
+    stage.style.maxHeight="";
     stage.style.transform="";
+    delete stage.dataset.formWidth;
+    delete stage.dataset.formHeight;
     guide.inert=true;
     guide.style.transform="";
     form.inert=false;
@@ -1877,51 +1896,79 @@ function flipGithubGuide(parent,opening,finished){
         inPlaceGuideAnimation.cancel();
         inPlaceGuideAnimation=null;
     }
+
     const reduced=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const originalHeight=Math.ceil(form.getBoundingClientRect().height);
-    const formHeight=opening?originalHeight:(Number(stage.dataset.formHeight)||originalHeight);
-    const guideHeight=Math.max(1,Math.min(
-        Math.floor(window.innerHeight*.88),
-        Math.max(formHeight,700)
-    ));
-    if(opening)stage.dataset.formHeight=String(formHeight);
-    const beginHeight=opening?formHeight:Math.ceil(stage.getBoundingClientRect().height);
-    const targetHeight=opening?guideHeight:formHeight;
-    const startAngle=opening?0:180,endAngle=opening?180:0;
-    stage.style.height=beginHeight+"px";
-    stage.style.transform="rotateY("+startAngle+"deg)";
+    // Measure both dimensions ONCE before animation. Animating height/width
+    // alongside 3D rotation forced layout every frame in the old version.
+    const bounds=parent.getBoundingClientRect();
+    const style=getComputedStyle(parent);
+    const horizontalPadding=(parseFloat(style.paddingLeft)||0)+(parseFloat(style.paddingRight)||0);
+    const availableWidth=Math.max(1,bounds.width-horizontalPadding);
+    const wideWidth=Math.min(1000,availableWidth);
+    const formWidth=opening ? form.getBoundingClientRect().width :
+        Number(stage.dataset.formWidth)||Math.min(620,availableWidth);
+    const formHeight=opening ? form.getBoundingClientRect().height :
+        Number(stage.dataset.formHeight)||Math.min(window.innerHeight*.92,800);
+    if(opening){
+        stage.dataset.formWidth=String(formWidth);
+        stage.dataset.formHeight=String(formHeight);
+    }
+    const fullHeight=Math.max(1,Math.min(window.innerHeight*.88,900));
+    const startX=opening?Math.min(1,formWidth/wideWidth):1;
+    const endX=opening?1:Math.min(1,formWidth/wideWidth);
+    const startY=opening?Math.min(1,formHeight/fullHeight):1;
+    const endY=opening?1:Math.min(1,formHeight/fullHeight);
+    const startAngle=opening?0:180;
+    const endAngle=opening?180:0;
+    const startPose=`rotateY(${startAngle}deg) scale3d(${startX},${startY},1)`;
+    const endPose=`rotateY(${endAngle}deg) scale3d(${endX},${endY},1)`;
+
+    // The larger target is set once. Only transform changes per frame,
+    // keeping the same real card and eliminating expensive reflows.
+    stage.style.width=wideWidth+"px";
+    stage.style.height=fullHeight+"px";
+    stage.style.maxHeight="none";
     parent.classList.remove("guide-active");
     parent.classList.add("guide-flipping");
     parent.dataset.guideMotion=opening?"enter":"exit";
-    guide.inert=true;
+    stage.style.transform=startPose;
     form.inert=true;
-    if(reduced||typeof stage.animate!=="function"){
-        stage.style.height=targetHeight+"px";
+    guide.inert=true;
+
+    const settle=()=>{
         parent.classList.remove("guide-flipping");
         delete parent.dataset.guideMotion;
         parent.classList.toggle("guide-active",opening);
         stage.style.transform="";
+        if(opening){
+            guide.inert=false;
+            form.inert=true;
+        }
         finished();
+    };
+    if(reduced||typeof stage.animate!=="function"){
+        settle();
         return;
     }
-    inPlaceGuideAnimation=stage.animate([
-        {transform:"rotateY("+startAngle+"deg)",height:beginHeight+"px"},
-        {transform:"rotateY("+endAngle+"deg)",height:targetHeight+"px"}
-    ],{
-        duration:460,fill:"both",
-        easing:opening?"cubic-bezier(.18,.87,.22,1)":"cubic-bezier(.7,0,.92,.3)"
+    const animateProgress=t=>opening ? 1-Math.pow(1-t,3) : t*t*t;
+    const frames=Array.from({length:65},(_,i)=>{
+        const p=animateProgress(i/64);
+        const angle=startAngle+(endAngle-startAngle)*p;
+        const x=startX+(endX-startX)*p;
+        const y=startY+(endY-startY)*p;
+        return {
+            offset:i/64,
+            transform:`rotateY(${angle}deg) scale3d(${x},${y},1)`
+        };
     });
-    const animation=inPlaceGuideAnimation;
+    const animation=stage.animate(frames,{duration:480,easing:"linear",fill:"both"});
+    inPlaceGuideAnimation=animation;
     animation.finished.then(()=>{
         if(inPlaceGuideAnimation!==animation)return;
-        stage.style.height=targetHeight+"px";
-        parent.classList.remove("guide-flipping");
-        delete parent.dataset.guideMotion;
-        parent.classList.toggle("guide-active",opening);
-        stage.style.transform="";
+        // Remove WAAPI fill AFTER selecting the final static card face.
+        settle();
         inPlaceGuideAnimation=null;
         animation.cancel();
-        finished();
     },()=>{});
 }
 function openGithubGuide(mode,destination){
@@ -1989,6 +2036,8 @@ function bindGithubGuide(){
 }
 
 function bindMapSubmission() {
+    $("submitChooseCategory").addEventListener("change",updateSubmissionCategoryAction);
+    $("submitIncompatible").addEventListener("change",updateSubmissionCategoryAction);
     $("submitMapOpen").addEventListener("click", openSubmission);
     $("submitMapClose").addEventListener("click", closeSubmission);
     $("submitMapCancel").addEventListener("click", closeSubmission);
