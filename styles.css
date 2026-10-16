@@ -4292,3 +4292,23 @@ html,body {
     opacity:1;
   }
 }
+
+
+/* Only one compositor-driven 3D surface performs the flip+growth.
+   Disable legacy dialog entrance motion, which independently animated the
+   opposite face and made the window appear to materialize separately. */
+.submit-overlay .modal-flip-stage > .submit-dialog,
+.submit-overlay:not([hidden]) .modal-flip-stage > .submit-dialog{
+  animation:none!important;
+  -webkit-backface-visibility:hidden;
+  backface-visibility:hidden;
+}
+.submit-overlay .modal-flip-front{
+  transform:rotateY(180deg) translateZ(1px);
+  -webkit-backface-visibility:hidden;
+  backface-visibility:hidden;
+}
+.submit-overlay .modal-flip-stage{
+  transform-style:preserve-3d;
+  transform-origin:50% 50%;
+}

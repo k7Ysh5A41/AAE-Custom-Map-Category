@@ -1106,28 +1106,30 @@ function runModalMotion(overlay,opening,onComplete=()=>{}){
     const label=front?.querySelector(".modal-flip-front-label");
     const source=modalOrigins.get(overlay);
     const reduced=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if(!stage||!source||reduced||typeof stage.animate!=="function"){
+    if(!stage||!front||!label||!source||reduced||
+        typeof stage.animate!=="function"){
+        overlay.style.visibility="";
         if(!opening)releaseModalOrigin(overlay);
         onComplete();
         return;
     }
-    const rect=stage.getBoundingClientRect(),origin=source.rect;
+
+    // Opening overlays are laid out while INVISIBLE, so no first-frame
+    // flash of an untransformed, centered full-size dialog is possible.
+    stage.style.transform="";
+    const rect=stage.getBoundingClientRect();
+    const origin=source.rect;
     const dx=origin.left+origin.width/2-(rect.left+rect.width/2);
     const dy=origin.top+origin.height/2-(rect.top+rect.height/2);
     const sx=origin.width/Math.max(1,rect.width);
     const sy=origin.height/Math.max(1,rect.height);
-    // Uniform scale protects the aspect ratio of ALL dialog typography.
-    const scale=Math.max(.05,Math.min(1,Math.sqrt(sx*sy)));
-    const atButton=`translate3d(${dx}px,${dy}px,0) rotateY(180deg) scale(${scale})`;
-    const atWindow="translate3d(0px,0px,0px) rotateY(0deg) scale(1)";
-    // Correct only the hidden front-facing button shell to the source button
-    // rectangle. Counter-transform its label, so both faces keep legible text.
-    const fx=sx/scale,fy=sy/scale;
-    front.style.transform="rotateY(180deg) translateZ(1px) scale(1,1)";
-    label.style.transform=`scale(${1/sx},${1/sy})`;
-    // A live, visual duplicate of the clicked button face is used at the
-    // origin so its icon and caption vanish before the growing card flips.
-    // The reverse is still the actual laid-out form, never a screenshot.
+    const buttonTransform=`translate3d(${dx}px,${dy}px,0) rotateY(180deg) scale(${sx},${sy})`;
+    const expandedTransform="translate3d(0px,0px,0px) rotateY(0deg) scale(1,1)";
+
+    // Both faces share the exact same geometry: no independent resize or
+    // turn of the front face. The front is the source button; the back is
+    // the real interactive form, already laid out at its final size.
+    front.style.transform="rotateY(180deg) translateZ(1px)";
     front.style.background=source.background;
     front.style.color=source.color;
     front.style.border=source.border;
@@ -1141,75 +1143,73 @@ function runModalMotion(overlay,opening,onComplete=()=>{}){
         label.textContent=source.label;
     }
     label.style.font=source.font;
+    // Correct the initial button text proportions for the first 55ms.
+    // Content is gone before the panel's nonuniform starting aspect grows.
+    label.style.transform=`scale(${1/Math.max(.025,sx)},${1/Math.max(.025,sy)})`;
+
     const duration=opening?560:290;
     const fastButton=overlay.id==="submitMapOverlay"||
         overlay.id==="changeMapOverlay";
     overlay.dataset.motion=opening?"enter":"exit";
     stage.inert=true;
-    if(source.trigger?.isConnected)source.trigger.classList.add("modal-origin-occupied");
 
-    // A single continuous 3D surface moves from the clicked button to
-    // the already-laid-out window. Its size reaches 100% BEFORE the
-    // reverse/dialog face passes 90 degrees and becomes visible.
-    // The whole card uses UNIFORM scaling to keep form fonts undistorted.
-    const halfway=`translate3d(${dx*.31}px,${dy*.31}px,0) rotateY(132deg) scale(${scale+(1-scale)*.78})`;
-    const fullBeforeTurn="translate3d(0px,0px,0px) rotateY(95deg) scale(1)";
-    const closeHalfway=`translate3d(${dx*.31}px,${dy*.31}px,0) rotateY(132deg) scale(${scale+(1-scale)*.78})`;
-    const openingFrames=[
-        {transform:atButton,offset:0},
-        {transform:halfway,offset:.34},
-        {transform:fullBeforeTurn,offset:.58},
-        {transform:atWindow,offset:1}
-    ];
-    const closingFrames=[
-        {transform:atWindow,offset:0},
-        {transform:fullBeforeTurn,offset:.42},
-        {transform:closeHalfway,offset:.66},
-        {transform:atButton,offset:1}
-    ];
-    const stageAnimation=stage.animate(opening?openingFrames:closingFrames,{
-        duration,fill:"both",easing:opening?
-            "cubic-bezier(.34,.1,.26,1)":"cubic-bezier(.59,.02,.75,.73)"
+    // A single, uninterrupted FLIP and a single monotonic GROW are applied
+    // to the whole stage. At the 90-degree face crossover (progress .5)
+    // width and height are already 100%, so text on the back is never
+    // drawn with nonuniform scaling.
+    const smoother=t=>{
+        const v=Math.min(1,Math.max(0,t));
+        return v*v*v*(v*(v*6-15)+10);
+    };
+    const ease=t=>t*t*(3-2*t);
+    const buildFrame=t=>{
+        const turn=ease(t);
+        const expand=smoother(turn/.485);
+        const widthScale=sx+(1-sx)*expand;
+        const heightScale=sy+(1-sy)*expand;
+        const angle=180*(1-turn);
+        const left=dx*(1-expand),top=dy*(1-expand);
+        return {offset:t,transform:`translate3d(${left}px,${top}px,0) rotateY(${angle}deg) scale(${widthScale},${heightScale})`};
+    };
+    // Sampling the SAME transform over the duration avoids the two-part
+    // keyframe easing discontinuity that previously resembled two windows.
+    const frames=Array.from({length:49},(_,i)=>buildFrame(i/48));
+    const runningFrames=opening?frames:
+        frames.map((_,i)=>{
+            const sourceFrame=frames[48-i];
+            return {offset:i/48,transform:sourceFrame.transform};
+        });
+    // Match the button position before letting the browser paint the overlay.
+    stage.style.transform=opening?buttonTransform:expandedTransform;
+    const stageAnimation=stage.animate(runningFrames,{
+        duration,fill:"both",easing:"linear"
     });
-
-    // The front face itself expands FROM the button's actual aspect ratio
-    // TO the full dialog rectangle while turning. Both faces therefore
-    // occupy the SAME final card silhouette at the handoff.
-    const frontAtButton=`rotateY(180deg) translateZ(1px) scale(${fx},${fy})`;
-    const frontAtWindow="rotateY(180deg) translateZ(1px) scale(1,1)";
-    const frontFrames=opening?[
-        {transform:frontAtButton,offset:0},
-        {transform:frontAtWindow,offset:.58},
-        {transform:frontAtWindow,offset:1}
-    ]:[
-        {transform:frontAtWindow,offset:0},
-        {transform:frontAtWindow,offset:.42},
-        {transform:frontAtButton,offset:1}
-    ];
-    const frontAnimation=front.animate(frontFrames,{
-        duration,fill:"both",easing:"cubic-bezier(.3,.1,.28,1)"
-    });
-
-    // Hide the button's actual contents almost immediately, keeping only
-    // its frame throughout the expansion; restore the words at the very
-    // end of the reverse motion after the card has shrunk back.
     const labelAnimation=label.animate(opening?[
         {opacity:1,offset:0},
-        {opacity:1,offset:fastButton?.01:.08},
-        {opacity:0,offset:fastButton?.16:.28},
+        {opacity:1,offset:fastButton?.006:.04},
+        {opacity:0,offset:fastButton?.105:.18},
         {opacity:0,offset:1}
     ]:[
         {opacity:0,offset:0},
-        {opacity:0,offset:fastButton?.78:.68},
-        {opacity:1,offset:.97},
+        {opacity:0,offset:fastButton?.77:.7},
+        {opacity:1,offset:.96},
         {opacity:1,offset:1}
-    ],{duration,fill:"both",easing:"ease-out"});
-    modalMotions.set(overlay,[stageAnimation,frontAnimation,labelAnimation]);
+    ],{duration,fill:"both",easing:"linear"});
+    modalMotions.set(overlay,[stageAnimation,labelAnimation]);
+    if(source.trigger?.isConnected)source.trigger.classList.add("modal-origin-occupied");
+    overlay.style.visibility="";
+
     stageAnimation.finished.then(()=>{
         if(modalMotions.get(overlay)?.[0]!==stageAnimation)return;
+        if(!opening)overlay.style.visibility="hidden";
+        // Put the final geometry in normal CSS before removing WAAPI fill.
+        stage.style.transform=opening?expandedTransform:buttonTransform;
         stopModalMotion(overlay);
+        stage.style.transform="";
+        label.style.transform="";
         if(!opening)releaseModalOrigin(overlay);
         onComplete();
+        if(!opening)overlay.style.visibility="";
     },()=>{});
 }
 function closeSubmission() {
@@ -1252,6 +1252,7 @@ function openSubmission() {
     document.body.classList.add("submission-open");
     const overlay=$("submitMapOverlay");
     rememberModalOrigin(overlay,$("submitMapOpen"));
+    overlay.style.visibility="hidden";
     overlay.hidden=false;
     runModalMotion(overlay,true,()=>{
         if(!overlay.hidden)$("submitWorkshopId").focus({preventScroll:true});
@@ -1399,6 +1400,7 @@ function openChangeRequest(id,trigger) {
     document.body.classList.add("submission-open");
     const overlay=$("changeMapOverlay");
     rememberModalOrigin(overlay,trigger);
+    overlay.style.visibility="hidden";
     overlay.hidden=false;
     runModalMotion(overlay,true,()=>{
         if(!overlay.hidden)$("changeReason").focus({preventScroll:true});
@@ -1552,6 +1554,7 @@ function openGithubGuide(mode, destination) {
     parentDialog.setAttribute("aria-hidden", "true");
     const overlay=$("githubGuideOverlay");
     rememberModalOrigin(overlay,githubGuideReturnFocus);
+    overlay.style.visibility="hidden";
     overlay.hidden=false;
     $("githubGuideDialog").scrollTop=0;
     runModalMotion(overlay,true,()=>{
