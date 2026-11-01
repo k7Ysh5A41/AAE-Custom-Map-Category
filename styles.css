@@ -4100,11 +4100,19 @@ html,body {
 .preview-content .map-intel-copy-button:active{
   transform:scale(.94);
 }
-.preview-content .map-intel-copy-button.is-copied{
+.preview-content .map-intel-copy-button.is-copied,
+.preview-content .map-intel-copy-button.is-copied:hover,
+.preview-content .map-intel-copy-button.is-copied:focus-visible{
   background:#244a34;
   border-color:#a5f3bc;
   color:#d9ffe5;
+  outline-color:#c6f8d5;
+  box-shadow:0 0 13px rgba(72,195,124,.3);
   animation:aaeIntelCopySuccess .42s cubic-bezier(.2,.7,.24,1) both;
+}
+.preview-content .map-intel-copy-button.is-copied:hover::before,
+.preview-content .map-intel-copy-button.is-copied:focus-visible::before{
+  animation:none;
 }
 .preview-content .map-intel-copy-button.is-copied .map-intel-copy-svg{
   opacity:0;

@@ -755,6 +755,7 @@ function renderPreview() {
         '</div>' +
         '<div class="preview-buttons map-intel-actions">' +
         '<a class="map-action map-action-workshop" href="' + escapeHtml(url) +
+        '" data-workshop-id="' + escapeHtml(map.id) +
         '" target="_blank" rel="noopener noreferrer" aria-label="' +
         escapeHtml(t("openWorkshop")) + '">' +
         '<span class="map-action-icon" aria-hidden="true">' +
@@ -1255,6 +1256,17 @@ function bind() {
         }
     });
     $("previewPane").addEventListener("click", async event => {
+        const workshopLink=event.target.closest(".map-action-workshop[data-workshop-id]");
+        if (workshopLink) {
+            const workshopId=workshopLink.dataset.workshopId;
+            if (/^\d+$/.test(workshopId)) {
+                try {
+                    // Keep the normal new-tab link; also open this item in Steam.
+                    window.location.assign("steam://url/CommunityFilePage/" + workshopId);
+                } catch (_) { /* The browser link remains available if Steam is blocked. */ }
+            }
+            return;
+        }
         const btn=event.target.closest("[data-copy]");
         if (!btn || btn.disabled) return;
         const label=btn.querySelector("[data-copy-label]");
